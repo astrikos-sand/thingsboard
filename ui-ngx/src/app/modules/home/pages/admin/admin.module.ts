@@ -33,6 +33,8 @@ import { QueueComponent } from '@home/pages/admin/queue/queue.component';
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
 import { AutoCommitAdminSettingsComponent } from '@home/pages/admin/auto-commit-admin-settings.component';
 import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-auth-settings.component';
+import { ReactflowDemoComponent } from '../../components/reactflow-demo/reactflow-demo.component';
+import { ReactFlowComponent } from '../../components/reactflow-demo/reactflow-wrapper';
 
 @NgModule({
   declarations:
@@ -49,13 +51,15 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
       QueueComponent,
       RepositoryAdminSettingsComponent,
       AutoCommitAdminSettingsComponent,
-      TwoFactorAuthSettingsComponent
+      TwoFactorAuthSettingsComponent,
+      ReactflowDemoComponent
     ],
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    AdminRoutingModule
+    AdminRoutingModule,
+    ReactFlowComponent,
   ]
 })
 export class AdminModule { }
