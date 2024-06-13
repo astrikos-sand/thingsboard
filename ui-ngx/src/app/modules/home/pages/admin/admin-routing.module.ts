@@ -12,10 +12,9 @@ import { OAuth2Service } from '@core/http/oauth2.service';
 import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
-import { ReactflowDemoComponent } from '@home/components/reactflow-demo/reactflow-demo.component';
 import { ResourcesLibraryTableConfigResolver } from '@home/pages/admin/resource/resources-library-table-config.resolve';
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
-import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
+import { entityDetailsPageBreadcrumbLabelFunction, flowMapPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 import { QueuesTableConfigResolver } from '@home/pages/admin/queue/queues-table-config.resolver';
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
@@ -25,6 +24,9 @@ import { widgetsLibraryRoutes } from '@home/pages/widget/widget-library-routing.
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
 import { ImageGalleryComponent } from '@shared/components/image/image-gallery.component';
+import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
+import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
+import { FlowDetailsResolver } from '@home/pages/admin/flow/flow-map-resolver.resolve';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -116,15 +118,36 @@ const routes: Routes = [
       },
       {
         path: 'flows',
-        component: ReactflowDemoComponent,
         data: {
           breadcrumb: {
-            label: 'Flow',
+            label: 'Flows',
             icon: 'mdi:sitemap'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: FlowListComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Flows List'
+            }
           },
-          auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
-          title: 'Flow'
-        }
+          {
+            path: ':flowId',
+            component: FlowMapComponent,
+            resolve: { flowDetails: FlowDetailsResolver },
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+              title: 'Flow Map',
+              breadcrumb: {
+                labelFunction: flowMapPageBreadcrumbLabelFunction,
+                icon: 'mdi:chart-bubble'
+              } 
+            },
+          }
+        ]
       }
     ]
   },

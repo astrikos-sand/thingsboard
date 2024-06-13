@@ -1,0 +1,66 @@
+<mat-drawer-container hasBackdrop="false" class="tb-absolute-fill">
+  <mat-drawer-content>
+    <div class="mat-padding tb-entity-table tb-absolute-fill">
+      <div fxLayout="column" class="tb-entity-table-content tb-outlined-border">
+        <mat-toolbar class="mat-mdc-table-toolbar">
+          <div class="mat-toolbar-tools">
+            <div
+              fxLayout="row"
+              fxLayoutAlign="start center"
+              fxLayout.xs="column"
+              fxLayoutAlign.xs="center start"
+              class="title-container"
+            >
+              <span class="tb-entity-table-title">Flow List</span>
+            </div>
+            <span fxFlex></span>
+          </div>
+        </mat-toolbar>
+        
+        <div fxFlex class="table-container">
+          <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" matSort (matSortChange)="sortData($event)">
+
+            <!-- Flow ID Column -->
+            <ng-container matColumnDef="id">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Flow ID </mat-header-cell>
+              <mat-cell *matCellDef="let flow"> {{flow.id}} </mat-cell>
+            </ng-container>
+
+            <!-- Flow Name Column -->
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Flow Name </mat-header-cell>
+              <mat-cell *matCellDef="let flow"> {{flow.name}} </mat-cell>
+            </ng-container>
+
+            <!-- Flow Description Column -->
+            <ng-container matColumnDef="description">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Description </mat-header-cell>
+              <mat-cell *matCellDef="let flow"> {{flow.description}} </mat-cell>
+            </ng-container>
+
+            <!-- Header and Row Definitions -->
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row 
+              *matRowDef="let row; columns: displayedColumns;"
+              (click)="openFlow(row.id)"
+              class="mat-row"
+              [ngClass]="{'mat-row-select': true, 'mat-selected': false, 'tb-pointer': true}">
+            </mat-row>
+          </table>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Add pagination if needed -->
+        <mat-paginator
+          [length]="totalFlows"
+          [pageIndex]="pageIndex"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          showFirstLastButtons
+          (page)="handlePageEvent($event)">
+        </mat-paginator>
+      </div>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

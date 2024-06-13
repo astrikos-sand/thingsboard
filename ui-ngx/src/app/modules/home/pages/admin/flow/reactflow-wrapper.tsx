@@ -43,22 +43,19 @@ import { createRoot, Root } from "react-dom/client";
 import { ReactFlowWrappableComponent } from "./reactflow";
 
 @Component({
-  selector: "react-flow",
+  selector: "reactflow-wrapper",
   template: ``,
-  styleUrls: ["../../../../../../node_modules/reactflow/dist/style.css"],
+  styleUrls: ["../../../../../../../node_modules/reactflow/dist/style.css"],
   standalone: true,
   encapsulation: ViewEncapsulation.None,
 })
-export class ReactFlowComponent implements OnChanges, OnDestroy, AfterViewInit {
+export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
   [key: string]: any;
 
   private _root: Root = null!;
 
   @Input() nodes?: Node<any, string | undefined>[] | undefined;
   @Input() edges?: Edge<any>[] | undefined;
-  // @Input() initialNodes?: Node<any, string | undefined>[] | undefined;
-  // @Input() initialEdges?: Edge<any>[] | undefined;
-  @Input() defaultEdgeOptions?: DefaultEdgeOptions | undefined;
 
   @Output() onNodeClick = new EventEmitter<[MouseEvent, Node]>();
   @Output() onNodeDoubleClick = new EventEmitter<[MouseEvent, Node]>();
@@ -194,6 +191,10 @@ export class ReactFlowComponent implements OnChanges, OnDestroy, AfterViewInit {
       this._root = createRoot(this.ngContainer.element.nativeElement);
     }
 
-    this._root.render(React.createElement(ReactFlowWrappableComponent));
+    this._root.render(
+      React.createElement(ReactFlowWrappableComponent, {
+        props: { nodes: this.nodes, edges: this.edges },
+      })
+    );
   }
 }

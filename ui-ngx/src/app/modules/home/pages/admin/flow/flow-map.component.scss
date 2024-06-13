@@ -52,12 +52,22 @@
 
   .custom-node__select {
     position: relative;
-    margin-bottom: 10px;
+    margin: 10px;
   }
-
+  .custom-node__input {
+    position: relative;
+    padding-bottom: 10px;
+  }
+  .custom-node__output {
+    position: relative;
+    padding-bottom: 20px;
+  }
   .custom-node__select select {
     width: 100%;
     margin-top: 5px;
     font-size: 10px;
+  }
+  .react-flow__edge-path {
+    stroke: #778899;
   }
 }

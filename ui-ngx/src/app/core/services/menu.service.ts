@@ -512,13 +512,6 @@ export class MenuService {
         icon: 'folder',
         pages: [
           {
-            id: 'flow',
-            name: 'Flow',
-            type: 'link',
-            path: '/resources/flows',
-            icon: 'mdi:sitemap'
-          },
-          {
             id: 'widget_library',
             name: 'widget.widget-library',
             type: 'link',
@@ -540,6 +533,13 @@ export class MenuService {
                 icon: 'now_widgets'
               }
             ]
+          },
+          {
+            id: 'flow',
+            name: 'Flow',
+            type: 'link',
+            path: '/resources/flows',
+            icon: 'mdi:sitemap-outline'
           },
           {
             id: 'images',
