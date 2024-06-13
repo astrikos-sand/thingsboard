@@ -171,6 +171,9 @@ import {
 import { WidgetConfigComponentsModule } from '@home/components/widget/config/widget-config-components.module';
 import { BasicWidgetConfigModule } from '@home/components/widget/config/basic/basic-widget-config.module';
 import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delete-timeseries-panel.component';
+import { AddFlowDialogComponent } from '@home/pages/admin/flow/add-flow-dialog.component';
+import { AddNodeClassDialog } from '@home/pages/admin/flow/add-node-class-dialog.component';
+import { AddBaseNodeClassDialog } from '@home/pages/admin/flow/add-base-node-class-dialog.component';
 
 @NgModule({
   declarations:
@@ -178,6 +181,9 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
       RouterTabsComponent,
       EntitiesTableComponent,
       AddEntityDialogComponent,
+      AddFlowDialogComponent,
+      AddNodeClassDialog,
+      AddBaseNodeClassDialog,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
       EntityDetailsPageComponent,
@@ -326,6 +332,9 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
     RouterTabsComponent,
     EntitiesTableComponent,
     AddEntityDialogComponent,
+    AddFlowDialogComponent,
+    AddNodeClassDialog,
+    AddBaseNodeClassDialog,
     DetailsPanelComponent,
     EntityDetailsPanelComponent,
     EntityDetailsPageComponent,

@@ -14,6 +14,10 @@ export class FlowService {
     return this.http.get(`${this.baseUrl}/flows/`);
   }
 
+  addFlow(flow: { name: string, description: string }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/flows/create_file/`, flow);
+  }
+
   fetchFlowDetails(flowId: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/flows/${flowId}/`);
   }
@@ -45,7 +49,6 @@ export class FlowService {
   }
 
   private readCSRFToken(): string | null {
-    // Implement the logic to read CSRF token from cookies or meta tags
     const name = 'csrftoken';
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
     if (match) return match[2];
