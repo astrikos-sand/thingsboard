@@ -5,6 +5,7 @@ import { FlowService } from '@app/core/services/flow.service';
 @Component({
   selector: 'app-add-flow-dialog',
   templateUrl: './add-flow-dialog.component.html',
+  styleUrls: ['./add-flow-dialog.component.scss']
 })
 export class AddFlowDialogComponent {
   flowName: string = '';

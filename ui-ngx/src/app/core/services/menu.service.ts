@@ -539,7 +539,7 @@ export class MenuService {
             name: 'Flow',
             type: 'link',
             path: '/resources/flows',
-            icon: 'mdi:sitemap-outline'
+            icon: 'mdi:sitemap'
           },
           {
             id: 'images',
