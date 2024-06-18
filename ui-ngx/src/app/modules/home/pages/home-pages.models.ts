@@ -19,6 +19,7 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
 import { EntityType } from '@shared/models/entity-type.models';
 import { ResourceInfo } from '@shared/models/resource.models';
 import { OtaPackage } from '@shared/models/ota-package.models';
+import { FlowMapComponent } from './admin/flow/flow-map.component';
 
 export const entityDetailsPageBreadcrumbLabelFunction: BreadCrumbLabelFunction<EntityDetailsPageComponent>
   = ((route, translate, component) => {
@@ -29,4 +30,10 @@ export const entityDetailsPageBreadcrumbLabelFunction: BreadCrumbLabelFunction<E
     default:
       return component.entity?.name;
   }
+});
+
+export const flowMapPageBreadcrumbLabelFunction: BreadCrumbLabelFunction<FlowMapComponent>
+  = ((route, translate, component) => {
+    console.log('component',component, component.name);
+  return component?.name;
 });

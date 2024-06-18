@@ -535,6 +535,13 @@ export class MenuService {
             ]
           },
           {
+            id: 'flow',
+            name: 'Flow',
+            type: 'link',
+            path: '/resources/flows',
+            icon: 'mdi:sitemap'
+          },
+          {
             id: 'images',
             name: 'image.gallery',
             type: 'link',

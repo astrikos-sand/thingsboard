@@ -1,19 +1,3 @@
-///
-/// Copyright © 2016-2024 The Thingsboard Authors
-///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
-///
-///     http://www.apache.org/licenses/LICENSE-2.0
-///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
-///
-
 import { Injectable, NgModule } from '@angular/core';
 import { Resolve, RouterModule, Routes } from '@angular/router';
 
@@ -30,7 +14,7 @@ import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { ResourcesLibraryTableConfigResolver } from '@home/pages/admin/resource/resources-library-table-config.resolve';
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
-import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
+import { entityDetailsPageBreadcrumbLabelFunction, flowMapPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 import { QueuesTableConfigResolver } from '@home/pages/admin/queue/queues-table-config.resolver';
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
@@ -40,6 +24,9 @@ import { widgetsLibraryRoutes } from '@home/pages/widget/widget-library-routing.
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
 import { ImageGalleryComponent } from '@shared/components/image/image-gallery.component';
+import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
+import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
+import { FlowDetailsResolver } from '@home/pages/admin/flow/flow-map-resolver.resolve';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -126,6 +113,39 @@ const routes: Routes = [
             resolve: {
               entitiesTableConfig: ResourcesLibraryTableConfigResolver
             }
+          }
+        ]
+      },
+      {
+        path: 'flows',
+        data: {
+          breadcrumb: {
+            label: 'Flows',
+            icon: 'mdi:sitemap'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: FlowListComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Flows List'
+            }
+          },
+          {
+            path: ':flowId',
+            component: FlowMapComponent,
+            resolve: { flowDetails: FlowDetailsResolver },
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+              title: 'Flow Map',
+              breadcrumb: {
+                labelFunction: flowMapPageBreadcrumbLabelFunction,
+                icon: 'mdi:chart-bubble'
+              } 
+            },
           }
         ]
       }

@@ -1,0 +1,15 @@
+<div class="mat-padding tb-entity-table tb-absolute-fill">
+  <div class="button-container">
+    <button (click)="openAddNewNodeDialog()">Add New Node</button>
+    <button (click)="openAddBaseNodeClassDialog()">Add New Base Node Class</button>
+    <button (click)="saveToBackend()">Save Flow</button>
+    <button (click)="executeFlow()">Execute Flow</button>
+  </div>
+  <reactflow-wrapper
+    [nodes]="nodes"
+    [edges]="edges"
+    (nodesChange)="onNodesChange($event)"
+    (edgesChange)="onEdgesChange($event)"
+    (connectionsChange)="onConnect($event)"
+  ></reactflow-wrapper>
+</div>

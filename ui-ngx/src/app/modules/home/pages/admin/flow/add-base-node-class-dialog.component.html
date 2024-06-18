@@ -1,0 +1,114 @@
+<form [formGroup]="form" (ngSubmit)="add()">
+  <mat-toolbar color="primary">
+    <h2>Add New Base Node Class</h2>
+    <span fxFlex></span>
+    <button mat-icon-button (click)="cancel()" type="button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-toolbar>
+  <mat-progress-bar
+    color="warn"
+    mode="indeterminate"
+    *ngIf="isLoading"
+  ></mat-progress-bar>
+  <div style="height: 4px" *ngIf="!isLoading"></div>
+  <div mat-dialog-content>
+    <mat-form-field>
+      <mat-label>Name</mat-label>
+      <input
+        matInput
+        placeholder="Enter Name"
+        formControlName="name"
+        required
+      />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Description</mat-label>
+      <textarea
+        matInput
+        placeholder="Enter Description"
+        formControlName="description"
+        required
+      ></textarea>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Inputs (comma-separated)</mat-label>
+      <input matInput placeholder="Enter Inputs" formControlName="inputs" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Outputs (comma-separated)</mat-label>
+      <input matInput placeholder="Enter Outputs" formControlName="outputs" />
+    </mat-form-field>
+
+    <div class="special-slots-container" formArrayName="specialSlots">
+      <button mat-button (click)="addSpecialSlot()">
+        Add Input Special Slot
+      </button>
+      <div
+        *ngFor="let slot of specialSlots.controls; let i = index"
+        [formGroupName]="i"
+        class="special-slot"
+      >
+        <mat-form-field class="slot-input">
+          <mat-label>Name</mat-label>
+          <input matInput placeholder="Name" formControlName="name" />
+        </mat-form-field>
+        <mat-form-field class="slot-select">
+          <mat-label>Speciality</mat-label>
+          <mat-select placeholder="Speciality" formControlName="speciality">
+            <mat-option value="DB">DB</mat-option>
+            <mat-option value="BACKEND">BACKEND</mat-option>
+            <mat-option value="API">API</mat-option>
+            <mat-option value="NODE_ID">NODE_ID</mat-option>
+            <mat-option value="SIG">SIGNAL</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="special-slots-container" formArrayName="outputSpecialSlots">
+      <button mat-button (click)="addOutputSpecialSlot()">
+        Add Output Special Slot
+      </button>
+      <div
+        *ngFor="let slot of outputSpecialSlots.controls; let i = index"
+        [formGroupName]="i"
+        class="special-slot"
+      >
+        <mat-form-field class="slot-input">
+          <mat-label>Name</mat-label>
+          <input matInput placeholder="Name" formControlName="name" />
+        </mat-form-field>
+        <mat-form-field class="slot-select">
+          <mat-label>Speciality</mat-label>
+          <mat-select placeholder="Speciality" formControlName="speciality">
+            <mat-option value="SIG">Signal</mat-option>
+            <mat-option value="SIG_DELAYED">Signal Delayed</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div style="height: 300px">
+      <ngx-monaco-editor
+        #editor
+        [options]="editorOptions"
+        [(ngModel)]="code"
+        [ngModelOptions]="{ standalone: true }"
+      ></ngx-monaco-editor>
+    </div>
+  </div>
+  <div mat-dialog-actions fxLayoutAlign="end center">
+    <button mat-button color="primary" type="button" (click)="cancel()">
+      Cancel
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="isLoading"
+    >
+      Add
+    </button>
+  </div>
+</form>

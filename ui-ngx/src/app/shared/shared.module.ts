@@ -16,6 +16,7 @@
 
 import { NgModule, SecurityContext } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { MonacoEditorModule, MONACO_PATH } from '@materia-ui/ngx-monaco-editor';
 import { FooterComponent } from '@shared/components/footer.component';
 import { LogoComponent } from '@shared/components/logo.component';
 import { TbSnackBarComponent, ToastDirective } from '@shared/components/toast.directive';
@@ -237,6 +238,10 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ShortNumberPipe,
     ImagePipe,
     {
+      provide: MONACO_PATH,
+      useValue: 'https://unpkg.com/monaco-editor@0.36.1/min/vs',
+    },
+    {
       provide: FlowInjectionToken,
       useValue: Flow
     },
@@ -421,6 +426,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
   imports: [
     CommonModule,
     RouterModule,
+    MonacoEditorModule,
     TranslateModule,
     MatBadgeModule,
     MatButtonModule,
@@ -618,6 +624,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ShortNumberPipe,
     SelectableColumnsPipe,
     RouterModule,
+    MonacoEditorModule,
     TranslateModule,
     JsonObjectEditDialogComponent,
     HistorySelectorComponent,

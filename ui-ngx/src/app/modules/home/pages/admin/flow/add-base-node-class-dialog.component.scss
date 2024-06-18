@@ -1,0 +1,90 @@
+form {
+  min-width: 400px;
+  width: 750px;
+  display: flex;
+  flex-direction: column;
+
+  mat-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h2 {
+      margin: 0;
+    }
+
+    button {
+      mat-icon {
+        font-size: 24px;
+      }
+    }
+  }
+
+  mat-progress-bar {
+    margin-top: -4px;
+  }
+
+  div {
+    &::ng-deep {
+      mat-form-field {
+        width: 100%;
+
+        mat-label {
+          font-weight: bold;
+        }
+
+        input,
+        textarea {
+          width: 100%;
+        }
+
+        mat-error {
+          color: red;
+        }
+      }
+    }
+  }
+
+  div[mat-dialog-actions] {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 16px;
+
+    button {
+      margin-left: 8px;
+    }
+  }
+}
+
+.special-slots-container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 10px;
+
+  button {
+    align-self: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .special-slot {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+
+    mat-form-field {
+      margin-right: 10px;
+    }
+
+    .slot-input {
+      flex: 1;
+    }
+
+    .slot-select {
+      flex: 1;
+    }
+  }
+}
