@@ -11,4 +11,4 @@ down:
 	docker compose down
 
 timescaledb:
-	docker exec -it timescaledb psql
+	docker exec -it timescaledb psql -d thingsboard
