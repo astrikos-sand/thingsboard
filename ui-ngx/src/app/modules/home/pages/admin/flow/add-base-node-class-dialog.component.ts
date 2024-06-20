@@ -1,16 +1,16 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { MatDialogRef } from "@angular/material/dialog";
+import { FormBuilder, FormGroup, Validators, FormArray } from "@angular/forms";
 import {
   MonacoEditorComponent,
   MonacoEditorConstructionOptions,
-} from '@materia-ui/ngx-monaco-editor';
-import { FlowService } from '@app/core/services/flow.service';
+} from "@materia-ui/ngx-monaco-editor";
+import { FlowService } from "@app/core/services/flow.service";
 
 @Component({
-  selector: 'add-base-node-class-dialog',
-  templateUrl: './add-base-node-class-dialog.component.html',
-  styleUrls: ['./add-base-node-class-dialog.component.scss'],
+  selector: "add-base-node-class-dialog",
+  templateUrl: "./add-base-node-class-dialog.component.html",
+  styleUrls: ["./add-base-node-class-dialog.component.scss"],
 })
 export class AddBaseNodeClassDialog implements OnInit {
   form: FormGroup;
@@ -20,8 +20,8 @@ export class AddBaseNodeClassDialog implements OnInit {
     | MonacoEditorComponent
     | undefined;
   editorOptions: MonacoEditorConstructionOptions = {
-    language: 'python',
-    theme: 'vs-dark',
+    language: "python",
+    theme: "vs-dark",
     automaticLayout: true,
   };
   mainCode = `# Implement your logic here`;
@@ -33,10 +33,10 @@ export class AddBaseNodeClassDialog implements OnInit {
     private flowService: FlowService
   ) {
     this.form = this.fb.group({
-      name: ['', Validators.required],
-      description: ['', Validators.required],
-      inputs: [''],
-      outputs: [''],
+      name: ["", Validators.required],
+      description: ["", Validators.required],
+      inputs: [""],
+      outputs: [""],
       specialSlots: this.fb.array([]),
       outputSpecialSlots: this.fb.array([]),
     });
@@ -50,19 +50,19 @@ export class AddBaseNodeClassDialog implements OnInit {
   }
 
   get specialSlots(): FormArray {
-    return this.form.get('specialSlots') as FormArray;
+    return this.form.get("specialSlots") as FormArray;
   }
 
   get outputSpecialSlots(): FormArray {
-    return this.form.get('outputSpecialSlots') as FormArray;
+    return this.form.get("outputSpecialSlots") as FormArray;
   }
 
   addSpecialSlot() {
     this.specialSlots.push(
       this.fb.group({
-        name: [''],
-        speciality: [''],
-        attachment_type: ['IN'],
+        name: [""],
+        speciality: [""],
+        attachment_type: ["IN"],
       })
     );
   }
@@ -70,22 +70,22 @@ export class AddBaseNodeClassDialog implements OnInit {
   addOutputSpecialSlot() {
     this.outputSpecialSlots.push(
       this.fb.group({
-        name: [''],
-        speciality: [''],
-        attachment_type: ['OUT'],
+        name: [""],
+        speciality: [""],
+        attachment_type: ["OUT"],
       })
     );
   }
 
   updateCode() {
-    const inputs = this.form.get('inputs')?.value || '';
-    const outputs = this.form.get('outputs')?.value || '';
+    const inputs = this.form.get("inputs")?.value || "";
+    const outputs = this.form.get("outputs")?.value || "";
     const specialSlots = this.specialSlots.controls
       .map((slot) => slot.value.name)
       .filter((name) => name)
-      .join(',');
+      .join(",");
     const parameters =
-      inputs + (specialSlots ? (inputs ? ',' : '') + specialSlots : '');
+      inputs + (specialSlots ? (inputs ? "," : "") + specialSlots : "");
 
     const mainMatch = this.code.match(/def func\([^)]*\):\n\s*(.*)\n\s*return/);
     this.mainCode = mainMatch ? mainMatch[1] : this.mainCode;
@@ -113,35 +113,42 @@ export class AddBaseNodeClassDialog implements OnInit {
 
     const slots = [
       ...inputs
-        .split(',')
-        .map((name: any) => ({ name, attachment_type: 'IN' })),
+        .split(",")
+        .map((name: any) => ({ name, attachment_type: "IN" })),
       ...outputs
-        .split(',')
-        .map((name: any) => ({ name, attachment_type: 'OUT' })),
+        .split(",")
+        .map((name: any) => ({ name, attachment_type: "OUT" })),
       ...specialSlots,
       ...outputSpecialSlots,
     ];
 
     const specialParameters = specialSlots
-      .filter((slot: { speciality: string }) => slot.speciality !== 'SIG')
+      .filter((slot: { speciality: string }) => slot.speciality !== "SIG")
       .map((slot: { name: any }) => slot.name)
-      .join(',');
+      .join(",");
     const parameters =
       inputs +
-      (specialParameters ? (inputs ? ', ' : '') + specialParameters : '');
+      (specialParameters ? (inputs ? ", " : "") + specialParameters : "");
 
-    const codeBlob = new Blob([this.code], { type: 'text/plain' });
+    let submit_code = "";
+    if (outputs.length > 0) {
+      submit_code = `${this.code}\n\n${outputs} = func(${parameters})`;
+    } else {
+      submit_code = `${this.code}\n\nfunc(${parameters})`;
+    }
+
+    const codeBlob = new Blob([submit_code], { type: "text/plain" });
     const codeFileFormData = new FormData();
-    codeFileFormData.append('code_file', codeBlob, `${name}-code.py`);
-    codeFileFormData.append('name', name);
-    codeFileFormData.append('description', description);
-    codeFileFormData.append('slots', JSON.stringify(slots));
+    codeFileFormData.append("code_file", codeBlob, `${name}-code.py`);
+    codeFileFormData.append("name", name);
+    codeFileFormData.append("description", description);
+    codeFileFormData.append("slots", JSON.stringify(slots));
     this.flowService.addBaseClass(codeFileFormData).subscribe(
       (newFlow) => {
         this.dialogRef.close(newFlow);
       },
       (error) => {
-        console.error('Error adding flow:', error);
+        console.error("Error adding flow:", error);
         this.isLoading = false;
       }
     );

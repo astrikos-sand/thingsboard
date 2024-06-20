@@ -1,6 +1,5 @@
 import { Component, OnInit, Renderer2, ViewContainerRef } from "@angular/core";
 import { MatButton } from "@angular/material/button";
-import { EnvService } from "@app/core/services/env.service";
 import { TbPopoverService } from "@shared/components/popover.service";
 import { CreateEnvPopoverComponent } from "./create-env-popover.component";
 
@@ -11,7 +10,6 @@ import { CreateEnvPopoverComponent } from "./create-env-popover.component";
 export class CreateEnvButtonComponent implements OnInit {
   constructor(
     private popoverService: TbPopoverService,
-    private envService: EnvService,
     private renderer: Renderer2,
     private viewContainerRef: ViewContainerRef
   ) {}
@@ -50,8 +48,10 @@ export class CreateEnvButtonComponent implements OnInit {
         },
         false
       );
-      createEnvPopover.tbComponentRef.instance.popoverComponent =
-        createEnvPopover;
+      createEnvPopover.tbComponentRef.instance.envCreated.subscribe(() => {
+        createEnvPopover.hide();
+      });
+      createEnvPopover.tbComponentRef.instance.popoverComponent = createEnvPopover;
     }
   }
 }

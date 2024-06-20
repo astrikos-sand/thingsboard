@@ -23,12 +23,23 @@
         Description is required.
       </mat-error>
     </mat-form-field>
+    <mat-form-field>
+      <mat-label>Environment</mat-label>
+      <mat-select [(ngModel)]="selectedEnv" name="environment" required>
+        <mat-option *ngFor="let env of environments" [value]="env.id">
+          {{ env.name }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="submitted && !selectedEnv">
+        Environment is required.
+      </mat-error>
+    </mat-form-field>
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
     <button mat-button color="primary" type="button" (click)="cancel()">
       Cancel
     </button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="isLoading || !flowName || !description">
+    <button mat-raised-button color="primary" type="submit" [disabled]="isLoading || !flowName || !description || !selectedEnv">
       Add
     </button>
   </div>

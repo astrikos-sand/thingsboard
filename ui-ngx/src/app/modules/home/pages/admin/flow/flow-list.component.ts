@@ -14,7 +14,13 @@ import { MatSort, Sort } from "@angular/material/sort";
 })
 export class FlowListComponent implements OnInit {
   flows: any[] = [];
-  displayedColumns: string[] = ["id", "name", "description"];
+  displayedColumns: string[] = [
+    "id",
+    "name",
+    "description",
+    "environment",
+    "actions",
+  ];
   dataSource = new MatTableDataSource<any>(this.flows);
   totalFlows = 0;
   pageIndex = 0;
@@ -34,8 +40,9 @@ export class FlowListComponent implements OnInit {
 
   fetchFlows(): void {
     this.flowService.fetchFlows().subscribe(
-      (data) => {
+      async (data) => {
         this.flows = data;
+        await this.loadEnvironmentDetails();
         this.dataSource.data = this.flows;
         this.totalFlows = data.length;
         this.dataSource.sort = this.sort;
@@ -45,6 +52,17 @@ export class FlowListComponent implements OnInit {
         console.error("Error fetching flows:", error);
       }
     );
+  }
+
+  async loadEnvironmentDetails(): Promise<void> {
+    for (const flow of this.flows) {
+      try {
+        const env = await this.flowService.getEnv(flow.environment).toPromise();
+        flow.environment = env;
+      } catch (error) {
+        console.error("Error fetching environment details:", error);
+      }
+    }
   }
 
   handlePageEvent(event: PageEvent): void {
@@ -63,6 +81,11 @@ export class FlowListComponent implements OnInit {
     this.router.navigate([`resources/flows/${flowId}`]);
   }
 
+  openEnvironmentFile(event: Event, filePath: string): void {
+    event.stopPropagation();
+    window.open(filePath, "_blank");
+  }
+
   sortData(sort: Sort): void {
     const data = this.flows.slice();
     if (!sort.active || sort.direction === "") {
@@ -79,6 +102,8 @@ export class FlowListComponent implements OnInit {
           return compare(a.name, b.name, isAsc);
         case "description":
           return compare(a.description, b.description, isAsc);
+        case "environment":
+          return compare(a.environment.name, b.environment.name, isAsc);
         default:
           return 0;
       }

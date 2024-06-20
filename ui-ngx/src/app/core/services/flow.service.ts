@@ -18,7 +18,7 @@ export class FlowService {
     return this.http.get(`${this.baseUrl}/node-classes/`);
   }
 
-  addFlow(flow: { name: string; description: string }): Observable<any> {
+  addFlow(flow: { name: string; description: string, environment: string}): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/flows/create_file/`, flow);
   }
 
@@ -39,6 +39,15 @@ export class FlowService {
       connections: data.connections,
       flow_file_id: flowId,
     });
+  }
+
+  createENV(formData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/env/`, formData);
+  }
+
+  getEnv(id?: string): Observable<any> {
+    if(id) return this.http.get<any>(`${this.baseUrl}/env/${id}/`)
+    return this.http.get<any>(`${this.baseUrl}/env/`);
   }
 
   executeFlow(flowId: string): Observable<any> {

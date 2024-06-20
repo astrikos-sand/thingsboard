@@ -1,8 +1,7 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, EventEmitter, OnInit, Output } from "@angular/core";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { EnvService } from "@app/core/services/env.service";
+import { FlowService } from "@app/core/services/flow.service";
 import { TbPopoverComponent } from "@app/shared/components/popover.component";
-import { Env } from "@app/shared/models/env.model";
 import { Observable } from "rxjs";
 
 @Component({
@@ -11,14 +10,15 @@ import { Observable } from "rxjs";
   styleUrls: ["./create-env-popover.component.scss"],
 })
 export class CreateEnvPopoverComponent implements OnInit {
-  envs$: Observable<Env[]>;
+  @Output() envCreated = new EventEmitter<void>();
+  envs$: Observable<any[]>;
   createEnvForm: FormGroup;
   popoverComponent: TbPopoverComponent<CreateEnvPopoverComponent>;
 
-  constructor(private fb: FormBuilder, private envService: EnvService) {}
+  constructor(private fb: FormBuilder, private flowService: FlowService) {}
 
   ngOnInit(): void {
-    this.envs$ = this.envService.getEnv();
+    this.envs$ = this.flowService.getEnv();
     this.createEnvForm = this.fb.group({
       name: [""],
       requirements: [null],
@@ -36,25 +36,32 @@ export class CreateEnvPopoverComponent implements OnInit {
 
   submit(): void {
     const formData = new FormData();
-    console.log(this.createEnvForm)
     formData.append("name", this.createEnvForm.get("name").value);
     formData.append(
       "requirements",
       this.createEnvForm.get("requirements").value
     );
-    console.log(formData)
-    this.envService.createENV(formData).subscribe((response) => {
-      window.location.href = "/admin/";
-    });
+
+    this.flowService.createENV(formData).subscribe(
+      (response) => {
+        this.envCreated.emit();
+        this.createEnvForm.reset({
+          name: "",
+          requirements: null,
+        });
+      },
+      (error) => {
+        console.error("Error creating environment:", error);
+      }
+    );
   }
 
   openFile(filePath: string): void {
-    // Implement the logic to open the file
     window.open(filePath, "_blank");
   }
 
   deleteEnv(envId: number): void {
-    // this.envService.deleteENV(envId).subscribe((response) => {
+    // this.flowService.deleteENV(envId).subscribe((response) => {
     //   // Refresh the list after deletion
     //   this.envs$ = this.envService.getEnv();
     // });
