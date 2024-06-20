@@ -25,6 +25,8 @@ import { MenuToggleComponent } from '@modules/home/menu/menu-toggle.component';
 import { SideMenuComponent } from '@modules/home/menu/side-menu.component';
 import { NotificationBellComponent } from '@home/components/notification/notification-bell.component';
 import { ShowNotificationPopoverComponent } from '@home/components/notification/show-notification-popover.component';
+import { CreateEnvPopoverComponent } from './components/env/create-env-popover.component';
+import { CreateEnvButtonComponent } from './components/env/create-env-button.component';
 
 @NgModule({
   declarations:
@@ -34,7 +36,9 @@ import { ShowNotificationPopoverComponent } from '@home/components/notification/
       MenuToggleComponent,
       SideMenuComponent,
       NotificationBellComponent,
-      ShowNotificationPopoverComponent
+      CreateEnvButtonComponent,
+      ShowNotificationPopoverComponent,
+      CreateEnvPopoverComponent
     ],
   imports: [
     CommonModule,

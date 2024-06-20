@@ -1,0 +1,56 @@
+<section
+  fxLayout="row"
+  fxLayoutAlign="space-between center"
+  class="env-section"
+>
+  <div class="env-title">Environments</div>
+</section>
+<mat-divider></mat-divider>
+<div *ngIf="envs$ | async as envs; else loading">
+  <div *ngIf="envs.length; else empty">
+    <section class="env-list">
+      <div *ngFor="let env of envs; let last = last" class="env-item">
+        <div class="env-details">{{ env.name }}</div>
+        <div class="env-actions">
+          <button mat-button (click)="openFile(env.requirements)">
+            Open File
+          </button>
+          <button mat-button color="warn" (click)="deleteEnv(env.id)">
+            Delete
+          </button>
+        </div>
+        <mat-divider *ngIf="!last" class="env-divider"></mat-divider>
+      </div>
+    </section>
+  </div>
+</div>
+<ng-template #loading>
+  <div class="loading-container">
+    <mat-spinner color="accent" diameter="65" strokeWidth="4"></mat-spinner>
+    <div class="loading-text">Loading environments...</div>
+  </div>
+</ng-template>
+<ng-template #empty>
+  <div class="empty-container">
+    <div>No environments available</div>
+  </div>
+</ng-template>
+<form [formGroup]="createEnvForm" (ngSubmit)="submit()" class="env-form" enctype="multipart/form-data">
+  <div class="form-group">
+    <input
+      formControlName="name"
+      placeholder="Environment Name"
+      required
+      class="form-control"
+    />
+  </div>
+  <div class="form-group">
+    <input
+      type="file"
+      (change)="onFileChange($event)"
+      required
+      class="form-control"
+    />
+  </div>
+  <button type="submit" class="submit-button">Create ENV</button>
+</form>
