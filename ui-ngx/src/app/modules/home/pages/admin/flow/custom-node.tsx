@@ -9,7 +9,7 @@ function CustomNode({ data, isConnectable }: { data: any; isConnectable: any }) 
   const [resultModal, setResultModal] = useState(false)
   const value =
     data.node_type == "DataNode"
-      ? `${data.value} (${data.type}) (DataNode)`
+      ? `${data.name} (${data.type}) (DataNode)`
       : `${data.node_class_name} (${data.node_class_type})`;
 
   const special_input_slots = data.special_slots?.filter(
