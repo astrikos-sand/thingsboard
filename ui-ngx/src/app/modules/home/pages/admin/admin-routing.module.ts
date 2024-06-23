@@ -27,6 +27,7 @@ import { ImageGalleryComponent } from '@shared/components/image/image-gallery.co
 import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
 import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
 import { FlowDetailsResolver } from '@home/pages/admin/flow/flow-map-resolver.resolve';
+import { ArchivesComponent } from './archives/archives.component';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -112,6 +113,25 @@ const routes: Routes = [
             },
             resolve: {
               entitiesTableConfig: ResourcesLibraryTableConfigResolver
+            }
+          }
+        ]
+      },
+      {
+        path: 'archives',
+        data: {
+          breadcrumb: {
+            label: 'Archives',
+            icon: 'mdi:archive'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: ArchivesComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Archives'
             }
           }
         ]

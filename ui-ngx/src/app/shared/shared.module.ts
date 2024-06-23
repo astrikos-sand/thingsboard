@@ -436,7 +436,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     MatCardModule,
     MatProgressBarModule,
     MatInputModule,
-    MatSnackBarModule,
     MatSidenavModule,
     MatToolbarModule,
     MatMenuModule,

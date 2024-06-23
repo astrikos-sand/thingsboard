@@ -535,6 +535,13 @@ export class MenuService {
             ]
           },
           {
+            id: 'archive',
+            name: 'Archives',
+            type: 'link',
+            path: '/resources/archives',
+            icon: 'mdi:archive'
+          },
+          {
             id: 'flow',
             name: 'Flow',
             type: 'link',

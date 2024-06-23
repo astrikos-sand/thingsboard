@@ -1,0 +1,79 @@
+<mat-drawer-container hasBackdrop="false" class="tb-absolute-fill">
+  <mat-drawer-content>
+    <div class="mat-padding tb-entity-table tb-absolute-fill">
+      <div fxLayout="column" class="tb-entity-table-content tb-outlined-border">
+        <mat-toolbar class="mat-mdc-table-toolbar">
+          <div class="mat-toolbar-tools">
+            <div
+              fxLayout="row"
+              fxLayoutAlign="start center"
+              fxLayout.xs="column"
+              fxLayoutAlign.xs="center start"
+              class="title-container"
+            >
+              <span class="tb-entity-table-title">File Archives</span>
+              <button
+                mat-icon-button
+                (click)="openAddFileDialog()"
+                aria-label="Add new file"
+              >
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+            <span fxFlex></span>
+          </div>
+        </mat-toolbar>
+
+        <div fxFlex class="table-container">
+          <table
+            mat-table
+            [dataSource]="dataSource"
+            class="mat-elevation-z8"
+            matSort
+            (matSortChange)="sortData($event)"
+          >
+            <ng-container matColumnDef="filename">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Name of the file
+              </mat-header-cell>
+              <mat-cell *matCellDef="let file">{{ file.filename }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="filepath">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                File Path
+              </mat-header-cell>
+              <mat-cell *matCellDef="let file">{{ file.file }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+              <mat-cell *matCellDef="let file">
+                <button mat-icon-button (click)="copyFileUrl(file.file)">
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+                <button mat-icon-button (click)="deleteFile(file.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let file; columns: displayedColumns"></mat-row>
+          </table>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <mat-paginator
+          [length]="totalFiles"
+          [pageIndex]="pageIndex"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="handlePageEvent($event)"
+          showFirstLastButtons
+        ></mat-paginator>
+      </div>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>
