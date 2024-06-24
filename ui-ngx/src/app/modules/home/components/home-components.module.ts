@@ -174,6 +174,7 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
 import { AddFlowDialogComponent } from '@home/pages/admin/flow/add-flow-dialog.component';
 import { AddNewNodeDialog } from '@app/modules/home/pages/admin/flow/add-node-dialog.component';
 import { AddBaseNodeClassDialog } from '@home/pages/admin/flow/add-base-node-class-dialog.component';
+import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-dialog.component';
 
 @NgModule({
   declarations:
@@ -184,6 +185,7 @@ import { AddBaseNodeClassDialog } from '@home/pages/admin/flow/add-base-node-cla
       AddFlowDialogComponent,
       AddNewNodeDialog,
       AddBaseNodeClassDialog,
+      UploadFileDialogComponent,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
       EntityDetailsPageComponent,
@@ -335,6 +337,7 @@ import { AddBaseNodeClassDialog } from '@home/pages/admin/flow/add-base-node-cla
     AddFlowDialogComponent,
     AddNewNodeDialog,
     AddBaseNodeClassDialog,
+    UploadFileDialogComponent,
     DetailsPanelComponent,
     EntityDetailsPanelComponent,
     EntityDetailsPageComponent,

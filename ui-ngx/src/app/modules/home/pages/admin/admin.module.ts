@@ -36,6 +36,7 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
 import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
 import { ReactFlowWrapper } from '@home/pages/admin/flow/reactflow-wrapper';
 import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
+import { ArchivesComponent } from './archives/archives.component';
 
 @NgModule({
   declarations:
@@ -54,7 +55,8 @@ import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
       AutoCommitAdminSettingsComponent,
       TwoFactorAuthSettingsComponent,
       FlowMapComponent,
-      FlowListComponent
+      FlowListComponent,
+      ArchivesComponent
     ],
   imports: [
     CommonModule,
