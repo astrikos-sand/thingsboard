@@ -19,6 +19,8 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   flowId!: string;
   name!: string;
   isLoading: boolean = false;
+  executionTime: number | undefined;
+  executionStatus: string | undefined;
   private subscriptions: Subscription = new Subscription();
 
   constructor(
@@ -197,15 +199,24 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
   executeFlow(): void {
     this.isLoading = true;
+    const startTime = new Date();
+
     this.flowService.executeFlow(this.flowId).subscribe(
       (response) => {
+        const endTime = new Date();
+        this.executionTime = (endTime.getTime() - startTime.getTime()) / 1000;
+        this.executionStatus = 'Flow executed successfully';
         alert('Flow executed successfully');
       },
       (error) => {
         console.error('Error executing flow:', error);
+        this.isLoading = false;
+        this.executionStatus = 'Error executing flow';
+        alert('Error executing flow, see the logs in archives');
       },
       () => {
         this.isLoading = false;
+        console.log('Execution completed or interrupted, see the logs in archives');
       }
     );
   }

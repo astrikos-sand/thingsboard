@@ -4,6 +4,11 @@
     <button (click)="openAddBaseNodeClassDialog()">Add New Base Node Class</button>
     <button (click)="saveToBackend()">Save Flow</button>
     <button (click)="executeFlow()">Execute Flow</button>
+    <div *ngIf="isLoading">Loading...</div>
+    <div *ngIf="executionTime !== undefined">
+      Execution time: {{ executionTime }} seconds
+    </div>
+    <div *ngIf="executionStatus">{{ executionStatus }}</div>
   </div>
   <reactflow-wrapper
     [nodes]="nodes"
