@@ -505,6 +505,29 @@ export class MenuService {
         ]
       },
       {
+        id: 'flows',
+        name: 'Flows',
+        type: 'toggle',
+        path: '/flows',
+        icon: 'mdi:sitemap',
+        pages: [
+          {
+            id: 'library',
+            name: 'Flows Library',
+            type: 'link',
+            path: '/flows/library',
+            icon: 'folder'
+          },
+          {
+            id: 'archive',
+            name: 'Archives',
+            type: 'link',
+            path: '/flows/archives',
+            icon: 'mdi:archive'
+          },
+        ]
+      },
+      {
         id: 'resources',
         name: 'admin.resources',
         type: 'toggle',
@@ -533,27 +556,6 @@ export class MenuService {
                 icon: 'now_widgets'
               }
             ]
-          },
-          {
-            id: 'archive',
-            name: 'Archives',
-            type: 'link',
-            path: '/resources/archives',
-            icon: 'mdi:archive'
-          },
-          {
-            id: 'flow',
-            name: 'Flow',
-            type: 'link',
-            path: '/resources/flows',
-            icon: 'mdi:sitemap'
-          },
-          {
-            id: 'node-classes',
-            name: 'Node Classes',
-            type: 'link',
-            path: '/resources/node-classes',
-            icon: 'mdi:function-variant'
           },
           {
             id: 'images',

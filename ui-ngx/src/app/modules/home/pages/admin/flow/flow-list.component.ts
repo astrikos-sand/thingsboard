@@ -78,7 +78,7 @@ export class FlowListComponent implements OnInit {
   }
 
   openFlow(flowId: string): void {
-    this.router.navigate([`resources/flows/${flowId}`]);
+    this.router.navigate([`flows/library/${flowId}`]);
   }
 
   openEnvironmentFile(event: Event, filePath: string): void {

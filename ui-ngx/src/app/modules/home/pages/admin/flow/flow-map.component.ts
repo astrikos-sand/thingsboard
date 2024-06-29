@@ -222,7 +222,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   }
 
   navigateToFlows(): void {
-    this.router.navigate(['/resources/flows']);
+    this.router.navigate(['/flows']);
   }
 
   onNodesChange(changes: any) {
