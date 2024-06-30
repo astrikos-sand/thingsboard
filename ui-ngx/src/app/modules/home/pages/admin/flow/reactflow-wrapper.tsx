@@ -30,6 +30,7 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
   @Output() nodesChange = new EventEmitter<any>();
   @Output() edgesChange = new EventEmitter<any>();
   @Output() connectionsChange = new EventEmitter<any>();
+  @Output() positionChange = new EventEmitter<any>();
 
   constructor(private viewContainerRef: ViewContainerRef) {}
 
@@ -60,6 +61,7 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
           onNodesChange: this.handleNodesChange.bind(this),
           onEdgesChange: this.handleEdgesChange.bind(this),
           onConnectionsChange: this.handleConnectionsChange.bind(this),
+          onSetPosition: this.handleSetPosition.bind(this),
         },
       })
     );
@@ -75,5 +77,9 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
 
   private handleConnectionsChange(connection: any) {
     this.connectionsChange.emit(connection);
+  }
+
+  private handleSetPosition(position: any) {
+    this.positionChange.emit(position);
   }
 }

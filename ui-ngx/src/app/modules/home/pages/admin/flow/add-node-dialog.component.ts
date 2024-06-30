@@ -91,7 +91,6 @@ export class AddNewNodeDialog implements OnInit {
   add(): void {
     if (this.form.valid) {
       this.isLoading = true;
-      console.log(this.data)
       let nodeData: any;
       if (this.form.value.nodeType === 'data') {
         const { name, description, value, dataType } = this.form.value;
@@ -110,6 +109,7 @@ export class AddNewNodeDialog implements OnInit {
           flow_file: this.data.flowId,
           node_class: this.form.value.selectedDynamicClass,
           node_type: 'GenericNode',
+          position: this.data.flowPosition,
           source_connections: [],
           target_connections: [],
         };
@@ -117,12 +117,12 @@ export class AddNewNodeDialog implements OnInit {
 
       this.flowService.addNode(nodeData).subscribe(
         (response: any) => {
-          const { id, source_connections, target_connections, ...rest } =
+          const { id, source_connections, target_connections ,position, ...rest } =
             response;
           const newDataNode = {
             id: id.toString(),
             type: 'custom',
-            position: { x: 0, y: 0 },
+            position: position,
             data: {
               id,
               label: 'Node',

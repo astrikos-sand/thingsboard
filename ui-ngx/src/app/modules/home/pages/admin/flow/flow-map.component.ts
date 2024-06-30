@@ -21,6 +21,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   executionTime: number | undefined;
   executionStatus: string | undefined;
+  flowPosition: {x: number, y: number} | undefined;
   private subscriptions: Subscription = new Subscription();
 
   constructor(
@@ -63,6 +64,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
         flowId: this.flowId,
         nodes: this.nodes,
         setNodes: (newNodes: any[]) => (this.nodes = newNodes),
+        flowPosition: this.flowPosition,
       },
     });
 
@@ -235,5 +237,9 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
   onConnect(connection: any) {
     this.stateService.updateEdges((eds) => addEdge(connection, eds));
+  }
+
+  onPositionChange(position: any) {
+    this.flowPosition = position;
   }
 }
