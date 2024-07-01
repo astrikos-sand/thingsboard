@@ -28,6 +28,7 @@ import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
 import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
 import { FlowDetailsResolver } from '@home/pages/admin/flow/flow-map-resolver.resolve';
 import { ArchivesComponent } from './archives/archives.component';
+import { NodeClassesListComponent } from './node-classes/node-classes-list.component';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -164,9 +165,28 @@ const routes: Routes = [
               breadcrumb: {
                 labelFunction: flowMapPageBreadcrumbLabelFunction,
                 icon: 'mdi:chart-bubble'
-              } 
+              }
             },
           }
+        ]
+      },
+      {
+        path: 'node-classes',
+        data: {
+          breadcrumb: {
+            label: 'Node Classes',
+            icon: 'mdi:function-variant'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: NodeClassesListComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Node Classes'
+            }
+          },
         ]
       }
     ]

@@ -37,6 +37,7 @@ import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
 import { ReactFlowWrapper } from '@home/pages/admin/flow/reactflow-wrapper';
 import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
 import { ArchivesComponent } from './archives/archives.component';
+import { NodeClassesListComponent } from './node-classes/node-classes-list.component';
 
 @NgModule({
   declarations:
@@ -56,7 +57,8 @@ import { ArchivesComponent } from './archives/archives.component';
       TwoFactorAuthSettingsComponent,
       FlowMapComponent,
       FlowListComponent,
-      ArchivesComponent
+      ArchivesComponent,
+      NodeClassesListComponent,
     ],
   imports: [
     CommonModule,

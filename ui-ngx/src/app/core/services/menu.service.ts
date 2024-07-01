@@ -549,6 +549,13 @@ export class MenuService {
             icon: 'mdi:sitemap'
           },
           {
+            id: 'node-classes',
+            name: 'Node Classes',
+            type: 'link',
+            path: '/resources/node-classes',
+            icon: 'mdi:function-variant'
+          },
+          {
             id: 'images',
             name: 'image.gallery',
             type: 'link',
