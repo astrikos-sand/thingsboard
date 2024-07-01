@@ -37,7 +37,7 @@
               <mat-header-cell *matHeaderCellDef mat-sort-header>
                 Flow ID
               </mat-header-cell>
-              <mat-cell *matCellDef="let flow"> {{ flow.id }} </mat-cell>
+              <mat-cell *matCellDef="let flow"> {{ flow.id | slice:0:7 }} </mat-cell>
             </ng-container>
 
             <!-- Flow Name Column -->
@@ -74,10 +74,10 @@
                 <button
                   mat-button
                   (click)="
-                    openEnvironmentFile($event, flow.environment.requirements)
+                    export_flow($event, flow.id)
                   "
                 >
-                  Open Env
+                  Export
                 </button>
               </mat-cell>
             </ng-container>

@@ -86,6 +86,11 @@ export class FlowListComponent implements OnInit {
     window.open(filePath, "_blank");
   }
 
+  export_flow(event: Event, flowId: string): void {
+    event.stopPropagation();
+    window.open(`http://localhost:8000/tasks/${flowId}/export_flow/`, "_blank");
+  }
+
   sortData(sort: Sort): void {
     const data = this.flows.slice();
     if (!sort.active || sort.direction === "") {
