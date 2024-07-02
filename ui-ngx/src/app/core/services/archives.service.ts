@@ -13,7 +13,7 @@ export interface ArchiveFile {
   providedIn: "root",
 })
 export class ArchivesService {
-  private apiUrl = "http://localhost:8000/archives/";
+  private apiUrl = "/backend/archives/";
 
   constructor(private http: HttpClient) {}
 

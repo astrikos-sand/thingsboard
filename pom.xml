@@ -799,6 +799,7 @@
                             <owner>The Thingsboard Authors</owner>
                         </properties>
                         <excludes>
+                            <exclude>**/</exclude>
                             <exclude>**/.env</exclude>
                             <exclude>**/*.env</exclude>
                             <exclude>**/.eslintrc</exclude>
@@ -877,11 +878,12 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-devtools</artifactId>
-                <optional>true</optional>
-            </dependency>
+		    <dependency>
+        	    <groupId>org.springframework.boot</groupId>
+        	    <artifactId>spring-boot-devtools</artifactId>
+        	    <optional>true</optional>
+                <scope>runtime</scope>
+    	    </dependency>
             <dependency>
                 <groupId>org.thingsboard</groupId>
                 <artifactId>netty-mqtt</artifactId>

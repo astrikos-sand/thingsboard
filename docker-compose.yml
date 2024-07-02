@@ -26,5 +26,17 @@ services:
     volumes:
       - timescale_data:/home/postgres/pgdata
 
+  thingsboard:
+    image: astrikos-thingsboard
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: thingsboard
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/thingsboard
+    depends_on:
+      - broker
+      - timescaledb
+
 volumes:
   timescale_data:

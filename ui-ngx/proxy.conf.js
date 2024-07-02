@@ -15,6 +15,7 @@
  */
 const forwardUrl = "http://localhost:8080";
 const wsForwardUrl = "ws://localhost:8080";
+const backendUrl = "http://localhost:8000";
 const ruleNodeUiforwardUrl = forwardUrl;
 
 const PROXY_CONFIG = {
@@ -43,6 +44,10 @@ const PROXY_CONFIG = {
     "ws": true,
     "secure": false
   },
+  "/backend": {
+    "target": backendUrl,
+    "secure": false,
+  }
 };
 
 module.exports = PROXY_CONFIG;

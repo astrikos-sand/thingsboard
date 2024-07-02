@@ -88,7 +88,7 @@ export class FlowListComponent implements OnInit {
 
   export_flow(event: Event, flowId: string): void {
     event.stopPropagation();
-    window.open(`http://localhost:8000/tasks/${flowId}/export_flow/`, "_blank");
+    window.open(`/backend/tasks/${flowId}/export_flow/`, "_blank");
   }
 
   sortData(sort: Sort): void {
