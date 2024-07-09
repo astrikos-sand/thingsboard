@@ -3,17 +3,17 @@ import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 
 export interface ArchiveFile {
-  id: number;
+  tags: any;
+  id: string;
   filename: string;
   file: string;
-  file_url: string;
 }
 
 @Injectable({
   providedIn: "root",
 })
 export class ArchivesService {
-  private apiUrl = "/backend/archives/";
+  private apiUrl = "/backend/v2/archives/";
 
   constructor(private http: HttpClient) {}
 
@@ -25,7 +25,7 @@ export class ArchivesService {
     return this.http.post<any>(this.apiUrl, fileData);
   }
 
-  deleteFile(fileId: number): Observable<any> {
+  deleteFile(fileId: string): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}${fileId}/`);
   }
 }

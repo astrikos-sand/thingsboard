@@ -1,0 +1,41 @@
+<form
+  [formGroup]="createTagFormGroup"
+  (ngSubmit)="createTag()"
+>
+  <mat-toolbar color="primary">
+    <h2>Create New Tag</h2>
+    <span fxFlex></span>
+    <button mat-icon-button (click)="cancel()" type="button">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+  </mat-toolbar>
+  <div mat-dialog-content>
+    <fieldset>
+      <mat-form-field class="mat-block">
+        <input
+          matInput
+          formControlName="tagName"
+          placeholder="Tag Name"
+        />
+        <mat-error *ngIf="createTagFormGroup.get('tagName').hasError('required')">
+          Tag name is <strong>required</strong>
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field class="mat-block">
+        <mat-select formControlName="parentTag" placeholder="Select Parent Tag">
+          <mat-option *ngFor="let tag of parentTags" [value]="tag.id">
+            {{ tag.full_name }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="createTagFormGroup.get('parentTag').hasError('required')">
+          Parent tag is <strong>required</strong>
+        </mat-error>
+      </mat-form-field>
+    </fieldset>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-raised-button color="primary" type="submit">
+      Create Tag
+    </button>
+  </div>
+</form>

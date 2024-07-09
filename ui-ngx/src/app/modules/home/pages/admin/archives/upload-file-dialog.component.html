@@ -33,38 +33,41 @@
         *ngIf="uploadFile && uploadFileFormGroup.get('file').value"
         class="mat-block"
       >
-        <mat-label>File Name</mat-label>
-        <input matInput formControlName="filename" required />
-        <mat-error
-          *ngIf="uploadFileFormGroup.get('filename').hasError('required')"
-        >
-          File name is required
+        <input
+          matInput
+          formControlName="filename"
+          placeholder="File Name"
+          [readonly]="true"
+        />
+        <mat-error *ngIf="uploadFileFormGroup.get('filename').hasError('required')">
+          File name is <strong>required</strong>
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field class="mat-block">
+        <mat-select formControlName="parentTag" placeholder="Select Parent Tag">
+          <mat-option *ngFor="let tag of parentTags" [value]="tag.id">
+            {{ tag.full_name }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="uploadFileFormGroup.get('parentTag').hasError('required')">
+          Parent tag is <strong>required</strong>
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field class="mat-block">
+        <input
+          matInput
+          formControlName="newTag"
+          placeholder="New Tag"
+        />
+        <mat-error *ngIf="uploadFileFormGroup.get('newTag').hasError('required')">
+          New tag is <strong>required</strong>
         </mat-error>
       </mat-form-field>
     </fieldset>
   </div>
-  <div mat-dialog-actions fxLayout="row" fxLayoutAlign="end center">
-    <button
-      mat-button
-      color="primary"
-      type="button"
-      [disabled]="isLoading$ | async"
-      (click)="cancel()"
-      cdkFocusInitial
-    >
-      {{ "action.cancel" | translate }}
-    </button>
-    <button
-      mat-raised-button
-      color="primary"
-      type="submit"
-      [disabled]="
-        (isLoading$ | async) ||
-        uploadFileFormGroup.invalid ||
-        !uploadFileFormGroup.dirty
-      "
-    >
-      {{ (uploadFile ? "action.upload" : "action.update") | translate }}
+  <div mat-dialog-actions>
+    <button mat-raised-button color="primary" [disabled]="isLoading$ | async" type="submit">
+      {{ uploadFile ? "Upload" : "Update" }}
     </button>
   </div>
 </form>

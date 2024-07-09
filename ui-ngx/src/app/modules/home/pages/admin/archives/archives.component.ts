@@ -1,16 +1,26 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
-import {
-  ArchivesService,
-  ArchiveFile,
-} from "@app/core/services/archives.service";
-import { PageEvent } from "@angular/material/paginator";
-import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { MatSort, Sort } from "@angular/material/sort";
+import { PageEvent } from "@angular/material/paginator";
+import { MatTreeNestedDataSource } from '@angular/material/tree';
+import { NestedTreeControl } from '@angular/cdk/tree';
+import { Clipboard } from '@angular/cdk/clipboard';
+import { ArchivesService, ArchiveFile } from "@app/core/services/archives.service";
+import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
 import { NotificationMessage } from "@app/core/notification/notification.models";
 import { UploadFileDialogComponent } from "./upload-file-dialog.component";
+import { CreateTagDialogComponent } from "./create-tag-dialog.component";
+import { TagService } from "@app/core/services/tag.service";
+
+interface TagNode {
+  name: string;
+  id: string;
+  children?: TagNode[];
+  files?: ArchiveFile[];
+}
+
 @Component({
   selector: "app-archives",
   templateUrl: "./archives.component.html",
@@ -18,17 +28,23 @@ import { UploadFileDialogComponent } from "./upload-file-dialog.component";
 })
 export class ArchivesComponent implements OnInit {
   dataSource = new MatTableDataSource<ArchiveFile>();
-  displayedColumns: string[] = ["filename", "filepath", "actions"];
+  displayedColumns: string[] = ["filename", "tags", "actions"];
   totalFiles = 0;
   pageIndex = 0;
   pageSize = 10;
 
   @ViewChild(MatSort) sort: MatSort;
 
+  treeControl = new NestedTreeControl<TagNode>(node => node.children);
+  tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
+  selectedFiles: ArchiveFile[] = [];
+
   constructor(
     private archivesService: ArchivesService,
     private dialog: MatDialog,
-    private toastNotificationService: ToastNotificationService
+    private toastNotificationService: ToastNotificationService,
+    private tagService: TagService,
+    private clipboard: Clipboard
   ) {}
 
   ngOnInit(): void {
@@ -38,10 +54,11 @@ export class ArchivesComponent implements OnInit {
   loadFileArchives(): void {
     this.archivesService.getFileArchives().subscribe(
       (data) => {
+        const rootNodes = this.buildTree(data);
+        this.tagTreeDataSource.data = rootNodes;
         this.dataSource.data = data;
         this.totalFiles = data.length;
         this.dataSource.sort = this.sort;
-        this.updatePagedData();
       },
       (error) => {
         console.error("Error fetching file archives: ", error);
@@ -49,28 +66,44 @@ export class ArchivesComponent implements OnInit {
     );
   }
 
-  copyFileUrl(fileUrl: string): void {
-    navigator.clipboard
-      .writeText(fileUrl)
-      .then(() => {
-        console.log("File URL copied to clipboard: ", fileUrl);
-        this.showNotification({
-          message: "File URL copied to clipboard",
-          type: "success",
-          duration: 3000,
+  buildTree(files: ArchiveFile[]): TagNode[] {
+    const root: TagNode = { name: 'Archives', id: 'root', children: [] };
+    const nodeMap: { [key: string]: TagNode } = { 'Archives': root };
+
+    files.forEach(file => {
+      file.tags.forEach(tag => {
+        const path = tag.full_name.split('/');
+        let currentNode = root;
+        path.forEach((part, index) => {
+          if (!nodeMap[part]) {
+            const newNode: TagNode = { name: part, id: tag.id, children: [] };
+            nodeMap[part] = newNode;
+            if (index === path.length - 1) {
+              newNode.files = [];
+            }
+            currentNode.children.push(newNode);
+          }
+          currentNode = nodeMap[part];
         });
-      })
-      .catch((error) => {
-        console.error("Error copying file URL to clipboard: ", error);
-        this.showNotification({
-          message: "Failed to copy file URL",
-          type: "error",
-          duration: 3000,
-        });
+        currentNode.files?.push(file);
       });
+    });
+
+    return [root];
   }
 
-  deleteFile(fileId: number): void {
+  hasChild = (_: number, node: TagNode) => !!node.children && node.children.length > 0;
+
+  copyId(id: string) {
+    this.clipboard.copy(id);
+    alert('Copied ID: ' + id);
+  }
+
+  openFile(filepath: string): void {
+    window.open(filepath, '_blank');
+  }
+
+  deleteFile(fileId: string): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: "Confirm Deletion",
@@ -102,6 +135,23 @@ export class ArchivesComponent implements OnInit {
     });
   }
 
+  onNodeSelect(node: TagNode): void {
+    this.selectedFiles = this.collectFiles(node);
+  }
+
+  collectFiles(node: TagNode): ArchiveFile[] {
+    let files: ArchiveFile[] = [];
+    if (node.files) {
+      files = files.concat(node.files);
+    }
+    if (node.children) {
+      for (const child of node.children) {
+        files = files.concat(this.collectFiles(child));
+      }
+    }
+    return files;
+  }
+
   handlePageEvent(event: PageEvent): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
@@ -120,8 +170,23 @@ export class ArchivesComponent implements OnInit {
       data: {},
     });
 
-    dialogRef.afterClosed().subscribe(() => {
-      this.loadFileArchives();
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadFileArchives();
+      }
+    });
+  }
+
+  openCreateTagDialog(): void {
+    const dialogRef = this.dialog.open(CreateTagDialogComponent, {
+      width: "400px",
+      data: {},
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadFileArchives();
+      }
     });
   }
 
