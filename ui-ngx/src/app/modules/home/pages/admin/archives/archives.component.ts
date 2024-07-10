@@ -37,7 +37,10 @@ export class ArchivesComponent implements OnInit {
 
   treeControl = new NestedTreeControl<TagNode>(node => node.children);
   tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
+  filteredTreeDataSource = new MatTreeNestedDataSource<TagNode>();
   selectedFiles: ArchiveFile[] = [];
+  originalTreeData: TagNode[] = [];
+  searchQuery: string = '';
 
   constructor(
     private archivesService: ArchivesService,
@@ -56,6 +59,8 @@ export class ArchivesComponent implements OnInit {
       (data) => {
         const rootNodes = this.buildTree(data);
         this.tagTreeDataSource.data = rootNodes;
+        this.filteredTreeDataSource.data = rootNodes;
+        this.originalTreeData = rootNodes;
         this.dataSource.data = data;
         this.totalFiles = data.length;
         this.dataSource.sort = this.sort;
@@ -215,5 +220,40 @@ export class ArchivesComponent implements OnInit {
 
   private showNotification(notification: NotificationMessage): void {
     this.toastNotificationService.dispatchNotification(notification);
+  }
+
+  filterNodes(query: string): void {
+    this.searchQuery = query;
+    if (!query) {
+      this.filteredTreeDataSource.data = this.originalTreeData;
+      this.treeControl.collapseAll();
+    } else {
+      const filteredNodes = this.filterTree(this.originalTreeData, query.toLowerCase());
+      this.filteredTreeDataSource.data = filteredNodes;
+      this.treeControl.expandAll();
+    }
+  }
+
+  filterTree(nodes: TagNode[], query: string): TagNode[] {
+    return nodes
+      .map(node => ({ ...node }))
+      .filter(node => {
+        if (node.name.toLowerCase().includes(query)) {
+          return true;
+        }
+        if (node.children) {
+          node.children = this.filterTree(node.children, query);
+          return node.children.length > 0;
+        }
+        return false;
+      });
+  }
+
+  highlightText(text: string, query: string): string {
+    if (!query) {
+      return text;
+    }
+    const regex = new RegExp(`(${query})`, 'gi');
+    return text.replace(regex, '<span class="highlight">$1</span>');
   }
 }

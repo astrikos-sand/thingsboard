@@ -6,9 +6,9 @@ import { Observable } from "rxjs";
   providedIn: "root",
 })
 export class FlowService {
-  private baseUrl = "/backend";
+  private baseUrl = "/backend/v2";
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   fetchFlows(): Observable<any> {
     return this.http.get(`${this.baseUrl}/flows/`);
@@ -18,7 +18,7 @@ export class FlowService {
     return this.http.get(`${this.baseUrl}/node-classes/`);
   }
 
-  addFlow(flow: { name: string; description: string, environment: string}): Observable<any> {
+  addFlow(flow: { name: string; description: string, environment: string }): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/flows/create_file/`, flow);
   }
 
@@ -46,7 +46,7 @@ export class FlowService {
   }
 
   getEnv(id?: string): Observable<any> {
-    if(id) return this.http.get<any>(`${this.baseUrl}/env/${id}/`)
+    if (id) return this.http.get<any>(`${this.baseUrl}/env/${id}/`)
     return this.http.get<any>(`${this.baseUrl}/env/`);
   }
 

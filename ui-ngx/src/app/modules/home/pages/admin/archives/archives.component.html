@@ -3,15 +3,19 @@
     <div class="mat-padding tb-entity-table tb-absolute-fill">
       <div fxLayout="row" class="tb-entity-table-content tb-outlined-border">
         <div fxFlex="30" class="tree-container scrollable-container">
+          <mat-form-field appearance="outline">
+            <mat-label>Search Folders</mat-label>
+            <input matInput (input)="filterNodes($event.target.value)" placeholder="Search folders...">
+          </mat-form-field>
           <mat-tree
-            [dataSource]="tagTreeDataSource"
+            [dataSource]="filteredTreeDataSource"
             [treeControl]="treeControl"
             class="example-tree"
           >
             <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
               <div class="mat-tree-node-content hover-pointer" (click)="onNodeSelect(node)">
                 <button mat-icon-button disabled></button>
-                <span class="mat-tree-node-label">{{ node.name }}</span>
+                <span class="mat-tree-node-label" [innerHTML]="highlightText(node.name, searchQuery)"></span>
                 <button
                   mat-icon-button
                   class="mat-tree-node-actions"
@@ -36,7 +40,7 @@
                     }}
                   </mat-icon>
                 </button>
-                <span class="mat-tree-node-label">{{ node.name }}</span>
+                <span class="mat-tree-node-label" [innerHTML]="highlightText(node.name, searchQuery)"></span>
                 <button
                   mat-icon-button
                   class="mat-tree-node-actions"
