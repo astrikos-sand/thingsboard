@@ -64,6 +64,7 @@ export class FlowListComponent implements OnInit {
         this.tagTreeDataSource.data = rootNodes;
         this.filteredTreeDataSource.data = rootNodes;
         this.originalTreeData = rootNodes;
+        this.treeControl.expandDescendants(rootNodes[0]);
         this.dataSource.data = this.flows;
         this.totalFlows = data.length;
         this.dataSource.sort = this.sort;
@@ -182,11 +183,11 @@ export class FlowListComponent implements OnInit {
     this.searchQuery = query;
     if (!query) {
       this.filteredTreeDataSource.data = this.originalTreeData;
-      this.treeControl.collapseAll();
+      this.treeControl.expandDescendants(this.originalTreeData[0]);
     } else {
       const filteredNodes = this.filterTree(this.originalTreeData, query.toLowerCase());
       this.filteredTreeDataSource.data = filteredNodes;
-      this.treeControl.expandAll();
+      this.treeControl.expandDescendants(filteredNodes[0]);
     }
   }
 

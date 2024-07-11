@@ -52,6 +52,7 @@
   }
 
   .example-tree {
+    width: fit-content;
     mat-tree-node,
     mat-nested-tree-node {
       display: block;

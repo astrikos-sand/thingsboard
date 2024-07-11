@@ -41,12 +41,12 @@ export class ArchivesComponent implements OnInit {
   selectedFiles: ArchiveFile[] = [];
   originalTreeData: TagNode[] = [];
   searchQuery: string = '';
+  selectedNode: TagNode;
 
   constructor(
     private archivesService: ArchivesService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
-    private tagService: TagService,
     private clipboard: Clipboard
   ) {}
 
@@ -62,8 +62,18 @@ export class ArchivesComponent implements OnInit {
         this.filteredTreeDataSource.data = rootNodes;
         this.originalTreeData = rootNodes;
         this.dataSource.data = data;
+        this.treeControl.expandDescendants(rootNodes[0]);
         this.totalFiles = data.length;
         this.dataSource.sort = this.sort;
+
+        if (this.selectedNode) {
+          console.log(this.selectedNode)
+          const node = this.findNodeById(rootNodes, this.selectedNode.id);
+          console.log(node)
+          if (node) {
+            this.onNodeSelect(node);
+          }
+        }
       },
       (error) => {
         console.error("Error fetching file archives: ", error);
@@ -113,6 +123,7 @@ export class ArchivesComponent implements OnInit {
       data: {
         title: "Confirm Deletion",
         message: "Are you sure you want to delete this file?",
+        ok: "Delete",
       },
     });
 
@@ -141,6 +152,7 @@ export class ArchivesComponent implements OnInit {
   }
 
   onNodeSelect(node: TagNode): void {
+    this.selectedNode = node;
     this.selectedFiles = this.collectFiles(node);
   }
 
@@ -175,10 +187,8 @@ export class ArchivesComponent implements OnInit {
       data: {},
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadFileArchives();
-      }
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadFileArchives();
     });
   }
 
@@ -226,11 +236,11 @@ export class ArchivesComponent implements OnInit {
     this.searchQuery = query;
     if (!query) {
       this.filteredTreeDataSource.data = this.originalTreeData;
-      this.treeControl.collapseAll();
+      this.treeControl.expandDescendants(this.originalTreeData[0]);
     } else {
       const filteredNodes = this.filterTree(this.originalTreeData, query.toLowerCase());
       this.filteredTreeDataSource.data = filteredNodes;
-      this.treeControl.expandAll();
+      this.treeControl.expandDescendants(filteredNodes[0]);
     }
   }
 
@@ -255,5 +265,19 @@ export class ArchivesComponent implements OnInit {
     }
     const regex = new RegExp(`(${query})`, 'gi');
     return text.replace(regex, '<span class="highlight">$1</span>');
+  }
+  findNodeById(nodes: TagNode[], id: string): TagNode | null {
+    for (const node of nodes) {
+      if (node.id === id) {
+        return node;
+      }
+      if (node.children) {
+        const found = this.findNodeById(node.children, id);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
   }
 }
