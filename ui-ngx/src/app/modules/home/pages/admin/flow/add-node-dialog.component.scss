@@ -99,6 +99,25 @@ form {
       }
     }
   }
+
+  .array-fields {
+    border: 1px solid #ccc;
+    padding: 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+
+  .array-fields .form-field {
+    margin-bottom: 16px;
+  }
+
+  .array-fields mat-form-field {
+    margin-top: 16px;
+  }
+
+  .array-fields button {
+    margin-top: 8px;
+  }
 }
 
 .mat-select {
