@@ -21,7 +21,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   isLoading: boolean = false;
   executionTime: number | undefined;
   executionStatus: string | undefined;
-  flowPosition: {x: number, y: number} | undefined;
+  flowPosition: { x: number; y: number } | undefined;
   private subscriptions: Subscription = new Subscription();
 
   constructor(
@@ -44,10 +44,11 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.route.data.subscribe(data => {
+    this.route.data.subscribe((data) => {
       const flowDetails = data['flowDetails'];
       if (flowDetails) {
         this.flowId = flowDetails.id;
+        console.log(flowDetails.nodes)
         this.convertNodesAndConnections(flowDetails.nodes);
         this.name = flowDetails.name;
       }
@@ -83,11 +84,11 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
   loadFlowDetails(): void {
     this.flowService.fetchFlowDetails(this.flowId).subscribe(
-      (data) => {
+      (data: any) => {
         this.convertNodesAndConnections(data.nodes);
         this.name = data.name;
       },
-      (error) => {
+      (error: any) => {
         console.error('Error fetching flow details:', error);
       }
     );
@@ -95,11 +96,10 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
   convertNodesAndConnections(nodesData: any[]): void {
     const convertedNodes: Node[] = [];
-    const convertedConnectionsMap = new Map();
+    const convertedConnectionsMap = new Map<string, Edge>();
 
     nodesData.forEach((nodeData) => {
-      const { id, position, source_connections, target_connections, ...rest } =
-        nodeData;
+      const { id, position, connections_in, connections_out, polymorphic_ctype, input_slots, output_slots, ...rest } = nodeData;
       convertedNodes.push({
         id: id.toString(),
         position: position,
@@ -107,53 +107,40 @@ export class FlowMapComponent implements OnInit, OnDestroy {
         data: {
           id: id,
           label: 'Node',
+          polymorphic_ctype: polymorphic_ctype,
+          input_slots: input_slots,
+          output_slots: output_slots,
           ...rest,
         },
       });
 
-      source_connections.forEach(
-        (connection: {
-          id: any;
-          source: any;
-          target: any;
-          source_slot: any;
-          target_slot: any;
-        }) => {
-          const { id, source, target, source_slot, target_slot } = connection;
-          const edgeKey = `${source}-${target}-${source_slot}-${target_slot}`;
-          if (!convertedConnectionsMap.has(edgeKey)) {
-            convertedConnectionsMap.set(edgeKey, {
-              id: id.toString(),
-              source: source.toString(),
-              sourceHandle: `node-${source}-output-${source_slot}`,
-              target: target.toString(),
-              targetHandle: `node-${target}-input-${target_slot}`,
-            });
-          }
+      connections_out.forEach((connection: any) => {
+        const { id, source, target, from_slot, to_slot } = connection;
+        const edgeKey = `${source}-${target}-${from_slot}-${to_slot}`;
+        if (!convertedConnectionsMap.has(edgeKey)) {
+          convertedConnectionsMap.set(edgeKey, {
+            id: id.toString(),
+            source: source.toString(),
+            sourceHandle: `node-${source}-output-${from_slot}`,
+            target: target.toString(),
+            targetHandle: `node-${target}-input-${to_slot}`,
+          });
         }
-      );
+      });
 
-      target_connections.forEach(
-        (connection: {
-          id: any;
-          source: any;
-          target: any;
-          source_slot: any;
-          target_slot: any;
-        }) => {
-          const { id, source, target, source_slot, target_slot } = connection;
-          const edgeKey = `${source}-${target}-${source_slot}-${target_slot}`;
-          if (!convertedConnectionsMap.has(edgeKey)) {
-            convertedConnectionsMap.set(edgeKey, {
-              id: id.toString(),
-              source: source.toString(),
-              sourceHandle: `node-${source}-output-${source_slot}`,
-              target: target.toString(),
-              targetHandle: `node-${target}-input-${target_slot}`,
-            });
-          }
+      connections_in.forEach((connection: any) => {
+        const { id, source, target, from_slot, to_slot } = connection;
+        const edgeKey = `${source}-${target}-${from_slot}-${to_slot}`;
+        if (!convertedConnectionsMap.has(edgeKey)) {
+          convertedConnectionsMap.set(edgeKey, {
+            id: id.toString(),
+            source: source.toString(),
+            sourceHandle: `node-${source}-output-${from_slot}`,
+            target: target.toString(),
+            targetHandle: `node-${target}-input-${to_slot}`,
+          });
         }
-      );
+      });
     });
 
     this.stateService.setNodes(convertedNodes);
@@ -168,35 +155,34 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       outputs: node.data.outputs,
       position: node.position,
     }));
-
-    const convertedConnections = this.edges.map((connection) => ({
+    console.log(this.edges)
+    const validConnections = this.edges.filter(connection => 
+      connection.sourceHandle && connection.targetHandle
+    );
+    
+    const convertedConnections = validConnections.map((connection) => ({
       id: connection.id,
       source: connection.source,
       target: connection.target,
-      source_slot: connection.sourceHandle
-        ?.replace(`node-${connection.source}`, '')
-        .replace('-output-', ''),
-      target_slot: connection.targetHandle
-        ?.replace(`node-${connection.target}`, '')
-        .replace('-input-', ''),
-    }));
+      source_slot: connection.sourceHandle.replace(`node-${connection.source}`, '').replace('-output-', ''),
+      target_slot: connection.targetHandle.replace(`node-${connection.target}`, '').replace('-input-', ''),
+    }));    
 
-    this.flowService
-      .saveFlowDetails(this.flowId, {
-        nodes: convertedNodes,
-        connections: convertedConnections,
-      })
-      .subscribe(
-        (response) => {
-          alert('Saved to backend');
-        },
-        (error) => {
-          console.error('Error saving to backend:', error);
-        },
-        () => {
-          this.isLoading = false;
-        }
-      );
+    console.log({
+      nodes: convertedNodes,
+      connections: convertedConnections,
+    })
+    this.flowService.saveFlowDetails(this.flowId, { nodes: convertedNodes, connections: convertedConnections }).subscribe(
+      (response: any) => {
+        alert('Saved to backend');
+      },
+      (error: any) => {
+        console.error('Error saving to backend:', error);
+      },
+      () => {
+        this.isLoading = false;
+      }
+    );
   }
 
   executeFlow(): void {
@@ -204,27 +190,26 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     const startTime = new Date();
 
     this.flowService.executeFlow(this.flowId).subscribe(
-      (response) => {
+      (response: any) => {
         const endTime = new Date();
         this.executionTime = (endTime.getTime() - startTime.getTime()) / 1000;
         this.executionStatus = 'Flow executed successfully';
         alert('Flow executed successfully');
       },
-      (error) => {
+      (error: any) => {
         console.error('Error executing flow:', error);
-        this.isLoading = false;
         this.executionStatus = 'Error executing flow';
-        alert('Error executing flow, see the logs in archives');
+        alert('Error executing flow');
       },
       () => {
         this.isLoading = false;
-        console.log('Execution completed or interrupted, see the logs in archives');
+        console.log('Execution completed or interrupted');
       }
     );
   }
 
   navigateToFlows(): void {
-    this.router.navigate(['/flows']);
+    this.router.navigate(['/resources/flows']);
   }
 
   onNodesChange(changes: any) {
@@ -239,7 +224,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     this.stateService.updateEdges((eds) => addEdge(connection, eds));
   }
 
-  onPositionChange(position: any) {
-    this.flowPosition = position;
+  onPositionChange(event: any) {
+    this.flowPosition = event;
   }
 }
