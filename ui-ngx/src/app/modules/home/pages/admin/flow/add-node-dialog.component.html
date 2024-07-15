@@ -56,8 +56,8 @@
               }}</mat-option>
               <mat-option
                 *ngFor="let option of field.get('choices')?.value"
-                [value]="option[1]"
-                >{{ option[0] }}</mat-option
+                [value]="option.value"
+                >{{ option.label }}</mat-option
               >
             </mat-select>
           </ng-container>
@@ -87,8 +87,8 @@
                     >
                       <mat-option
                         *ngFor="let option of slotField.choices"
-                        [value]="option"
-                        >{{ option }}</mat-option
+                        [value]="option.value"
+                        >{{ option.label }}</mat-option
                       >
                     </mat-select>
                   </ng-container>
