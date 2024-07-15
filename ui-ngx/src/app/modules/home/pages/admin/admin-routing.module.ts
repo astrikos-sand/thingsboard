@@ -43,6 +43,78 @@ export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
 
 const routes: Routes = [
   {
+    path: 'flows',
+    data: {
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+      breadcrumb: {
+        label: 'Flows',
+        icon: 'mdi:sitemap'
+      }
+    },
+    children: [
+      {
+        path: '',
+        children: [],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          redirectTo: '/flows/library'
+        }
+      },
+      {
+        path: 'library',
+        data: {
+          breadcrumb: {
+            label: 'Flows Library',
+            icon: 'folder'
+          },
+        },
+        children : [
+          {
+            path: '',
+            component: FlowListComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Flows Library'
+            }
+          },
+          {
+            path: ':flowId',
+            component: FlowMapComponent,
+            resolve: { flowDetails: FlowDetailsResolver },
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+              title: 'Flow Map',
+              breadcrumb: {
+                labelFunction: flowMapPageBreadcrumbLabelFunction,
+                icon: 'mdi:chart-bubble'
+              } 
+            },
+          }
+        ]
+      },
+      {
+        path: 'archives',
+        data: {
+          breadcrumb: {
+            label: 'Archives',
+            icon: 'mdi:archive'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: ArchivesComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Archives'
+            }
+          }
+        ]
+      },
+    ]
+  },
+  {
     path: 'resources',
     data: {
       auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
@@ -118,77 +190,6 @@ const routes: Routes = [
           }
         ]
       },
-      {
-        path: 'archives',
-        data: {
-          breadcrumb: {
-            label: 'Archives',
-            icon: 'mdi:archive'
-          }
-        },
-        children: [
-          {
-            path: '',
-            component: ArchivesComponent,
-            data: {
-              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
-              title: 'Archives'
-            }
-          }
-        ]
-      },
-      {
-        path: 'flows',
-        data: {
-          breadcrumb: {
-            label: 'Flows',
-            icon: 'mdi:sitemap'
-          }
-        },
-        children: [
-          {
-            path: '',
-            component: FlowListComponent,
-            data: {
-              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
-              title: 'Flows List'
-            }
-          },
-          {
-            path: ':flowId',
-            component: FlowMapComponent,
-            resolve: { flowDetails: FlowDetailsResolver },
-            canDeactivate: [ConfirmOnExitGuard],
-            data: {
-              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-              title: 'Flow Map',
-              breadcrumb: {
-                labelFunction: flowMapPageBreadcrumbLabelFunction,
-                icon: 'mdi:chart-bubble'
-              }
-            },
-          }
-        ]
-      },
-      {
-        path: 'node-classes',
-        data: {
-          breadcrumb: {
-            label: 'Node Classes',
-            icon: 'mdi:function-variant'
-          }
-        },
-        children: [
-          {
-            path: '',
-            component: NodeClassesListComponent,
-            data: {
-              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
-              title: 'Node Classes'
-            }
-          },
-        ]
-      }
     ]
   },
   {

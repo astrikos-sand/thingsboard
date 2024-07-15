@@ -14,6 +14,7 @@ import ReactFlow, {
   OnNodesChange,
   OnEdgesChange,
   OnConnect,
+  useReactFlow
 } from 'reactflow';
 import CustomNode from './custom-node';
 
@@ -28,6 +29,8 @@ const nodeTypes = {
 const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
   const [nodes, setNodes] = useState<Node[]>(props.nodes);
   const [edges, setEdges] = useState<Edge[]>(props.edges);
+  const reactFlowWrapper = React.useRef(null);
+  const { screenToFlowPosition } = useReactFlow();
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => {
@@ -61,7 +64,16 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
       setEdges(props.edges);
     }
   }, [props.nodes, props.edges]);
-
+  
+  const onMouseMove = useCallback(
+    (event : any) => {
+      const x = event.clientX;
+      const y = event.clientY;
+      const flowPosition = screenToFlowPosition({ x, y });
+      props.onSetPosition(flowPosition);
+    },
+    [screenToFlowPosition, props.onSetPosition]
+  );
   return (
     <ReactFlow
       nodes={nodes}
@@ -69,6 +81,7 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
+      onMouseMove={onMouseMove}
       fitView
       fitViewOptions={fitViewOptions}
       nodeTypes={nodeTypes}

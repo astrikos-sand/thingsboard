@@ -26,6 +26,7 @@ import { NgxFlowchartModule } from 'ngx-flowchart';
 import Flow from '@flowjs/flow.js';
 
 import { MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatTreeModule } from '@angular/material/tree';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -428,6 +429,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     RouterModule,
     MonacoEditorModule,
     TranslateModule,
+    MatTreeModule,
     MatBadgeModule,
     MatButtonModule,
     MatButtonToggleModule,
@@ -542,6 +544,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     FabToolbarComponent,
     WidgetsBundleSelectComponent,
     ValueInputComponent,
+    MatTreeModule,
     MatBadgeModule,
     MatButtonModule,
     MatButtonToggleModule,

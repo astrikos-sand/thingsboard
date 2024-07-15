@@ -175,6 +175,7 @@ import { AddFlowDialogComponent } from '@home/pages/admin/flow/add-flow-dialog.c
 import { AddNewNodeDialog } from '@app/modules/home/pages/admin/flow/add-node-dialog.component';
 import { AddBaseNodeClassDialog } from '@home/pages/admin/flow/add-base-node-class-dialog.component';
 import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-dialog.component';
+import { CreateTagDialogComponent } from '../pages/admin/archives/create-tag-dialog.component';
 
 @NgModule({
   declarations:
@@ -186,6 +187,7 @@ import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-d
       AddNewNodeDialog,
       AddBaseNodeClassDialog,
       UploadFileDialogComponent,
+      CreateTagDialogComponent,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
       EntityDetailsPageComponent,
@@ -338,6 +340,7 @@ import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-d
     AddNewNodeDialog,
     AddBaseNodeClassDialog,
     UploadFileDialogComponent,
+    CreateTagDialogComponent,
     DetailsPanelComponent,
     EntityDetailsPanelComponent,
     EntityDetailsPageComponent,

@@ -1,14 +1,24 @@
-import { Injectable } from "@angular/core";
-import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class FlowService {
-  private baseUrl = "/backend";
+  private baseUrl = "/backend/v2";
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
+
+  getNodeTypes(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/fields/node_types/`);
+  }
+
+  getFormFields(nodeType: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/fields/form_fields`, {
+      params: { node_type: nodeType }
+    });
+  }
 
   fetchFlows(): Observable<any> {
     return this.http.get(`${this.baseUrl}/flows/`);
@@ -18,7 +28,7 @@ export class FlowService {
     return this.http.get(`${this.baseUrl}/node-classes/`);
   }
 
-  addFlow(flow: { name: string; description: string, environment: string}): Observable<any> {
+  addFlow(flow: { name: string; description: string, environment: string }): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/flows/create_file/`, flow);
   }
 
@@ -37,7 +47,7 @@ export class FlowService {
     return this.http.post(`${this.baseUrl}/save/`, {
       nodes: data.nodes,
       connections: data.connections,
-      flow_file_id: flowId,
+      flow_id: flowId,
     });
   }
 
@@ -46,13 +56,19 @@ export class FlowService {
   }
 
   getEnv(id?: string): Observable<any> {
-    if(id) return this.http.get<any>(`${this.baseUrl}/env/${id}/`)
+    if (id) return this.http.get<any>(`${this.baseUrl}/env/${id}/`)
     return this.http.get<any>(`${this.baseUrl}/env/`);
   }
 
   executeFlow(flowId: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/tasks/`, {
       file_id: flowId,
+    });
+  }
+
+  updateDataNodeValue(flowId: string, nodeId: string, newValue: string): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/nodes/${nodeId}/`, {
+      value: newValue,
     });
   }
 }

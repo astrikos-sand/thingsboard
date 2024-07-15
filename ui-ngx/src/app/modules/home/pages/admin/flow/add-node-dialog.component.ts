@@ -1,87 +1,138 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { FlowService } from '@app/core/services/flow.service';
+import { Component, Inject, OnInit, ChangeDetectorRef } from "@angular/core";
+import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { FormGroup, FormBuilder, Validators, FormArray, AbstractControl } from "@angular/forms";
+import { FlowService } from "@app/core/services/flow.service";
+
+interface FieldConfig {
+  type: string;
+  placeholder: string;
+  required: boolean;
+  label: string;
+  choices?: Array<[string, string]>;
+  fields?: FieldConfig[];
+}
 
 @Component({
-  selector: 'add-node-dialog',
-  templateUrl: './add-node-dialog.component.html',
-  styleUrls: ['./add-node-dialog.component.scss'],
+  selector: "add-node-dialog",
+  templateUrl: "./add-node-dialog.component.html",
+  styleUrls: ["./add-node-dialog.component.scss"],
 })
 export class AddNewNodeDialog implements OnInit {
   form: FormGroup;
-  nodeTypes = ['data', 'generic'];
-  dataTypes = [
-    'INT',
-    'STR',
-    'BOOL',
-    'FLOAT',
-    'LIST',
-    'SET',
-    'TUPLE',
-    'DICT',
-    'NONE',
-  ];
-  dynamicClasses: any[] = [];
-
+  nodeTypes: string[] = [];
+  formFields: FieldConfig[] = [];
   isLoading: boolean = false;
 
   constructor(
     public dialogRef: MatDialogRef<AddNewNodeDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder,
-    private flowService: FlowService
+    private flowService: FlowService,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
-      nodeType: ['', Validators.required],
-      name: ['', Validators.required],
-      description: ['', Validators.required],
-      value: [''],
-      dataType: [''],
-      selectedDynamicClass: [''],
+      nodeType: ["", Validators.required],
+      fields: this.fb.array([]),
     });
   }
 
   ngOnInit(): void {
-    this.fetchNodeClasses();
-    this.form.get('nodeType')?.valueChanges.subscribe((nodeType) => {
-      this.setValidators(nodeType);
+    this.fetchNodeTypes();
+    this.form.get("nodeType")?.valueChanges.subscribe((nodeType) => {
+      this.fetchFormFields(nodeType);
     });
   }
 
-  setValidators(nodeType: string): void {
-    if (nodeType === 'data') {
-      this.form.get('name')?.setValidators([Validators.required]);
-      this.form.get('description')?.setValidators([Validators.required]);
-      this.form.get('value')?.setValidators([]);
-      this.form.get('dataType')?.setValidators([]);
-      this.form.get('selectedDynamicClass')?.clearValidators();
-    } else if (nodeType === 'generic') {
-      this.form.get('name')?.clearValidators();
-      this.form.get('description')?.clearValidators();
-      this.form.get('value')?.clearValidators();
-      this.form.get('dataType')?.clearValidators();
-      this.form
-        .get('selectedDynamicClass')
-        ?.setValidators([Validators.required]);
-    }
-
-    this.form.get('name')?.updateValueAndValidity();
-    this.form.get('description')?.updateValueAndValidity();
-    this.form.get('value')?.updateValueAndValidity();
-    this.form.get('dataType')?.updateValueAndValidity();
-    this.form.get('selectedDynamicClass')?.updateValueAndValidity();
+  get fields() {
+    const fieldsArray = this.form.get("fields") as FormArray;
+    fieldsArray.controls.forEach((fieldGroup: AbstractControl) => {
+      const labelControl = fieldGroup.get("label");
+      if (labelControl && labelControl.value === "flow") {
+        fieldGroup.patchValue({ value: this.data.flowId });
+      }
+    });
+    return fieldsArray;
   }
 
-  fetchNodeClasses(): void {
-    this.flowService.getNodeClasses().subscribe(
-      (response: any) => {
-        this.dynamicClasses = response;
+  fetchNodeTypes(): void {
+    this.flowService.getNodeTypes().subscribe(
+      (response: string[]) => {
+        this.nodeTypes = response;
       },
       (error: any) => {
-        console.error('Error fetching dynamic node classes:', error);
+        console.error("Error fetching node types:", error);
       }
     );
+  }
+
+  fetchFormFields(nodeType: string): void {
+    this.flowService.getFormFields(nodeType).subscribe(
+      (response: FieldConfig[]) => {
+        this.formFields = response;
+        this.createFormFields();
+      },
+      (error: any) => {
+        console.error("Error fetching form fields:", error);
+      }
+    );
+  }
+
+  createFormFields(): void {
+    const fieldsArray = this.form.get("fields") as FormArray;
+    fieldsArray.clear();
+
+    this.formFields.forEach((field) => {
+      if (field.type === "array") {
+        fieldsArray.push(
+          this.fb.group({
+            type: [field.type, Validators.required],
+            label: [field.label, Validators.required],
+            fields: this.fb.array([]),
+            slotFields: [field.fields],
+          })
+        );
+      } else {
+        fieldsArray.push(
+          this.fb.group({
+            type: [field.type, Validators.required],
+            label: [field.label, Validators.required],
+            value: ["", field.required ? Validators.required : null],
+            placeholder: [field.placeholder],
+            required: [field.required],
+            choices: [field.choices || []],
+          })
+        );
+      }
+    });
+    this.cdr.detectChanges();
+  }
+
+  addSlot(fieldIndex: number): void {
+    const fieldsArray = this.form.get('fields') as FormArray;
+    const fieldGroup = fieldsArray.at(fieldIndex) as FormGroup;
+    const slotsArray = fieldGroup.get('fields') as FormArray;
+    const slotFields = fieldGroup.get('slotFields')?.value;
+    
+    const slotGroup = this.fb.group({});
+    slotFields.forEach((slotField: any) => {
+      slotGroup.addControl(slotField.label, this.fb.control('', slotField.required ? Validators.required : null));
+    });
+  
+    slotsArray.push(slotGroup);
+    this.cdr.detectChanges();
+  }
+  
+  removeSlot(fieldIndex: number, slotIndex: number): void {
+    const fieldsArray = this.form.get("fields") as FormArray;
+    const fieldGroup = fieldsArray.at(fieldIndex) as FormGroup;
+    const slotsArray = fieldGroup.get("fields") as FormArray;
+    slotsArray.removeAt(slotIndex);
+    this.form.updateValueAndValidity();
+    this.cdr.detectChanges();
+  }
+
+  getFieldControls(field: AbstractControl): FormArray {
+    return field.get("fields") as FormArray;
   }
 
   cancel(): void {
@@ -91,41 +142,30 @@ export class AddNewNodeDialog implements OnInit {
   add(): void {
     if (this.form.valid) {
       this.isLoading = true;
-      console.log(this.data)
-      let nodeData: any;
-      if (this.form.value.nodeType === 'data') {
-        const { name, description, value, dataType } = this.form.value;
-        nodeData = {
-          flow_file: this.data.flowId,
-          name: name,
-          node_type: 'DataNode',
-          description: description,
-          value: value,
-          type: dataType,
-          source_connections: [],
-          target_connections: [],
-        };
-      } else if (this.form.value.nodeType === 'generic') {
-        nodeData = {
-          flow_file: this.data.flowId,
-          node_class: this.form.value.selectedDynamicClass,
-          node_type: 'GenericNode',
-          source_connections: [],
-          target_connections: [],
-        };
-      }
-
+      const nodeData = {
+        node_type: this.form.value.nodeType,
+        flow: this.data.flowId,
+        ...this.form.value.fields.reduce((acc: any, field: any) => {
+          console.log(acc, field)
+          if (field.type === "array") {
+            acc[field.label] = field.fields
+          } else {
+            acc[field.label] = field.value;
+          }
+          return acc;
+        }, {}),
+      };
+      console.log(nodeData)
       this.flowService.addNode(nodeData).subscribe(
         (response: any) => {
-          const { id, source_connections, target_connections, ...rest } =
-            response;
+          const { id, ...rest } = response;
           const newDataNode = {
             id: id.toString(),
-            type: 'custom',
-            position: { x: 0, y: 0 },
+            type: "custom",
+            position: this.data.flowPosition,
             data: {
               id,
-              label: 'Node',
+              label: "Node",
               ...rest,
             },
           };
@@ -134,10 +174,12 @@ export class AddNewNodeDialog implements OnInit {
           this.dialogRef.close();
         },
         (error: any) => {
-          console.error('Error creating node:', error);
+          console.error("Error creating node:", error);
           this.isLoading = false;
         }
       );
+    } else {
+      console.error("Form is invalid:", this.form);
     }
   }
 }
