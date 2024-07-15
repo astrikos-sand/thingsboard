@@ -43,15 +43,15 @@ export class AddFlowDialogComponent implements OnInit {
     this.submitted = true;
     if (this.flowName && this.description && this.selectedEnv) {
       this.isLoading = true;
-      // this.flowService.addFlow({ name: this.flowName, description: this.description, environment: this.selectedEnv }).subscribe(
-      //   newFlow => {
-      //     this.dialogRef.close(newFlow);
-      //   },
-      //   error => {
-      //     console.error('Error adding flow:', error);
-      //     this.isLoading = false;
-      //   }
-      // );
+      this.flowService.addFlow({ name: this.flowName, description: this.description, lib: this.selectedEnv }).subscribe(
+        newFlow => {
+          this.dialogRef.close(newFlow);
+        },
+        error => {
+          console.error('Error adding flow:', error);
+          this.isLoading = false;
+        }
+      );
     }
   }
 }

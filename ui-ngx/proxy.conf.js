@@ -47,6 +47,10 @@ const PROXY_CONFIG = {
   "/backend": {
     "target": backendUrl,
     "secure": false,
+    "pathRewrite": {
+      "^/backend": ""
+    },
+    "changeOrigin": true,
   }
 };
 

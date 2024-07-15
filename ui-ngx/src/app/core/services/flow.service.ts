@@ -15,21 +15,21 @@ export class FlowService {
   }
 
   getFormFields(nodeType: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/fields/form_fields`, {
+    return this.http.get(`${this.baseUrl}/fields/form_fields/`, {
       params: { node_type: nodeType }
     });
   }
 
   fetchFlows(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/flows/`);
+    return this.http.get(`${this.baseUrl}/flow/`);
   }
 
   getNodeClasses(): Observable<any> {
     return this.http.get(`${this.baseUrl}/node-classes/`);
   }
 
-  addFlow(flow: { name: string; description: string, environment: string }): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/flows/create_file/`, flow);
+  addFlow(flow: { name: string; description: string, lib: string }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/flow/`, flow);
   }
 
   addNode(data: any): Observable<any> {
@@ -40,7 +40,7 @@ export class FlowService {
   }
 
   fetchFlowDetails(flowId: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/flows/${flowId}/`);
+    return this.http.get(`${this.baseUrl}/flow/${flowId}/nodes/`);
   }
 
   saveFlowDetails(flowId: string, data: any): Observable<any> {
@@ -61,9 +61,7 @@ export class FlowService {
   }
 
   executeFlow(flowId: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/tasks/`, {
-      file_id: flowId,
-    });
+    return this.http.post(`${this.baseUrl}/flow/${flowId}/execute/`, {});
   }
 
   updateDataNodeValue(flowId: string, nodeId: string, newValue: string): Observable<any> {
