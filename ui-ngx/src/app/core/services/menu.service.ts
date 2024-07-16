@@ -38,7 +38,7 @@ export class MenuService {
   );
 
   constructor(private store: Store<AppState>,
-              private router: Router) {
+    private router: Router) {
     this.store.pipe(select(selectIsAuthenticated)).subscribe(
       (authenticated: boolean) => {
         if (authenticated) {
@@ -85,8 +85,8 @@ export class MenuService {
     const openedMenuSections = getCurrentOpenedMenuSections(this.store);
     this.currentMenuSections.filter(section => section.type === 'toggle' &&
       (url.startsWith(section.path) || openedMenuSections.includes(section.path))).forEach(
-      section => section.opened = true
-    );
+        section => section.opened = true
+      );
   }
 
   private buildSysAdminMenu(): Array<MenuSection> {
@@ -524,6 +524,13 @@ export class MenuService {
             type: 'link',
             path: '/flows/archives',
             icon: 'mdi:archive'
+          },
+          {
+            id: 'functions',
+            name: 'Functions',
+            type: 'link',
+            path: '/flows/functions',
+            icon: 'mdi:function-variant'
           },
         ]
       },

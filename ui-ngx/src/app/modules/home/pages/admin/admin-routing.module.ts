@@ -28,7 +28,7 @@ import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
 import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
 import { FlowDetailsResolver } from '@home/pages/admin/flow/flow-map-resolver.resolve';
 import { ArchivesComponent } from './archives/archives.component';
-import { NodeClassesListComponent } from './node-classes/node-classes-list.component';
+import { FunctionListComponent } from './functions/function-list.component';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -68,7 +68,7 @@ const routes: Routes = [
             icon: 'folder'
           },
         },
-        children : [
+        children: [
           {
             path: '',
             component: FlowListComponent,
@@ -88,7 +88,7 @@ const routes: Routes = [
               breadcrumb: {
                 labelFunction: flowMapPageBreadcrumbLabelFunction,
                 icon: 'mdi:chart-bubble'
-              } 
+              }
             },
           }
         ]
@@ -108,6 +108,25 @@ const routes: Routes = [
             data: {
               auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
               title: 'Archives'
+            }
+          }
+        ]
+      },
+      {
+        path: 'functions',
+        data: {
+          breadcrumb: {
+            label: 'Functions',
+            icon: 'mdi:function-variant'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: FunctionListComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Functions'
             }
           }
         ]

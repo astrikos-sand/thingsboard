@@ -13,19 +13,19 @@ export type NodeClass = {
   providedIn: "root",
 })
 export class NodeClassService {
-  private baseUrl = "/backend";
+  private baseUrl = "/backend/v2";
 
   constructor(private http: HttpClient) {}
 
   getNodeClasses(): Observable<NodeClass[]> {
-    return this.http.get<NodeClass[]>(`${this.baseUrl}/node-classes/`);
+    return this.http.get<NodeClass[]>(`${this.baseUrl}/function-definitions/`);
   }
 
   addBaseClass(data: FormData): Observable<any> {
-    return this.http.post(`${this.baseUrl}/file-upload/`, data);
+    return this.http.post(`${this.baseUrl}/function-definitions/`, data);
   }
 
   deleteFile(fileId: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/node-classes/${fileId}/`);
+    return this.http.delete<any>(`${this.baseUrl}/function-definitions/${fileId}/`);
   }
 }

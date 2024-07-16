@@ -12,11 +12,11 @@ import type { NodeClass } from "@app/core/services/node-classes.service";
 import { AddBaseNodeClassDialog } from "../flow/add-base-node-class-dialog.component";
 
 @Component({
-  selector: 'app-node-classes-list',
-  templateUrl: './node-classes-list.component.html',
-  styleUrls: ['./node-classes-list.component.scss']
+  selector: 'app-function-list',
+  templateUrl: './function-list.component.html',
+  styleUrls: ['./function-list.component.scss']
 })
-export class NodeClassesListComponent implements OnInit {
+export class FunctionListComponent implements OnInit {
   dataSource = new MatTableDataSource<NodeClass>();
   displayedColumns: string[] = ["name", "description", "actions"];
   totalFiles = 0;
@@ -118,6 +118,9 @@ export class NodeClassesListComponent implements OnInit {
     const dialogRef = this.dialog.open(AddBaseNodeClassDialog);
 
     dialogRef.afterClosed().subscribe((result) => {
+      if (!result) {
+        return;
+      }
       this.dataSource.data = [result, ...this.dataSource.data];
       console.log('The dialog was closed');
     });
