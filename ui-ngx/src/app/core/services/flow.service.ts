@@ -14,6 +14,10 @@ export class FlowService {
     return this.http.get(`${this.baseUrl}/fields/node_types/`);
   }
 
+  getNodeFields(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/fields/node_fields/`);
+  }
+
   getFormFields(nodeType: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/fields/form_fields/`, {
       params: { node_type: nodeType }

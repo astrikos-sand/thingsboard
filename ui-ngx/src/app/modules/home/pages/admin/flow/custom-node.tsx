@@ -2,11 +2,71 @@ import React, { useState, useEffect } from "react";
 import { Handle, Position } from "reactflow";
 import axios from "axios";
 
-function CustomNode({ data, isConnectable }: { data: any; isConnectable: any }) {
-  const [showDataModal, setShowDataModal] = useState(false);
+function Popup({ children, onChange }: { children: React.ReactNode, onChange: () => void }) {
+  return (
+    <div style={styles.modalOverlay}>
+      <div style={styles.modalContainer}>
+        <div style={{ marginBottom: "10px" }}>
+          <button style={styles.button} onClick={onChange}>&times;</button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  modalOverlay: {
+    position: "fixed" as "fixed",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    background: "rgba(0, 0, 0, 0.5)",
+    zIndex: 1000,
+  },
+  modalContainer: {
+    background: "white",
+    width: "100%",
+    padding: "20px",
+  },
+  button: {
+    marginLeft: "10px",
+    padding: "5px 10px",
+    cursor: "pointer",
+    border: "none",
+    borderRadius: "4px",
+  },
+};
+
+const datanode_edit_styles = {
+  textarea: {
+    width: "100%",
+    height: "100px",
+    margin: "10px 0",
+    padding: "10px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+    resize: "none" as "none",
+  },
+  modalActions: {
+    display: "flex",
+    justifyContent: "flex-end",
+  },
+};
+
+function DataNodeEdit({ data }: { data: any }) {
+  useEffect(() => {
+    setEditedData(data.value || "");
+    setOriginalData(data.value || "");
+  }, [data.value]);
+
   const [editedData, setEditedData] = useState(data.value || "");
   const [originalData, setOriginalData] = useState(data.value || "");
-  console.log(data)
+
+  const [showDataModal, setShowDataModal] = useState(false);
   const handleDataClick = () => {
     setShowDataModal(true);
   };
@@ -32,16 +92,108 @@ function CustomNode({ data, isConnectable }: { data: any; isConnectable: any }) 
     setShowDataModal(false);
   };
 
+  return (
+    <div>
+      <div className="custom-node__body">
+        <button style={{ cursor: "pointer" }} onClick={handleDataClick}>
+          Edit
+        </button>
+      </div>
+      {showDataModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalContainer}>
+            <h2>Edit Data</h2>
+            <textarea value={editedData} onChange={handleDataChange} rows={4} style={datanode_edit_styles.textarea} />
+            <div style={datanode_edit_styles.modalActions}>
+              <button onClick={handleSaveData} disabled={editedData === originalData} style={styles.button}>
+                Save
+              </button>
+              <button onClick={handleClose} style={styles.button}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
-  useEffect(() => {
-    setEditedData(data.value || "");
-    setOriginalData(data.value || "");
-  }, [data.value]);
+
+function NodeFieldHandler({ data, node_data }: { data: any, node_data: any }) {
+  const popupChild: React.ReactNode[] = []
+  const nodeChild: React.ReactNode[] = []
+  const [showPopup, setShowPopup] = useState(false);
+
+  // TODO: Make it dynamic
+  if (node_data.node_type === "DataNode") {
+    popupChild.push(<div key={`popup-${popupChild.length}`}><DataNodeEdit data={node_data} /></div>);
+  }
+
+  function constructField(field: any) {
+    switch (field["type"]) {
+      case "span":
+        {
+          const keys = field["key"]
+          const label = field["label"]
+
+          const value = keys.reduce((acc, curr) => acc && acc[curr], node_data);
+          return <span><strong>{label}:</strong> {value}</span>
+        }
+      case "p":
+        {
+          const keys = field["key"]
+          const label = field["label"]
+
+          const value = keys.reduce((acc, curr) => acc && acc[curr], node_data);
+          return <p><strong>{label}:</strong> {value}</p>
+        }
+      case "id":
+        { return <small>id: {node_data.id.slice(0, 8)}</small> }
+      case "link":
+        {
+          const keys = field["key"]
+          const label = field["label"]
+
+          const value = keys.reduce((acc, curr) => acc && acc[curr], node_data);
+          return <a href={value} target={"_blank"}>Link to {label}</a>
+        }
+      default:
+        { return <>Field type not defined for {field["type"]}</> }
+    }
+  }
+
+  data.forEach((field: any) => {
+    const placement = field["placement"]
+    const child: React.ReactNode = constructField(field)
+
+    if (placement === "popup") {
+      popupChild.push(<div key={`popup-${popupChild.length}`}>{child}</div>)
+    }
+    else {
+      nodeChild.push(<div key={`node-${nodeChild.length}`}>{child}</div>)
+    }
+  })
 
   return (
-    <>
+    <div>
+      <button style={styles.button} onClick={() => setShowPopup(true)}>Show</button>
+      {showPopup && <Popup onChange={() => setShowPopup(false)}>{popupChild}</Popup>}
+      <div style={{ marginTop: "8px" }}>
+        {nodeChild}
+      </div>
+    </div>
+  )
+}
+
+function CustomNode({ data, isConnectable }: { data: any; isConnectable: any }) {
+  const color = data.node_fields["color"]
+  const attrs = data.node_fields["attrs"]
+
+  return (
+    <div style={{ backgroundColor: color }}>
       <div className="custom-node__header">
-        <strong>{data.type}</strong>
+        <strong>{data.node_type}</strong>
       </div>
       <div className="custom-node__body">
         {data.input_slots?.map((input: any) => (
@@ -57,75 +209,11 @@ function CustomNode({ data, isConnectable }: { data: any; isConnectable: any }) 
           </div>
         ))}
       </div>
-      {data.node_type === "DataNode" && (
-        <div className="custom-node__body">
-          <button style={{ cursor: "pointer" }} onClick={handleDataClick}>
-            Show Data
-          </button>
-        </div>
-      )}
-      {showDataModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalContainer}>
-            <h2>Edit Data</h2>
-            <textarea value={editedData} onChange={handleDataChange} rows={4} style={styles.textarea} />
-            <div style={styles.modalActions}>
-              <button onClick={handleSaveData} disabled={editedData === originalData} style={styles.button}>
-                Save
-              </button>
-              <button onClick={handleClose} style={styles.button}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+      <div>
+        <NodeFieldHandler data={attrs} node_data={data} />
+      </div>
+    </div>
   );
 }
-
-const styles = {
-  modalOverlay: {
-    position: "fixed" as "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: "rgba(0, 0, 0, 0.5)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  modalContainer: {
-    background: "white",
-    padding: "20px",
-    borderRadius: "8px",
-    width: "400px",
-    boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-  },
-  textarea: {
-    width: "100%",
-    height: "100px",
-    margin: "10px 0",
-    padding: "10px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
-    resize: "none" as "none",
-  },
-  modalActions: {
-    display: "flex",
-    justifyContent: "flex-end",
-  },
-  button: {
-    marginLeft: "10px",
-    padding: "5px 10px",
-    cursor: "pointer",
-    background: "#007bff",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-  },
-};
 
 export default CustomNode;
