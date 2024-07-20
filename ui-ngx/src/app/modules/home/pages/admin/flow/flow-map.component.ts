@@ -17,6 +17,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   nodes: Node[] = [];
   edges: Edge[] = [];
   flowId!: string;
+  node_fields: any[] = []
   name!: string;
   isLoading: boolean = false;
   executionTime: number | undefined;
@@ -30,7 +31,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     private flowService: FlowService,
     private dialog: MatDialog,
     private stateService: StateService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.subscriptions.add(
@@ -46,9 +47,10 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
     this.route.data.subscribe((data) => {
       const flowDetails = data['flowDetails'];
+      this.node_fields = data['nodeFields'];
+
       if (flowDetails) {
         this.flowId = flowDetails.id;
-        console.log(flowDetails.nodes)
         this.convertNodesAndConnections(flowDetails.nodes);
         this.name = flowDetails.name;
       }
@@ -99,7 +101,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     const convertedConnectionsMap = new Map<string, Edge>();
 
     nodesData.forEach((nodeData) => {
-      const { id, position, connections_in, connections_out, polymorphic_ctype, input_slots, output_slots, ...rest } = nodeData;
+      const { id, position, connections_in, connections_out, polymorphic_ctype, input_slots, output_slots, node_type, ...rest } = nodeData;
       convertedNodes.push({
         id: id.toString(),
         position: position,
@@ -110,6 +112,8 @@ export class FlowMapComponent implements OnInit, OnDestroy {
           polymorphic_ctype: polymorphic_ctype,
           input_slots: input_slots,
           output_slots: output_slots,
+          node_type: node_type,
+          node_fields: this.node_fields[node_type],
           ...rest,
         },
       });
@@ -155,23 +159,18 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       outputs: node.data.outputs,
       position: node.position,
     }));
-    console.log(this.edges)
-    const validConnections = this.edges.filter(connection => 
+    const validConnections = this.edges.filter(connection =>
       connection.sourceHandle && connection.targetHandle
     );
-    
+
     const convertedConnections = validConnections.map((connection) => ({
       id: connection.id,
       source: connection.source,
       target: connection.target,
       source_slot: connection.sourceHandle.replace(`node-${connection.source}`, '').replace('-output-', ''),
       target_slot: connection.targetHandle.replace(`node-${connection.target}`, '').replace('-input-', ''),
-    }));    
+    }));
 
-    console.log({
-      nodes: convertedNodes,
-      connections: convertedConnections,
-    })
     this.flowService.saveFlowDetails(this.flowId, { nodes: convertedNodes, connections: convertedConnections }).subscribe(
       (response: any) => {
         alert('Saved to backend');

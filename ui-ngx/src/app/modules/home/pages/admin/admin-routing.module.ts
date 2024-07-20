@@ -26,7 +26,7 @@ import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module'
 import { ImageGalleryComponent } from '@shared/components/image/image-gallery.component';
 import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
 import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
-import { FlowDetailsResolver } from '@home/pages/admin/flow/flow-map-resolver.resolve';
+import { FlowDetailsResolver, NodeFieldsResolver } from '@home/pages/admin/flow/flow-map-resolver.resolve';
 import { ArchivesComponent } from './archives/archives.component';
 import { FunctionListComponent } from './functions/function-list.component';
 
@@ -80,7 +80,7 @@ const routes: Routes = [
           {
             path: ':flowId',
             component: FlowMapComponent,
-            resolve: { flowDetails: FlowDetailsResolver },
+            resolve: { flowDetails: FlowDetailsResolver, nodeFields: NodeFieldsResolver },
             canDeactivate: [ConfirmOnExitGuard],
             data: {
               auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
