@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MatDialog } from "@angular/material/dialog";
 import { AddNewNodeDialog } from "./add-node-dialog.component";
-import { AddBaseNodeClassDialog } from "./add-base-node-class-dialog.component";
+import { AddFunctionDialog } from '@home/pages/admin/functions/function-dialog.component';
 import { Node, Edge, addEdge } from "reactflow";
 import { Subscription } from "rxjs";
 import {
@@ -77,8 +77,8 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     });
   }
 
-  openAddBaseNodeClassDialog(): void {
-    const dialogRef = this.dialog.open(AddBaseNodeClassDialog);
+  openAddFunctionDialog(): void {
+    const dialogRef = this.dialog.open(AddFunctionDialog);
 
     dialogRef.afterClosed().subscribe((result) => {
       console.log("The dialog was closed");

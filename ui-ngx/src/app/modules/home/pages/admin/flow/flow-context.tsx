@@ -26,7 +26,7 @@ export const FlowProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchNodeFields = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/v2/fields/node_fields/`);
+        const response = await axios.get(`/backend/v2/fields/node_fields/`);
         setNodeFields(response.data);
       } catch (error) {
         console.error("Error fetching node fields:", error);

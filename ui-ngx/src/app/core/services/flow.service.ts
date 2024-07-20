@@ -39,8 +39,8 @@ export class FlowService {
   addNode(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/nodes/`, data);
   }
-  addBaseClass(data: FormData): Observable<any> {
-    return this.http.post(`${this.baseUrl}/file-upload/`, data);
+  addFunction(data: FormData): Observable<any> {
+    return this.http.post(`${this.baseUrl}/function-definitions/`, data);
   }
 
   fetchFlowDetails(flowId: string): Observable<any> {
