@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Handle, Position } from "reactflow";
+import React, { useState, useEffect, useContext } from "react";
+import { Handle, Position, Edge } from "reactflow";
+import { FlowContext, FlowContextType } from "./flow-context";
+import { handleOpenScope, handleCollapseScope } from "./nodeUtils";
 import axios from "axios";
 
 function Popup({ children, onChange }: { children: React.ReactNode, onChange: () => void }) {
@@ -187,9 +189,75 @@ function NodeFieldHandler({ data, node_data }: { data: any, node_data: any }) {
 }
 
 function CustomNode({ data, isConnectable }: { data: any; isConnectable: any }) {
+  if (!data.toShow) return null;
   const color = data.node_fields["color"]
   const attrs = data.node_fields["attrs"]
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [oldEdges, setOldEdges] = useState<Edge[]>([]);
+  const [openedScopes, setOpenedScopes] = useState<string[]>([]);
+  const { nodes, edges, nodeFields, setNodes, setEdges } = useContext(FlowContext) as FlowContextType;
 
+  const handleOpenScopeClick = async (scopeId: string, blockData: any) => {
+    await handleOpenScope(scopeId, blockData, nodes, edges, oldEdges, nodeFields, setOldEdges, setNodes, setEdges, setOffset);
+    setOpenedScopes([...openedScopes, scopeId]);
+  };
+
+  const handleCollapseScopeClick = async (scopeId: string, blockData: any) => {
+    await handleCollapseScope(scopeId, blockData, nodes, edges, oldEdges, nodeFields, setOldEdges, setNodes, setEdges, offset);
+    setOpenedScopes(openedScopes.filter((id) => id !== scopeId));
+  };
+
+  const renderExtraData = () => {
+    if (data.cases) {
+      return (
+        <div className="custom-node__extra">
+          {data.cases.map((scope: any) => (
+            <div key={scope.id} className="custom-node__scope-option">
+              {!openedScopes.includes(scope.block.flow.id) ? (
+                <button
+                  className="scope-button"
+                  onClick={() => handleOpenScopeClick(scope.block.flow.id, data)}
+                >
+                  Open {scope.name}
+                </button>
+              ) : (
+                <button
+                  className="scope-button"
+                  onClick={() => handleCollapseScopeClick(scope.block.flow.id, data)}
+                >
+                  Collapse {scope.name}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (data.block) {
+      return (
+        <div className="custom-node__extra">
+          <div key={data.block.id} className="custom-node__scope-option">
+            {!openedScopes.includes(data.block.flow.id) ? (
+              <button
+                className="scope-button"
+                onClick={() => handleOpenScopeClick(data.block.flow.id, data)}
+              >
+                Open {data.block.name}
+              </button>
+            ) : (
+              <button
+                className="scope-button"
+                onClick={() => handleCollapseScopeClick(data.block.flow.id, data)}
+              >
+                Collapse {data.block.name}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
   return (
     <div style={{ backgroundColor: color }}>
       <div className="custom-node__header">
@@ -209,6 +277,7 @@ function CustomNode({ data, isConnectable }: { data: any; isConnectable: any }) 
           </div>
         ))}
       </div>
+      {renderExtraData()}
       <div>
         <NodeFieldHandler data={attrs} node_data={data} />
       </div>

@@ -9,11 +9,11 @@ import {
   ViewEncapsulation,
   EventEmitter,
   Output,
-} from '@angular/core';
-import React from 'react';
-import { createRoot, Root } from 'react-dom/client';
-import { Node, Edge } from 'reactflow';
-import { ReactFlowWrappableComponent } from './reactflow';
+} from "@angular/core";
+import React from "react";
+import { createRoot, Root } from "react-dom/client";
+import { Node, Edge } from "reactflow";
+import { ReactFlowWrappableComponent } from "./reactflow";
 
 @Component({
   selector: 'reactflow-wrapper',
@@ -27,8 +27,8 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
 
   @Input() nodes?: Node<any>[] | undefined;
   @Input() edges?: Edge<any>[] | undefined;
-  @Output() nodesChange = new EventEmitter<any>();
-  @Output() edgesChange = new EventEmitter<any>();
+  @Output() nodesChange = new EventEmitter<Node<any>[]>();
+  @Output() edgesChange = new EventEmitter<Edge<any>[]>();
   @Output() connectionsChange = new EventEmitter<any>();
   @Output() positionChange = new EventEmitter<any>();
 
@@ -67,12 +67,12 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
     );
   }
 
-  private handleNodesChange(changes: any) {
-    this.nodesChange.emit(changes);
+  private handleNodesChange(updatedNodes: Node[]) {
+    this.nodesChange.emit(updatedNodes);
   }
 
-  private handleEdgesChange(changes: any) {
-    this.edgesChange.emit(changes);
+  private handleEdgesChange(updatedEdges: Edge[]) {
+    this.edgesChange.emit(updatedEdges);
   }
 
   private handleConnectionsChange(connection: any) {
