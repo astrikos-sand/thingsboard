@@ -75,6 +75,7 @@
     "leaflet.gridlayer.googlemutant": "0.14.1",
     "leaflet.markercluster": "1.5.3",
     "libphonenumber-js": "^1.10.4",
+    "lodash.isequal": "^4.5.0",
     "marked": "^4.0.17",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.42",

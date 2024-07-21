@@ -146,30 +146,36 @@ export class AddNewNodeDialog implements OnInit {
         node_type: this.form.value.nodeType,
         flow: this.data.flowId,
         ...this.form.value.fields.reduce((acc: any, field: any) => {
-          console.log(acc, field)
           if (field.type === "array") {
-            acc[field.label] = field.fields
+            acc[field.label] = field.fields;
           } else {
             acc[field.label] = field.value;
           }
           return acc;
         }, {}),
       };
-      console.log(nodeData)
+
       this.flowService.addNode(nodeData).subscribe(
         (response: any) => {
-          const { id, ...rest } = response;
+          const { id, position, connections_in, connections_out, polymorphic_ctype, input_slots, output_slots, ...rest } = response;
           const newDataNode = {
             id: id.toString(),
-            type: "custom",
-            position: this.data.flowPosition,
+            position: position,
+            type: 'custom',
             data: {
-              id,
-              label: "Node",
+              id: id,
+              label: 'Node',
+              position: position,
+              polymorphic_ctype: polymorphic_ctype,
+              input_slots: input_slots,
+              output_slots: output_slots,
+              toShow: true,
+              flowId: this.data.flowId,
+              isScopeNode: false,
               ...rest,
             },
           };
-          this.data.setNodes([...this.data.nodes, newDataNode]);
+          this.data.addNode(newDataNode);
           this.isLoading = false;
           this.dialogRef.close();
         },
