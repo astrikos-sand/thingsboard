@@ -8,11 +8,11 @@ import {
 import { FlowService } from "@app/core/services/flow.service";
 
 @Component({
-  selector: "add-base-node-class-dialog",
-  templateUrl: "./add-base-node-class-dialog.component.html",
-  styleUrls: ["./add-base-node-class-dialog.component.scss"],
+  selector: "function-dialog",
+  templateUrl: "./function-dialog.component.html",
+  styleUrls: ["./function-dialog.component.scss"],
 })
-export class AddBaseNodeClassDialog implements OnInit {
+export class AddFunctionDialog implements OnInit {
   form: FormGroup;
   isLoading = false;
 
@@ -28,7 +28,7 @@ export class AddBaseNodeClassDialog implements OnInit {
   code = `def func():\n    ${this.mainCode}\n    return`;
 
   constructor(
-    public dialogRef: MatDialogRef<AddBaseNodeClassDialog>,
+    public dialogRef: MatDialogRef<AddFunctionDialog>,
     private fb: FormBuilder,
     private flowService: FlowService
   ) {
@@ -37,8 +37,6 @@ export class AddBaseNodeClassDialog implements OnInit {
       description: ["", Validators.required],
       inputs: [""],
       outputs: [""],
-      specialSlots: this.fb.array([]),
-      outputSpecialSlots: this.fb.array([]),
     });
   }
 
@@ -49,43 +47,10 @@ export class AddBaseNodeClassDialog implements OnInit {
     this.updateCode();
   }
 
-  get specialSlots(): FormArray {
-    return this.form.get("specialSlots") as FormArray;
-  }
-
-  get outputSpecialSlots(): FormArray {
-    return this.form.get("outputSpecialSlots") as FormArray;
-  }
-
-  addSpecialSlot() {
-    this.specialSlots.push(
-      this.fb.group({
-        name: [""],
-        speciality: [""],
-        attachment_type: ["IN"],
-      })
-    );
-  }
-
-  addOutputSpecialSlot() {
-    this.outputSpecialSlots.push(
-      this.fb.group({
-        name: [""],
-        speciality: [""],
-        attachment_type: ["OUT"],
-      })
-    );
-  }
-
   updateCode() {
     const inputs = this.form.get("inputs")?.value || "";
     const outputs = this.form.get("outputs")?.value || "";
-    const specialSlots = this.specialSlots.controls
-      .map((slot) => slot.value.name)
-      .filter((name) => name)
-      .join(",");
-    const parameters =
-      inputs + (specialSlots ? (inputs ? "," : "") + specialSlots : "");
+    const parameters = inputs;
 
     const mainMatch = this.code.match(/def func\([^)]*\):\n\s*(.*)\n\s*return/);
     this.mainCode = mainMatch ? mainMatch[1] : this.mainCode;
@@ -107,28 +72,25 @@ export class AddBaseNodeClassDialog implements OnInit {
       description,
       inputs,
       outputs,
-      specialSlots,
-      outputSpecialSlots,
     } = this.form.value;
 
-    const slots = [
-      ...inputs
-        .split(",")
-        .map((name: any) => ({ name, attachment_type: "IN" })),
-      ...outputs
-        .split(",")
-        .map((name: any) => ({ name, attachment_type: "OUT" })),
-      ...specialSlots,
-      ...outputSpecialSlots,
-    ];
+    const fields = [];
 
-    const specialParameters = specialSlots
-      .filter((slot: { speciality: string }) => slot.speciality !== "SIG")
-      .map((slot: { name: any }) => slot.name)
-      .join(",");
-    const parameters =
-      inputs +
-      (specialParameters ? (inputs ? ", " : "") + specialParameters : "");
+    if (inputs.length > 0) {
+      const input_fields = inputs
+        .split(",")
+        .map((name: any) => ({ name, attachment_type: "IN" }))
+
+      fields.push(...input_fields);
+    }
+    if (outputs.length > 0) {
+      const output_fields = outputs
+        .split(",")
+        .map((name: any) => ({ name, attachment_type: "OUT" }))
+      fields.push(...output_fields);
+    }
+
+    const parameters = inputs;
 
     let submit_code = "";
     if (outputs.length > 0) {
@@ -139,11 +101,12 @@ export class AddBaseNodeClassDialog implements OnInit {
 
     const codeBlob = new Blob([submit_code], { type: "text/plain" });
     const codeFileFormData = new FormData();
-    codeFileFormData.append("code_file", codeBlob, `${name}-code.py`);
+    codeFileFormData.append("code", codeBlob, `${name}-code.py`);
     codeFileFormData.append("name", name);
     codeFileFormData.append("description", description);
-    codeFileFormData.append("slots", JSON.stringify(slots));
-    this.flowService.addBaseClass(codeFileFormData).subscribe(
+    const fieldBlob = new Blob([JSON.stringify(fields)], { type: "application/json" });
+    codeFileFormData.append("fields", fieldBlob);
+    this.flowService.addFunction(codeFileFormData).subscribe(
       (newFlow) => {
         this.dialogRef.close(newFlow);
       },

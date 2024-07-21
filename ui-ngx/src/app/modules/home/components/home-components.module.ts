@@ -173,7 +173,7 @@ import { BasicWidgetConfigModule } from '@home/components/widget/config/basic/ba
 import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delete-timeseries-panel.component';
 import { AddFlowDialogComponent } from '@home/pages/admin/flow/add-flow-dialog.component';
 import { AddNewNodeDialog } from '@app/modules/home/pages/admin/flow/add-node-dialog.component';
-import { AddBaseNodeClassDialog } from '@home/pages/admin/flow/add-base-node-class-dialog.component';
+import { AddFunctionDialog } from '@home/pages/admin/functions/function-dialog.component';
 import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-dialog.component';
 import { CreateTagDialogComponent } from '../pages/admin/archives/create-tag-dialog.component';
 
@@ -185,7 +185,7 @@ import { CreateTagDialogComponent } from '../pages/admin/archives/create-tag-dia
       AddEntityDialogComponent,
       AddFlowDialogComponent,
       AddNewNodeDialog,
-      AddBaseNodeClassDialog,
+      AddFunctionDialog,
       UploadFileDialogComponent,
       CreateTagDialogComponent,
       DetailsPanelComponent,
@@ -338,7 +338,7 @@ import { CreateTagDialogComponent } from '../pages/admin/archives/create-tag-dia
     AddEntityDialogComponent,
     AddFlowDialogComponent,
     AddNewNodeDialog,
-    AddBaseNodeClassDialog,
+    AddFunctionDialog,
     UploadFileDialogComponent,
     CreateTagDialogComponent,
     DetailsPanelComponent,

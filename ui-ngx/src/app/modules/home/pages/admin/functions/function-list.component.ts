@@ -9,7 +9,7 @@ import { ToastNotificationService } from "@core/services/toast-notification.serv
 import { NotificationMessage } from "@app/core/notification/notification.models";
 import { NodeClassService } from "@app/core/services/node-classes.service";
 import type { NodeClass } from "@app/core/services/node-classes.service";
-import { AddBaseNodeClassDialog } from "../flow/add-base-node-class-dialog.component";
+import { AddFunctionDialog } from '@home/pages/admin/functions/function-dialog.component';
 
 @Component({
   selector: 'app-function-list',
@@ -114,8 +114,8 @@ export class FunctionListComponent implements OnInit {
     this.dataSource.data = this.dataSource.data.slice(startIndex, endIndex);
   }
 
-  openAddBaseNodeClassDialog(): void {
-    const dialogRef = this.dialog.open(AddBaseNodeClassDialog);
+  openAddFunctionDialog(): void {
+    const dialogRef = this.dialog.open(AddFunctionDialog);
 
     dialogRef.afterClosed().subscribe((result) => {
       if (!result) {
