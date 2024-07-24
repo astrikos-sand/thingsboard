@@ -1,4 +1,9 @@
-import React, { FunctionComponent, useCallback, useEffect, useRef } from "react";
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import ReactFlow, {
   Controls,
   Background,
@@ -31,7 +36,9 @@ const nodeTypes = {
 };
 
 const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
-  const { nodes, edges, setNodes, setEdges } = React.useContext(FlowContext) as FlowContextType;
+  const { nodes, edges, setNodes, setEdges } = React.useContext(
+    FlowContext
+  ) as FlowContextType;
   const reactFlowWrapper = React.useRef<HTMLDivElement | null>(null);
   const { screenToFlowPosition } = useReactFlow();
   const prevNodes = useRef<Node[]>([]);
@@ -46,7 +53,7 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
       });
       checkNodeOverlap();
     },
-    [setNodes, props]
+    [setNodes, nodes, props]
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(
@@ -77,8 +84,9 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
         if (node.type !== "scopeRegion") {
           let isInScope = false;
           let scopeId = "";
-
-          for (let scopeRegion of currentNodes.filter((n) => n.type === "scopeRegion")) {
+          for (let scopeRegion of currentNodes.filter(
+            (n) => n.type === "scopeRegion"
+          )) {
             if (isNodeOverlappingScopeRegion(node, scopeRegion)) {
               isInScope = true;
               scopeId = scopeRegion.data.scopeId;
@@ -91,7 +99,7 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
             data: {
               ...node.data,
               isScopeNode: isInScope,
-              flowId: isInScope ? scopeId : undefined,
+              flow: isInScope ? scopeId : node.data.flow,
             },
           };
         }
@@ -100,38 +108,55 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
     });
   };
 
-  const isNodeOverlappingScopeRegion = (node: Node, scopeRegion: Node): boolean => {
-    const nodeRect = {
-      x: node.position.x,
-      y: node.position.y,
-      width: 200,
-      height: 100,
-    };
-    const scopeRect = {
-      x: scopeRegion.position.x,
-      y: scopeRegion.position.y,
-      width: scopeRegion.data.width,
-      height: scopeRegion.data.height,
-    };
+  const isNodeOverlappingScopeRegion = (
+    node: Node,
+    scopeRegion: Node
+  ): boolean => {
+    const nodeElement = document.getElementById(node.id);
+    const scopeElement = document.querySelector(
+      `[data-id='${scopeRegion.id}']`
+    );
+    if (!nodeElement || !scopeElement) return false;
 
-    const overlapWidth = Math.max(0, Math.min(nodeRect.x + nodeRect.width, scopeRect.x + scopeRect.width) - Math.max(nodeRect.x, scopeRect.x));
-    const overlapHeight = Math.max(0, Math.min(nodeRect.y + nodeRect.height, scopeRect.y + scopeRect.height) - Math.max(nodeRect.y, scopeRect.y));
-    const overlapArea = overlapWidth * overlapHeight;
-    const nodeArea = nodeRect.width * nodeRect.height;
+    const nodeRect = nodeElement.getBoundingClientRect();
+    const scopeRect = scopeElement.getBoundingClientRect();
 
-    return overlapArea >= nodeArea * 0.5;
+    const overlapWidth = Math.max(
+      0,
+      Math.min(nodeRect.right, scopeRect.right) -
+        Math.max(nodeRect.left, scopeRect.left)
+    );
+    const overlapHeight = Math.max(
+      0,
+      Math.min(nodeRect.bottom, scopeRect.bottom) -
+        Math.max(nodeRect.top, scopeRect.top)
+    );
+
+    return (
+      overlapWidth >= nodeRect.width * 0.5 &&
+      overlapHeight >= nodeRect.height * 0.5
+    );
   };
 
   useEffect(() => {
-    if (props.nodes && !isEqual(props.nodes, prevNodes.current)) {
+    if (props.nodes.length && !isEqual(props.nodes, prevNodes.current)) {
       setNodes(props.nodes);
       prevNodes.current = props.nodes;
     }
-    if (props.edges && !isEqual(props.edges, prevEdges.current)) {
+    if (props.edges.length && !isEqual(props.edges, prevEdges.current)) {
       setEdges(props.edges);
       prevEdges.current = props.edges;
     }
-  }, [props.nodes, props.edges, setNodes, setEdges]);
+  }, [props.nodes, props.edges]);
+
+  useEffect(() => {
+    if (nodes.length && !isEqual(props.nodes, nodes)) {
+      props.onNodesChange(nodes);
+    }
+    if (edges.length && !isEqual(props.edges, edges)) {
+      props.onEdgesChange(edges);
+    }
+  }, [nodes, edges]);
 
   const onMouseMove = useCallback(
     (event: any) => {
@@ -164,7 +189,9 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
   );
 };
 
-export const ReactFlowWrappableComponent: FunctionComponent<any> = ({ props }) => {
+export const ReactFlowWrappableComponent: FunctionComponent<any> = ({
+  props,
+}) => {
   return (
     <ReactFlowProvider>
       <FlowProvider>

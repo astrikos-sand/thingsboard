@@ -157,7 +157,7 @@ export class AddNewNodeDialog implements OnInit {
 
       this.flowService.addNode(nodeData).subscribe(
         (response: any) => {
-          const { id, position, connections_in, connections_out, polymorphic_ctype, input_slots, output_slots, ...rest } = response;
+          const { id, position, connections_in, node_type,  connections_out, polymorphic_ctype, input_slots, output_slots, ...rest } = response;
           const newDataNode = {
             id: id.toString(),
             position: position,
@@ -170,7 +170,8 @@ export class AddNewNodeDialog implements OnInit {
               input_slots: input_slots,
               output_slots: output_slots,
               toShow: true,
-              flowId: this.data.flowId,
+              flow: this.data.flowId,
+              node_fields: this.data.node_fields[node_type],
               isScopeNode: false,
               ...rest,
             },

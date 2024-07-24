@@ -2,16 +2,11 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { MatDialog } from "@angular/material/dialog";
 import { AddNewNodeDialog } from "./add-node-dialog.component";
-import { AddFunctionDialog } from '@home/pages/admin/functions/function-dialog.component';
 import { Node, Edge, addEdge } from "reactflow";
 import { Subscription } from "rxjs";
-import {
-  convertNodesAndConnections,
-  saveToBackend,
-  executeFlow,
-} from "./nodeUtils";
+import { convertData, saveFlow, executeFlow } from "./nodeUtils";
 import { FlowService } from "@app/core/services/flow.service";
-
+import { AddFunctionDialog } from "../functions/function-dialog.component";
 @Component({
   selector: "flow-map",
   templateUrl: "./flow-map.component.html",
@@ -43,7 +38,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
       if (flowDetails) {
         this.flowId = flowDetails.id;
-        const { nodes, edges } = convertNodesAndConnections(
+        const { nodes, edges } = convertData(
           flowDetails.nodes,
           this.flowId,
           this.node_fields
@@ -64,6 +59,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       data: {
         flowId: this.flowId,
         nodes: this.nodes,
+        node_fields: this.node_fields,
         setNodes: (newNodes: any[]) => (this.nodes = newNodes),
         flowPosition: this.flowPosition,
         addNode: (newNode: Node) => {
@@ -88,12 +84,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   async saveToBackend(): Promise<void> {
     this.isLoading = true;
     try {
-      await saveToBackend(
-        this.flowId,
-        this.nodes,
-        this.edges,
-        this.flowService
-      );
+      await saveFlow(this.flowId, this.nodes, this.edges);
       alert("Saved to backend");
     } catch (error) {
       console.error("Error saving to backend:", error);
@@ -124,19 +115,19 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     this.router.navigate(["/resources/flows"]);
   }
 
-  onNodesChange(updatedNodes: Node[]) {
+  onNodesChange(updatedNodes: Node[]): void {
     this.nodes = updatedNodes;
   }
 
-  onEdgesChange(updatedEdges: Edge[]) {
+  onEdgesChange(updatedEdges: Edge[]): void {
     this.edges = updatedEdges;
   }
 
-  onConnect(connection: any) {
+  onConnect(connection: any): void {
     this.edges = addEdge(connection, this.edges);
   }
 
-  onPositionChange(event: any) {
+  onPositionChange(event: any): void {
     this.flowPosition = event;
   }
 }

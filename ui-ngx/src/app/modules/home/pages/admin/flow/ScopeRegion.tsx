@@ -2,12 +2,13 @@ import React from "react";
 import { memo } from "react";
 import { Handle, Position, NodeResizer } from "reactflow";
 
-const scopeRegion = ({ data }: { data: any }) => {
+const ScopeRegion = ({ data }: { data: any }) => {
+  console.log(data);
   return (
     <>
       <NodeResizer minWidth={data.width} minHeight={data.height} />
       <div
-        id={data.id}
+        id={`scope-region-${data.scopeId}`}
         className="scope-region"
         style={{
           width: data.width,
@@ -16,6 +17,18 @@ const scopeRegion = ({ data }: { data: any }) => {
           pointerEvents: "none",
         }}
       >
+        <Handle
+          type="target"
+          position={Position.Left}
+          id={`scope-node-${data.scopeId}`}
+          style={{
+            left: -10,
+            top: "50%",
+            transform: "translateY(-50%)",
+            background: "#555",
+          }}
+          isConnectable={true}
+        />
         <div
           style={{
             position: "absolute",
@@ -27,10 +40,10 @@ const scopeRegion = ({ data }: { data: any }) => {
           }}
         >
           <div>
-            Scope Name: <strong>{data.scopeName}: </strong>
+            Scope Name: <strong>{data.scopeName}</strong>
           </div>
           <div>
-            Scope Id: <strong>{data.scopeId}: </strong>
+            Scope Id: <strong>{data.scopeId}</strong>
           </div>
         </div>
       </div>
@@ -38,4 +51,4 @@ const scopeRegion = ({ data }: { data: any }) => {
   );
 };
 
-export default memo(scopeRegion);
+export default memo(ScopeRegion);

@@ -16,9 +16,9 @@ import { Node, Edge } from "reactflow";
 import { ReactFlowWrappableComponent } from "./reactflow";
 
 @Component({
-  selector: 'reactflow-wrapper',
+  selector: "reactflow-wrapper",
   template: ``,
-  styleUrls: ['../../../../../../../node_modules/reactflow/dist/style.css'],
+  styleUrls: ["../../../node_modules/reactflow/dist/style.css", "../../../node_modules/react-resizable/css/styles.css"],
   encapsulation: ViewEncapsulation.None,
   standalone: true,
 })
