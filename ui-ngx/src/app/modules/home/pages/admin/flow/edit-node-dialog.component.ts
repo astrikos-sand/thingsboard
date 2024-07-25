@@ -18,6 +18,7 @@ export class EditNodeDialogComponent implements OnInit {
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef
   ) {
+    console.log(data)
     this.form = this.fb.group({
       value: [data.value || '', Validators.required],
     });
@@ -31,7 +32,7 @@ export class EditNodeDialogComponent implements OnInit {
     const editedData = this.form.get('value')?.value;
     this.isLoading = true;
     try {
-      await axios.patch(`http://localhost:8000/nodes/${this.data.id}/`, {
+      await axios.patch(`http://localhost:8000/v2/nodes/${this.data.id}/`, {
         value: editedData,
       });
       this.dialogRef.close(editedData);

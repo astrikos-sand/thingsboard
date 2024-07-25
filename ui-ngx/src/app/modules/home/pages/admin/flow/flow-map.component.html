@@ -14,9 +14,11 @@
   <reactflow-wrapper
     [nodes]="nodes"
     [edges]="edges"
+    [openEditingDialogBox]="openEditingDialogBox"
     (nodesChange)="onNodesChange($event)"
     (edgesChange)="onEdgesChange($event)"
     (connectionsChange)="onConnect($event)"
     (positionChange)="onPositionChange($event)"
+    (onOpenEditingDialogBox)="onOpenEditingDialogBox($event)"
   ></reactflow-wrapper>
 </div>

@@ -18,7 +18,7 @@ import { ReactFlowWrappableComponent } from "./reactflow";
 @Component({
   selector: "reactflow-wrapper",
   template: ``,
-  styleUrls: ["../../../node_modules/reactflow/dist/style.css", "../../../node_modules/react-resizable/css/styles.css"],
+  styleUrls: ["../../../../../../../node_modules/reactflow/dist/style.css"],
   encapsulation: ViewEncapsulation.None,
   standalone: true,
 })
@@ -27,6 +27,8 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
 
   @Input() nodes?: Node<any>[] | undefined;
   @Input() edges?: Edge<any>[] | undefined;
+  @Input() openEditingDialogBox?: any | undefined;
+  @Output() onOpenEditingDialogBox = new EventEmitter<Node<any>[]>();
   @Output() nodesChange = new EventEmitter<Node<any>[]>();
   @Output() edgesChange = new EventEmitter<Edge<any>[]>();
   @Output() connectionsChange = new EventEmitter<any>();
@@ -58,13 +60,19 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
         props: {
           nodes: this.nodes,
           edges: this.edges,
+          openEditingDialogBox: this.openEditingDialogBox,
           onNodesChange: this.handleNodesChange.bind(this),
           onEdgesChange: this.handleEdgesChange.bind(this),
           onConnectionsChange: this.handleConnectionsChange.bind(this),
           onSetPosition: this.handleSetPosition.bind(this),
+          onOpenEditingDialogBox: this.handleOpeningDialogBox.bind(this),
         },
       })
     );
+  }
+
+  private handleOpeningDialogBox(nodeData: Node[]) {
+    this.onOpenEditingDialogBox.emit(nodeData);
   }
 
   private handleNodesChange(updatedNodes: Node[]) {

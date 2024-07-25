@@ -8,6 +8,8 @@ export interface FlowContextType {
   setNodes: Dispatch<SetStateAction<Node[]>>;
   setEdges: Dispatch<SetStateAction<Edge[]>>;
   nodeFields: any[];
+  openEditingDialogBox: any[];
+  setOpenEditingDialogBox: Dispatch<SetStateAction<any>>;
 }
 
 export const FlowContext = createContext<FlowContextType>({
@@ -16,17 +18,20 @@ export const FlowContext = createContext<FlowContextType>({
   setNodes: () => {},
   setEdges: () => {},
   nodeFields: [],
+  openEditingDialogBox: [],
+  setOpenEditingDialogBox: () => {},
 });
 
 export const FlowProvider = ({ children }: { children: ReactNode }) => {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [nodeFields, setNodeFields] = useState<any[]>([]);
+  const [openEditingDialogBox, setOpenEditingDialogBox] = useState<any>();
 
   useEffect(() => {
     const fetchNodeFields = async () => {
       try {
-        const response = await axios.get(`/backend/v2/fields/node_fields/`);
+        const response = await axios.get(`http://localhost:8000/v2/fields/node_fields/`);
         setNodeFields(response.data);
       } catch (error) {
         console.error("Error fetching node fields:", error);
@@ -37,7 +42,7 @@ export const FlowProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <FlowContext.Provider value={{ nodes, edges, nodeFields, setNodes, setEdges }}>
+    <FlowContext.Provider value={{ nodes, edges, nodeFields, setNodes, setEdges, openEditingDialogBox, setOpenEditingDialogBox }}>
       {children}
     </FlowContext.Provider>
   );

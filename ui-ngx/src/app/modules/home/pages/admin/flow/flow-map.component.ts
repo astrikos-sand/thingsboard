@@ -5,6 +5,7 @@ import { AddNewNodeDialog } from "./add-node-dialog.component";
 import { Node, Edge, addEdge } from "reactflow";
 import { Subscription } from "rxjs";
 import { convertData, saveFlow, executeFlow } from "./nodeUtils";
+import { EditNodeDialogComponent } from "./edit-node-dialog.component";
 import { FlowService } from "@app/core/services/flow.service";
 import { AddFunctionDialog } from "../functions/function-dialog.component";
 @Component({
@@ -22,6 +23,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   executionTime: number | undefined;
   executionStatus: string | undefined;
   flowPosition: { x: number; y: number } | undefined;
+  openEditingDialogBox: any;
   private subscriptions: Subscription = new Subscription();
 
   constructor(
@@ -129,5 +131,26 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
   onPositionChange(event: any): void {
     this.flowPosition = event;
+  }
+
+  onOpenEditingDialogBox(nodeData: any): void {
+    this.openEditingDialogBox = nodeData;
+    if (nodeData) {
+      const dialogRef = this.dialog.open(EditNodeDialogComponent, {
+        data: nodeData,
+      });
+
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result !== undefined) {
+          const updatedNodes = this.nodes.map((node) =>
+            node.id === nodeData.id
+              ? { ...node, data: { ...node.data, value: result } }
+              : node
+          );
+          this.nodes = updatedNodes;
+          this.openEditingDialogBox = undefined;
+        }
+      });
+    }
   }
 }

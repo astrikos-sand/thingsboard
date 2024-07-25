@@ -1,9 +1,4 @@
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import React, { FunctionComponent, useCallback, useEffect, useRef } from "react";
 import ReactFlow, {
   Controls,
   Background,
@@ -36,9 +31,7 @@ const nodeTypes = {
 };
 
 const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
-  const { nodes, edges, setNodes, setEdges } = React.useContext(
-    FlowContext
-  ) as FlowContextType;
+  const { nodes, edges, openEditingDialogBox, setOpenEditingDialogBox, setNodes, setEdges } = React.useContext(FlowContext) as FlowContextType;
   const reactFlowWrapper = React.useRef<HTMLDivElement | null>(null);
   const { screenToFlowPosition } = useReactFlow();
   const prevNodes = useRef<Node[]>([]);
@@ -84,9 +77,7 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
         if (node.type !== "scopeRegion") {
           let isInScope = false;
           let scopeId = "";
-          for (let scopeRegion of currentNodes.filter(
-            (n) => n.type === "scopeRegion"
-          )) {
+          for (let scopeRegion of currentNodes.filter((n) => n.type === "scopeRegion")) {
             if (isNodeOverlappingScopeRegion(node, scopeRegion)) {
               isInScope = true;
               scopeId = scopeRegion.data.scopeId;
@@ -108,36 +99,20 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
     });
   };
 
-  const isNodeOverlappingScopeRegion = (
-    node: Node,
-    scopeRegion: Node
-  ): boolean => {
+  const isNodeOverlappingScopeRegion = (node: Node, scopeRegion: Node): boolean => {
     const nodeElement = document.getElementById(node.id);
-    const scopeElement = document.querySelector(
-      `[data-id='${scopeRegion.id}']`
-    );
+    const scopeElement = document.querySelector(`[data-id='${scopeRegion.id}']`);
     if (!nodeElement || !scopeElement) return false;
-
+  
     const nodeRect = nodeElement.getBoundingClientRect();
     const scopeRect = scopeElement.getBoundingClientRect();
 
-    const overlapWidth = Math.max(
-      0,
-      Math.min(nodeRect.right, scopeRect.right) -
-        Math.max(nodeRect.left, scopeRect.left)
-    );
-    const overlapHeight = Math.max(
-      0,
-      Math.min(nodeRect.bottom, scopeRect.bottom) -
-        Math.max(nodeRect.top, scopeRect.top)
-    );
-
-    return (
-      overlapWidth >= nodeRect.width * 0.5 &&
-      overlapHeight >= nodeRect.height * 0.5
-    );
+    const overlapWidth = Math.max(0, Math.min(nodeRect.right, scopeRect.right) - Math.max(nodeRect.left, scopeRect.left));
+    const overlapHeight = Math.max(0, Math.min(nodeRect.bottom, scopeRect.bottom) - Math.max(nodeRect.top, scopeRect.top));
+  
+    return overlapWidth >= nodeRect.width * 0.5 && overlapHeight >= nodeRect.height * 0.5;
   };
-
+  
   useEffect(() => {
     if (props.nodes.length && !isEqual(props.nodes, prevNodes.current)) {
       setNodes(props.nodes);
@@ -150,13 +125,26 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
   }, [props.nodes, props.edges]);
 
   useEffect(() => {
-    if (nodes.length && !isEqual(props.nodes, nodes)) {
+    if(nodes.length && !isEqual(props.nodes, nodes)){
       props.onNodesChange(nodes);
     }
-    if (edges.length && !isEqual(props.edges, edges)) {
+    if(edges.length && !isEqual(props.edges, edges)){
       props.onEdgesChange(edges);
     }
   }, [nodes, edges]);
+
+    
+  useEffect(() => {
+    if (openEditingDialogBox && !props.openEditingDialogBox) {
+      props.onOpenEditingDialogBox(openEditingDialogBox);
+    }
+  }, [openEditingDialogBox]);
+
+  useEffect(() => {
+    if (openEditingDialogBox && !props.openEditingDialogBox) {
+      setOpenEditingDialogBox(props.openEditingDialogBox);
+    }
+  }, [props.openEditingDialogBox]);
 
   const onMouseMove = useCallback(
     (event: any) => {
@@ -189,9 +177,7 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
   );
 };
 
-export const ReactFlowWrappableComponent: FunctionComponent<any> = ({
-  props,
-}) => {
+export const ReactFlowWrappableComponent: FunctionComponent<any> = ({ props }) => {
   return (
     <ReactFlowProvider>
       <FlowProvider>
