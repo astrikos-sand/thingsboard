@@ -64,10 +64,6 @@ export class FlowService {
     return this.http.get<any>(`${this.baseUrl}/env/`);
   }
 
-  executeFlow(flowId: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/flow/${flowId}/execute/`, {});
-  }
-
   updateDataNodeValue(flowId: string, nodeId: string, newValue: string): Observable<any> {
     return this.http.patch(`${this.baseUrl}/nodes/${nodeId}/`, {
       value: newValue,

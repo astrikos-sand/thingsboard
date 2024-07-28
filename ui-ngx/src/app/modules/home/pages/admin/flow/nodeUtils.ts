@@ -79,7 +79,7 @@ export const handleOpenScope = async (
 }> => {
   try {
     const response = await axios.get(
-      `http://localhost:8000/v2/flow/${scopeId}/nodes/`
+      `/backend/v2/flow/${scopeId}/nodes/`
     );
     const { nodes: scopeNodes, edges: scopeEdges } = convertData(
       response.data.nodes,
@@ -296,8 +296,8 @@ export const handleCollapseScope = async (
           .replace('-input-', ''),
       })),
     };
-    console.log('Scope data:', scopeData);
-    await axios.post('http://localhost:8000/v2/save/', {
+
+    await axios.post('/backend/v2/save/', {
       nodes: scopeData.nodes,
       connections: scopeData.connections,
       flow_id: id,
@@ -481,7 +481,7 @@ export const handleCollapseAllScopes = async (
     await handleCollapseScope(scope, nodes, edges);
   }
   const response = await axios.get(
-    `http://localhost:8000/v2/flow/${data.flow}/nodes/`
+    `/backend/v2/flow/${data.flow}/nodes/`
   );
   const { nodes: newNodes, edges: newEdges } = convertData(
     response.data.nodes,
@@ -496,5 +496,5 @@ export const handleCollapseAllScopes = async (
 };
 
 export const executeFlow = async (flowId: string, flowService: any) => {
-  return flowService.executeFlow(flowId);
+  await axios.post(`/backend/v2/flow/${flowId}/execute/`, {})
 };

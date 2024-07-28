@@ -173,6 +173,7 @@ export class AddNewNodeDialog implements OnInit {
               flow: this.data.flowId,
               node_fields: this.data.node_fields[node_type],
               isScopeNode: false,
+              
               ...rest,
             },
           };

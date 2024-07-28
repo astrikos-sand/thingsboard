@@ -142,7 +142,7 @@ function CustomNode({
       }}
     >
       <div className="custom-node__header">
-        <strong>{data.id}</strong>
+        <strong>{data.node_type}</strong>
       </div>
       <div className="custom-node__body">
         {data.input_slots?.map((input: any) => (
