@@ -29,6 +29,7 @@ import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
 import { FlowDetailsResolver, NodeFieldsResolver } from '@home/pages/admin/flow/flow-map-resolver.resolve';
 import { ArchivesComponent } from './archives/archives.component';
 import { FunctionListComponent } from './functions/function-list.component';
+import { WebhookComponent } from './webhook/webhook.component';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -127,6 +128,25 @@ const routes: Routes = [
             data: {
               auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
               title: 'Functions'
+            }
+          }
+        ]
+      },
+      {
+        path: 'webhooks',
+        data: {
+          breadcrumb: {
+            label: 'Webhooks',
+            icon: 'mdi:webhook'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: WebhookComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Webhooks'
             }
           }
         ]

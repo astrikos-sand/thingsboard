@@ -297,11 +297,11 @@ export const handleCollapseScope = async (
       })),
     };
 
-    await axios.post('/backend/v2/save/', {
-      nodes: scopeData.nodes,
-      connections: scopeData.connections,
-      flow_id: id,
-    });
+    // await axios.post('/backend/v2/save/', {
+    //   nodes: scopeData.nodes,
+    //   connections: scopeData.connections,
+    //   flow_id: id,
+    // });
   } catch (error) {
     console.error('Error opening scope:', error);
   }

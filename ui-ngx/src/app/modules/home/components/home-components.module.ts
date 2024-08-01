@@ -177,6 +177,7 @@ import { AddFunctionDialog } from '@home/pages/admin/functions/function-dialog.c
 import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-dialog.component';
 import { CreateTagDialogComponent } from '../pages/admin/archives/create-tag-dialog.component';
 import { EditNodeDialogComponent } from '../pages/admin/flow/edit-node-dialog.component';
+import { WebhookDialogComponent } from '../pages/admin/webhook/dialog.component';
 
 @NgModule({
   declarations:
@@ -189,6 +190,7 @@ import { EditNodeDialogComponent } from '../pages/admin/flow/edit-node-dialog.co
       AddFunctionDialog,
       EditNodeDialogComponent,
       UploadFileDialogComponent,
+      WebhookDialogComponent,
       CreateTagDialogComponent,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
@@ -341,6 +343,7 @@ import { EditNodeDialogComponent } from '../pages/admin/flow/edit-node-dialog.co
     AddFlowDialogComponent,
     AddNewNodeDialog,
     AddFunctionDialog,
+    WebhookDialogComponent,
     EditNodeDialogComponent,
     UploadFileDialogComponent,
     CreateTagDialogComponent,

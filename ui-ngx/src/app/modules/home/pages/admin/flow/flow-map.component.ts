@@ -20,6 +20,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   flowId!: string;
   node_fields: any[] = [];
   name!: string;
+  full_name!: string;
   isLoading: boolean = false;
   executionTime: number | undefined;
   executionStatus: string | undefined;
@@ -50,6 +51,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
         this.nodes = nodes;
         this.edges = edges;
         this.name = flowDetails.name;
+        this.full_name = flowDetails.full_name;
       }
     });
   }

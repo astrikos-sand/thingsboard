@@ -38,6 +38,7 @@ import { ReactFlowWrapper } from '@home/pages/admin/flow/reactflow-wrapper';
 import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
 import { ArchivesComponent } from './archives/archives.component';
 import { FunctionListComponent } from './functions/function-list.component';
+import { WebhookComponent } from './webhook/webhook.component';
 
 @NgModule({
   declarations:
@@ -59,6 +60,7 @@ import { FunctionListComponent } from './functions/function-list.component';
       FlowListComponent,
       ArchivesComponent,
       FunctionListComponent,
+      WebhookComponent,
     ],
   imports: [
     CommonModule,
