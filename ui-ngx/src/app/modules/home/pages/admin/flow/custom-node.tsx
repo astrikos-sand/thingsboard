@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Handle, Position } from "reactflow";
 import { FlowContext, FlowContextType } from "./flow-context";
-import { convertData, handleCollapseScope, handleOpenScope } from "./nodeUtils";
+import { convertData, handleCollapseAllScopes, handleCollapseScope, handleOpenAllScopes, handleOpenScope } from "./nodeUtils";
 import axios from "axios";
 import NodeFieldHandler from "./NodeFieldHandler";
 
@@ -16,150 +16,17 @@ function CustomNode({
   const color = data.node_fields["color"];
   const attrs = data.node_fields["attrs"];
   const [offset, setOffset] = useState({ x: 100, y: data.position.y });
-  const [removedSlots, setRemovedSlots] = useState<any[]>([]);
+  const {
+    nodes,
+    edges,
+    nodeFields,
+    removedSlots,
+    setRemovedSlots,
+    setNodes,
+    setEdges,
+  } = useContext(FlowContext) as FlowContextType;
   const [openScopes, setOpenScopes] = useState<boolean>(false);
-  const { nodes, edges, nodeFields, setNodes, setEdges } = useContext(
-    FlowContext
-  ) as FlowContextType;
   data.styles = data.styles || {};
-
-  const handleOpenAllScopes = async (scopes: any[]) => {
-    let currentOffset = offset;
-    let updatedNodes: any[] = [];
-    let updatedEdges: any[] = [];
-    let removeEdges: any[] = [];
-    let removeSlots: any[] = [];
-    let shift = 0;
-    let result;
-    for (const scope of scopes || []) {
-      result = await handleOpenScope(
-        scope.block.flow.id,
-        data,
-        nodes,
-        edges,
-        removeSlots,
-        currentOffset,
-        nodeFields
-      );
-      currentOffset = result.offset;
-      updatedNodes = [...updatedNodes, ...result.nodes];
-      console.log(updatedNodes);
-      updatedEdges = [...updatedEdges, ...result.edges];
-      removeEdges = [...removeEdges, ...result.removeEdges];
-      shift = Math.max(shift, result.shift);
-    }
-    console.log(
-      nodes.map((n) => {
-        return {
-          id: n.id,
-          type: n.type,
-          node_type: n.data.node_type,
-          flow: n.data.flow,
-          isScopeNode: n.data.isScopeNode,
-          input_slots: n.data.input_slots,
-          output_slots: n.data.output_slots,
-          connections_in: n.data.connections_in,
-          connections_out: n.data.connections_out,
-          ...n.data,
-        };
-      })
-    );
-    const shiftedNodes = nodes
-      .filter((node) => !node.data.isScopeNode && node.type === "custom")
-      .map((node) =>
-        node.position.x > data.position.x
-          ? {
-              ...node,
-              position: {
-                x: node.position.x + shift,
-                y: node.position.y + offset.y,
-              },
-              data: {
-                ...node.data,
-                position: {
-                  x: node.position.x + shift,
-                  y: node.position.y + offset.y,
-                },
-                isScopeNode: false,
-              },
-            }
-          : node
-      );
-    console.log(
-      shiftedNodes.map((n) => {
-        return {
-          id: n.id,
-          type: n.type,
-          node_type: n.data.node_type,
-          flow: n.data.flow,
-          isScopeNode: n.data.isScopeNode,
-          input_slots: n.data.input_slots,
-          output_slots: n.data.output_slots,
-          connections_in: n.data.connections_in,
-          connections_out: n.data.connections_out,
-          ...n.data,
-        };
-      })
-    );
-    const shiftedUpdatedNodes = updatedNodes.map((node) => ({
-      ...node,
-      position: {
-        x: node.position.x,
-        y: node.position.y - currentOffset.y / 2,
-      },
-      data: {
-        ...node.data,
-        position: {
-          x: node.position.x,
-          y: node.position.y - currentOffset.y / 2,
-        },
-        isScopeNode: true,
-      },
-    }));
-    setRemovedSlots(removeSlots);
-    data.input_slots = data.input_slots.filter(
-      (slot: any) => !removeSlots.includes(slot)
-    );
-    data.output_slots = data.output_slots.filter(
-      (slot: any) => !removeSlots.includes(slot)
-    );
-    data.styles = { ...data.styles, opacity: 0.5, zIndex: -1000 };
-    setNodes([...shiftedNodes, ...shiftedUpdatedNodes]);
-    setEdges([
-      ...edges.filter((ed) => !removeEdges.includes(ed)),
-      ...updatedEdges.filter((ed) => !removeEdges.includes(ed)),
-    ]);
-    setOffset(currentOffset);
-    setOpenScopes(true);
-  };
-
-  const handleCollapseAllScopes = async (scopes: any[]) => {
-    data.input_slots = [
-      ...data.input_slots,
-      ...removedSlots.filter((slot) => slot.attachment_type === "IN"),
-    ];
-    data.output_slots = [
-      ...data.output_slots,
-      ...removedSlots.filter((slot) => slot.attachment_type === "OUT"),
-    ];
-
-    for (const scope of scopes || []) {
-      await handleCollapseScope(scope, nodes, edges);
-    }
-    const response = await axios.get(
-      `http://localhost:8000/v2/flow/${data.flow}/nodes/`
-    );
-    const { nodes: newNodes, edges: newEdges } = convertData(
-      response.data.nodes,
-      data.flow,
-      nodeFields
-    );
-
-    setNodes(newNodes);
-    setEdges(newEdges);
-    setOpenScopes(false);
-    setOffset({ x: 100, y: data.position.y });
-  };
 
   const renderExtraData = () => {
     if (data.cases) {
@@ -168,14 +35,41 @@ function CustomNode({
           {openScopes ? (
             <button
               className="scope-button"
-              onClick={() => handleCollapseAllScopes(data.cases)}
+              onClick={() =>
+                handleCollapseAllScopes(
+                  data.cases,
+                  data,
+                  nodes,
+                  edges,
+                  nodeFields,
+                  removedSlots,
+                  setNodes,
+                  setEdges,
+                  setOffset,
+                  setOpenScopes
+                )
+              }
             >
               Collapse All
             </button>
           ) : (
             <button
               className="scope-button"
-              onClick={() => handleOpenAllScopes(data.cases)}
+              onClick={() =>
+                handleOpenAllScopes(
+                  data.cases,
+                  data,
+                  offset,
+                  nodes,
+                  edges,
+                  nodeFields,
+                  setRemovedSlots,
+                  setNodes,
+                  setEdges,
+                  setOffset,
+                  setOpenScopes
+                )
+              }
             >
               Open All
             </button>
@@ -191,7 +85,19 @@ function CustomNode({
               <button
                 className="scope-button"
                 onClick={() => {
-                  handleOpenAllScopes([data.block]);
+                  handleOpenAllScopes(
+                    [data.block],
+                    data,
+                    offset,
+                    nodes,
+                    edges,
+                    nodeFields,
+                    setRemovedSlots,
+                    setNodes,
+                    setEdges,
+                    setOffset,
+                    setOpenScopes
+                  );
                 }}
               >
                 Open {data.block.name}
@@ -199,7 +105,20 @@ function CustomNode({
             ) : (
               <button
                 className="scope-button"
-                onClick={() => handleCollapseAllScopes([data.block])}
+                onClick={() =>
+                  handleCollapseAllScopes(
+                    [data.block],
+                    data,
+                    nodes,
+                    edges,
+                    nodeFields,
+                    removedSlots,
+                    setNodes,
+                    setEdges,
+                    setOffset,
+                    setOpenScopes
+                  )
+                }
               >
                 Collapse {data.block.name}
               </button>
@@ -229,7 +148,7 @@ function CustomNode({
             className="custom-node__input"
           >
             <div>
-              {input.name}
+              {input.name}: {input.id}
             </div>
             <Handle
               type="target"
@@ -246,7 +165,7 @@ function CustomNode({
             className="custom-node__output"
           >
             <div style={{ right: 0, position: "absolute" }}>
-              {output.name}
+              {output.name}: {output.id}
             </div>
             <Handle
               type="source"

@@ -1,5 +1,5 @@
-import axios from "axios";
-import { Node, Edge } from "reactflow";
+import axios from 'axios';
+import { Node, Edge } from 'reactflow';
 
 export const convertData = (
   nodesData: any[],
@@ -24,10 +24,10 @@ export const convertData = (
     convertedNodes.push({
       id: id.toString(),
       position: position,
-      type: "custom",
+      type: 'custom',
       data: {
         id: id,
-        label: "Node",
+        label: 'Node',
         position: position,
         polymorphic_ctype: polymorphic_ctype,
         input_slots: input_slots,
@@ -86,14 +86,11 @@ export const handleOpenScope = async (
       scopeId,
       nodeFields
     );
-    scopeNodes.map((node) => {
-      node.data.isScopeNode = true;
-    });
     const inputNode = scopeNodes.find(
-      (node: any) => node.data.node_type === "InputNode"
+      (node: any) => node.data.node_type === 'InputNode'
     );
     const outputNode = scopeNodes.find(
-      (node: any) => node.data.node_type === "OutputNode"
+      (node: any) => node.data.node_type === 'OutputNode'
     );
 
     if (inputNode) {
@@ -124,13 +121,12 @@ export const handleOpenScope = async (
           x: node.position.x + offset.x + data.position.x - leftmost + 300,
           y: node.position.y + offset.y - bottommost + 100,
         },
-        isScopeNode: true,
       },
     }));
 
     const scopeRegion = {
       id: `scope-region-${scopeId}`,
-      type: "scopeRegion",
+      type: 'scopeRegion',
       data: {
         flow: data.flow,
         parentNode: data.id,
@@ -146,9 +142,9 @@ export const handleOpenScope = async (
       style: {
         width: rightmost - leftmost + 400,
         height: topmost - bottommost + 400,
-        border: "2px dashed #888",
-        backgroundColor: "rgba(173, 216, 230, 0.5)",
-        borderRadius: "10px",
+        border: '2px dashed #888',
+        backgroundColor: 'rgba(173, 216, 230, 0.5)',
+        borderRadius: '10px',
       },
     };
     let newScopeEdges: any[] = [];
@@ -208,7 +204,7 @@ export const handleOpenScope = async (
     data.output_slots.push({
       id: `node-${data.id}-output-${scopeId}`,
       name: response.data.name,
-      attachment_type: "OUT",
+      attachment_type: 'OUT',
     });
     newScopeEdges.push({
       id: `new-edge-${data.id}-to-${scopeId}`,
@@ -230,7 +226,7 @@ export const handleOpenScope = async (
       shift: rightmost - leftmost + 400,
     };
   } catch (error) {
-    console.error("Error opening scope:", error);
+    console.error('Error opening scope:', error);
     return {
       nodes,
       edges,
@@ -248,9 +244,10 @@ export const handleCollapseScope = async (
   edges: Edge[]
 ) => {
   try {
-    const scopeNodes = nodes.filter(
-      (node) => node.data.isScopeNode && node.data.flow === scope.block.flow.id
-    );
+    console.log(nodes, scope);
+    const id = scope.block ? scope.block.flow.id : scope.flow.id;
+    const scopeNodes = nodes.filter((node) => node.data.flow === id);
+
     const scopeNodeIds = scopeNodes.map((node) => node.id);
     let scopeEdges = edges.filter(
       (edge) =>
@@ -258,18 +255,18 @@ export const handleCollapseScope = async (
     );
 
     if (scopeNodes.length === 0) {
-      console.error("No scope nodes found to collapse");
+      console.error('No scope nodes found to collapse');
     }
 
     const inputNode = scopeNodes.find(
-      (node) => node.data.node_type === "InputNode"
+      (node) => node.data.node_type === 'InputNode'
     );
     const outputNode = scopeNodes.find(
-      (node) => node.data.node_type === "OutputNode"
+      (node) => node.data.node_type === 'OutputNode'
     );
 
     if (!inputNode || !outputNode) {
-      console.error("Scope must have input and output nodes");
+      console.error('Scope must have input and output nodes');
     }
 
     if (inputNode) {
@@ -292,61 +289,210 @@ export const handleCollapseScope = async (
         source: edge.source,
         target: edge.target,
         source_slot: edge.sourceHandle
-          ?.replace(`node-${edge.source}`, "")
-          .replace("-output-", ""),
+          ?.replace(`node-${edge.source}`, '')
+          .replace('-output-', ''),
         target_slot: edge.targetHandle
-          ?.replace(`node-${edge.target}`, "")
-          .replace("-input-", ""),
+          ?.replace(`node-${edge.target}`, '')
+          .replace('-input-', ''),
       })),
     };
-    console.log("Scope data:", scopeData);
-    await axios.post("http://localhost:8000/v2/save/", {
+    console.log('Scope data:', scopeData);
+    await axios.post('http://localhost:8000/v2/save/', {
       nodes: scopeData.nodes,
       connections: scopeData.connections,
-      flow_id: scope.block.flow.id,
+      flow_id: id,
     });
   } catch (error) {
-    console.error("Error opening scope:", error);
+    console.error('Error opening scope:', error);
   }
 };
 
-export const saveFlow = async (
-  flowId: string,
+export const handleOpenAllScopes = async (
+  scopes: any[],
+  data: any,
+  offset: { x: number; y: number },
   nodes: Node[],
-  edges: Edge[]
+  edges: any[],
+  nodeFields: any,
+  setRemovedSlots: (arg0: any[]) => void,
+  setNodes: (arg0: any[]) => void,
+  setEdges: (arg0: any[]) => void,
+  setOffset: (arg0: any) => void,
+  setOpenScopes: (arg0: boolean) => void
 ) => {
-  const nodeIds = nodes.map((node) => node.id);
-  const convertedNodes = nodes
-    .filter((node) => !node.data.isScopeNode && node.data.id)
-    .map((node) => ({
-      id: node.data.id,
-      inputs: node.data.inputs,
-      outputs: node.data.outputs,
-      position: node.position,
-    }));
-  const validConnections = edges
-    .filter(
-      (edge) => nodeIds.includes(edge.source) && nodeIds.includes(edge.target)
-    )
-    .filter((connection) => connection.sourceHandle && connection.targetHandle);
+  let currentOffset = offset;
+  let updatedNodes: any[] = [];
+  let updatedEdges: any[] = [];
+  let removeEdges: any[] = [];
+  let removeSlots: any[] = [];
+  let shift = 0;
+  let result;
+  for (const scope of scopes || []) {
+    let id;
+    if (scope.block) {
+      id = scope.block.flow.id;
+    } else {
+      id = scope.flow.id;
+    }
+    result = await handleOpenScope(
+      id,
+      data,
+      nodes,
+      edges,
+      removeSlots,
+      currentOffset,
+      nodeFields
+    );
+    currentOffset = result.offset;
+    updatedNodes = [...updatedNodes, ...result.nodes];
+    updatedEdges = [...updatedEdges, ...result.edges];
+    removeEdges = [...removeEdges, ...result.removeEdges];
+    shift = Math.max(shift, result.shift);
+  }
+  const shiftedNodes = nodes
+    .filter((node) => node.type === 'custom')
+    .map((node) =>
+      node.position.x > data.position.x
+        ? {
+            ...node,
+            position: {
+              x: node.position.x + shift,
+              y: node.position.y,
+            },
+            data: {
+              ...node.data,
+              position: {
+                x: node.position.x + shift,
+                y: node.position.y,
+              },
+            },
+          }
+        : node
+    );
 
-  const convertedConnections = validConnections.map((connection) => ({
-    id: connection.id,
-    source: connection.source,
-    target: connection.target,
-    source_slot: connection.sourceHandle
-      ?.replace(`node-${connection.source}`, "")
-      .replace("-output-", ""),
-    target_slot: connection.targetHandle
-      ?.replace(`node-${connection.target}`, "")
-      .replace("-input-", ""),
+  const shiftedUpdatedNodes = updatedNodes.map((node) => ({
+    ...node,
+    position: {
+      x: node.position.x,
+      y: node.position.y - currentOffset.y / 2,
+    },
+    data: {
+      ...node.data,
+      position: {
+        x: node.position.x,
+        y: node.position.y - currentOffset.y / 2,
+      },
+    },
   }));
-  const response = await axios.post("http://localhost:8000/v2/save/", {
-    nodes: convertedNodes,
-    connections: convertedConnections,
-    flow_id: flowId,
-  });
-  return response.data;
+  setRemovedSlots(removeSlots);
+  data.input_slots = data.input_slots.filter(
+    (slot: any) => !removeSlots.includes(slot)
+  );
+  data.output_slots = data.output_slots.filter(
+    (slot: any) => !removeSlots.includes(slot)
+  );
+  data.styles = {
+    ...data.styles,
+    opacity: 0.5,
+    zIndex: -1000,
+  };
+
+  const parentScope: any = nodes.find(
+    (node) =>
+      node.type === 'scopeRegion' && node.data.scopeId === data.flow
+  );
+
+  if (parentScope) {
+    console.log(parentScope);
+    const maxHeight = Math.max(
+      ...updatedNodes.map(
+        (node) =>
+          node.position.y +
+          (node.style?.height ? parseInt(node.style.height) / 2 : 0)
+      )
+    );
+    const minHeight = Math.min(
+      ...updatedNodes.map(
+        (node) =>
+          node.position.y -
+          (node.style?.height ? parseInt(node.style.height) / 2 : 0)
+      )
+    );
+    const newWidth = parentScope?.data?.width
+      ? `${parseInt(parentScope.style.width as string) + shift}px`
+      : shift;
+
+    const newHeight = maxHeight + Math.abs(minHeight) + 300;
+    shiftedNodes.push({
+      ...parentScope,
+      data: {
+        ...parentScope?.data,
+        width: newWidth,
+        height: newHeight,
+      },
+      style: {
+        ...parentScope?.style,
+        width: newWidth,
+        height: newHeight,
+      },
+      position: {
+        ...parentScope.position,
+        y: parentScope.position.y - (maxHeight + Math.abs(minHeight)) / 2,
+      },
+    });
+  }
+  console.log([...shiftedNodes, ...shiftedUpdatedNodes])
+  setNodes([...shiftedNodes, ...shiftedUpdatedNodes]);
+  setEdges([
+    ...edges.filter((ed: any) => !removeEdges.includes(ed)),
+    ...updatedEdges.filter((ed) => !removeEdges.includes(ed)),
+  ]);
+  setOffset(currentOffset);
+  setOpenScopes(true);
+};
+
+export const handleCollapseAllScopes = async (
+  scopes: any[],
+  data: any,
+  nodes: Node[],
+  edges: any[],
+  nodeFields: any,
+  removedSlots: any[],
+  setNodes: (arg0: any[]) => void,
+  setEdges: (arg0: any[]) => void,
+  setOffset: (arg0: any) => void,
+  setOpenScopes: (arg0: boolean) => void
+) => {
+  console.log(nodes, edges);
+  data.input_slots = [
+    ...data.input_slots,
+    ...removedSlots.filter(
+      (slot: { attachment_type: string }) => slot.attachment_type === 'IN'
+    ),
+  ];
+  data.output_slots = [
+    ...data.output_slots,
+    ...removedSlots.filter(
+      (slot: { attachment_type: string }) => slot.attachment_type === 'OUT'
+    ),
+  ];
+
+  for (const scope of scopes || []) {
+    await handleCollapseScope(scope, nodes, edges);
+  }
+  const response = await axios.get(
+    `http://localhost:8000/v2/flow/${data.flow}/nodes/`
+  );
+  const { nodes: newNodes, edges: newEdges } = convertData(
+    response.data.nodes,
+    data.flow,
+    nodeFields
+  );
+
+  setNodes(newNodes);
+  setEdges(newEdges);
+  setOpenScopes(false);
+  setOffset({ x: 100, y: data.position.y });
 };
 
 export const executeFlow = async (flowId: string, flowService: any) => {

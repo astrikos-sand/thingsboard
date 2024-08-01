@@ -1,4 +1,3 @@
-
 <div class="mat-padding tb-entity-table tb-absolute-fill">
   <div class="button-container">
     <button (click)="openAddNewNodeDialog()">Add New Node</button>
@@ -14,6 +13,7 @@
   <reactflow-wrapper
     [nodes]="nodes"
     [edges]="edges"
+    [saveFlow]="saveFlow"
     [openEditingDialogBox]="openEditingDialogBox"
     (nodesChange)="onNodesChange($event)"
     (edgesChange)="onEdgesChange($event)"

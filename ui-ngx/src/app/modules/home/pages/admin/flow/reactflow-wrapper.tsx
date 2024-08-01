@@ -28,11 +28,13 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
   @Input() nodes?: Node<any>[] | undefined;
   @Input() edges?: Edge<any>[] | undefined;
   @Input() openEditingDialogBox?: any | undefined;
+  @Input() saveFlow?: any | undefined;
   @Output() onOpenEditingDialogBox = new EventEmitter<Node<any>[]>();
   @Output() nodesChange = new EventEmitter<Node<any>[]>();
   @Output() edgesChange = new EventEmitter<Edge<any>[]>();
   @Output() connectionsChange = new EventEmitter<any>();
   @Output() positionChange = new EventEmitter<any>();
+  @Output() onSaveFlow = new EventEmitter<any>();
 
   constructor(private viewContainerRef: ViewContainerRef) {}
 
@@ -60,6 +62,7 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
         props: {
           nodes: this.nodes,
           edges: this.edges,
+          saveFlow: this.saveFlow,
           openEditingDialogBox: this.openEditingDialogBox,
           onNodesChange: this.handleNodesChange.bind(this),
           onEdgesChange: this.handleEdgesChange.bind(this),
