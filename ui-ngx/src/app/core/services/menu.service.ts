@@ -539,6 +539,13 @@ export class MenuService {
             path: '/flows/webhooks',
             icon: 'mdi:webhook'
           },
+          {
+            id: 'periodic-trigger',
+            name: 'Periodic Triggers',
+            type: 'link',
+            path: '/flows/periodic',
+            icon: 'mdi:timer'
+          },
         ]
       },
       {

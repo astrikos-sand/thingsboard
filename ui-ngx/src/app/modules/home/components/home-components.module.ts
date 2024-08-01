@@ -178,6 +178,7 @@ import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-d
 import { CreateTagDialogComponent } from '../pages/admin/archives/create-tag-dialog.component';
 import { EditNodeDialogComponent } from '../pages/admin/flow/edit-node-dialog.component';
 import { WebhookDialogComponent } from '../pages/admin/webhook/dialog.component';
+import { PeriodicTriggerDialogComponent } from '../pages/admin/periodic-trigger/dialog.component';
 
 @NgModule({
   declarations:
@@ -191,6 +192,7 @@ import { WebhookDialogComponent } from '../pages/admin/webhook/dialog.component'
       EditNodeDialogComponent,
       UploadFileDialogComponent,
       WebhookDialogComponent,
+      PeriodicTriggerDialogComponent,
       CreateTagDialogComponent,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
@@ -344,6 +346,7 @@ import { WebhookDialogComponent } from '../pages/admin/webhook/dialog.component'
     AddNewNodeDialog,
     AddFunctionDialog,
     WebhookDialogComponent,
+    PeriodicTriggerDialogComponent,
     EditNodeDialogComponent,
     UploadFileDialogComponent,
     CreateTagDialogComponent,

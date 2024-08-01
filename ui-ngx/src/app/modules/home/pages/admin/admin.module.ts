@@ -39,6 +39,7 @@ import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
 import { ArchivesComponent } from './archives/archives.component';
 import { FunctionListComponent } from './functions/function-list.component';
 import { WebhookComponent } from './webhook/webhook.component';
+import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
 
 @NgModule({
   declarations:
@@ -61,6 +62,7 @@ import { WebhookComponent } from './webhook/webhook.component';
       ArchivesComponent,
       FunctionListComponent,
       WebhookComponent,
+      PeriodicTriggerComponent,
     ],
   imports: [
     CommonModule,

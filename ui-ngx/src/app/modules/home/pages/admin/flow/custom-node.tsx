@@ -1,9 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Handle, Position } from "reactflow";
 import { FlowContext, FlowContextType } from "./flow-context";
-import { convertData, handleCollapseAllScopes, handleCollapseScope, handleOpenAllScopes, handleOpenScope } from "./nodeUtils";
-import axios from "axios";
-import NodeFieldHandler from "./NodeFieldHandler";
+import { handleCollapseAllScopes, handleOpenAllScopes } from "./nodeUtils";
 
 function CustomNode({
   data,
@@ -26,7 +24,9 @@ function CustomNode({
     setEdges,
   } = useContext(FlowContext) as FlowContextType;
   const [openScopes, setOpenScopes] = useState<boolean>(false);
-  const { setOpenEditingDialogBox } = useContext(FlowContext) as FlowContextType;
+  const { setOpenEditingDialogBox } = useContext(
+    FlowContext
+  ) as FlowContextType;
   data.styles = data.styles || {};
 
   const renderExtraData = () => {
@@ -150,9 +150,7 @@ function CustomNode({
             key={`node-${data.id}-input-${input.id}`}
             className="custom-node__input"
           >
-            <div>
-              {input.name}
-            </div>
+            <div>{input.name}</div>
             <Handle
               type="target"
               position={Position.Left}
@@ -167,9 +165,7 @@ function CustomNode({
             key={`node-${data.id}-output-${output.id}`}
             className="custom-node__output"
           >
-            <div style={{ right: 0, position: "absolute" }}>
-              {output.name}
-            </div>
+            <div style={{ right: 0, position: "absolute" }}>{output.name}</div>
             <Handle
               type="source"
               position={Position.Right}

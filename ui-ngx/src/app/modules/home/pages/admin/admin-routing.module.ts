@@ -30,6 +30,7 @@ import { FlowDetailsResolver, NodeFieldsResolver } from '@home/pages/admin/flow/
 import { ArchivesComponent } from './archives/archives.component';
 import { FunctionListComponent } from './functions/function-list.component';
 import { WebhookComponent } from './webhook/webhook.component';
+import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -147,6 +148,25 @@ const routes: Routes = [
             data: {
               auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
               title: 'Webhooks'
+            }
+          }
+        ]
+      },
+      {
+        path: 'periodic',
+        data: {
+          breadcrumb: {
+            label: 'Periodic Triggers',
+            icon: 'mdi:timer'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: PeriodicTriggerComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Periodic Triggers'
             }
           }
         ]
