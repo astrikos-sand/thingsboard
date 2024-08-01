@@ -20,6 +20,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   flowId!: string;
   node_fields: any[] = [];
   name!: string;
+  full_name!: string;
   isLoading: boolean = false;
   executionTime: number | undefined;
   executionStatus: string | undefined;
@@ -50,6 +51,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
         this.nodes = nodes;
         this.edges = edges;
         this.name = flowDetails.name;
+        this.full_name = flowDetails.full_name;
       }
     });
   }
@@ -97,10 +99,11 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     }
   }
 
-  async executeFlow(): Promise<void> {
+  async execute_flow(): Promise<void> {
     this.isLoading = true;
     const startTime = new Date();
     try {
+      console.log(this.flowId)
       await executeFlow(this.flowId, this.flowService);
       const endTime = new Date();
       this.executionTime = (endTime.getTime() - startTime.getTime()) / 1000;

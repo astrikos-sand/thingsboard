@@ -532,6 +532,13 @@ export class MenuService {
             path: '/flows/functions',
             icon: 'mdi:function-variant'
           },
+          {
+            id: 'webhook',
+            name: 'Webhooks',
+            type: 'link',
+            path: '/flows/webhooks',
+            icon: 'mdi:webhook'
+          },
         ]
       },
       {
