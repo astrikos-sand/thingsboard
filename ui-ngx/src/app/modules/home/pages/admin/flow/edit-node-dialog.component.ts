@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import axios from 'axios';
@@ -11,6 +11,8 @@ import axios from 'axios';
 export class EditNodeDialogComponent implements OnInit {
   form: FormGroup;
   isLoading = false;
+  originalData: string;
+  additionalData: any;
 
   constructor(
     public dialogRef: MatDialogRef<EditNodeDialogComponent>,
@@ -18,14 +20,44 @@ export class EditNodeDialogComponent implements OnInit {
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef
   ) {
-    console.log(data)
+    this.originalData = data.value || '';
     this.form = this.fb.group({
-      value: [data.value || '', Validators.required],
+      value: [this.originalData, Validators.required],
     });
+    this.additionalData = this.constructAdditionalData(data);
   }
 
   ngOnInit(): void {
     this.cdr.detectChanges();
+  }
+
+  constructAdditionalData(data: any) {
+    const fields = data.node_fields?.attrs || [];
+    return fields.map((field: any) => this.constructField(field, data));
+  }
+
+  constructField(field: any, node_data: any) {
+    switch (field["type"]) {
+      case "span":
+      case "p": {
+        const keys = field["key"];
+        const label = field["label"];
+        const value = keys.reduce((acc: any, curr: any) => acc && acc[curr], node_data);
+        return { label, value, type: field["type"] };
+      }
+      case "id": {
+        return { label: "ID", value: node_data.id.slice(0, 8), type: "id" };
+      }
+      case "link": {
+        const keys = field["key"];
+        const label = field["label"];
+        const value = keys.reduce((acc: any, curr: any) => acc && acc[curr], node_data);
+        return { label, value: `http://localhost:8000${value}`, type: "link" };
+      }
+      default: {
+        return { label: field["label"], value: "Field type not defined", type: "unknown" };
+      }
+    }
   }
 
   async saveData() {

@@ -8,6 +8,7 @@ import { convertData, executeFlow } from "./nodeUtils";
 import { EditNodeDialogComponent } from "./edit-node-dialog.component";
 import { FlowService } from "@app/core/services/flow.service";
 import { AddFunctionDialog } from "../functions/function-dialog.component";
+
 @Component({
   selector: 'flow-map',
   templateUrl: './flow-map.component.html',
@@ -143,7 +144,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       });
       console.log(nodeData)
       dialogRef.afterClosed().subscribe((result) => {
-        if (result !== undefined) {
+        if (result !== null) {
           const updatedNodes = this.nodes.map((node) =>
             node.id === nodeData.id
               ? { ...node, data: { ...node.data, value: result } }

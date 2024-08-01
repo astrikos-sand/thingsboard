@@ -26,6 +26,7 @@ function CustomNode({
     setEdges,
   } = useContext(FlowContext) as FlowContextType;
   const [openScopes, setOpenScopes] = useState<boolean>(false);
+  const { setOpenEditingDialogBox } = useContext(FlowContext) as FlowContextType;
   data.styles = data.styles || {};
 
   const renderExtraData = () => {
@@ -129,7 +130,9 @@ function CustomNode({
     }
     return null;
   };
-
+  const handleEditClick = () => {
+    setOpenEditingDialogBox(data);
+  };
   return (
     <div
       id={data.id}
@@ -148,7 +151,7 @@ function CustomNode({
             className="custom-node__input"
           >
             <div>
-              {input.name}: {input.id}
+              {input.name}
             </div>
             <Handle
               type="target"
@@ -165,7 +168,7 @@ function CustomNode({
             className="custom-node__output"
           >
             <div style={{ right: 0, position: "absolute" }}>
-              {output.name}: {output.id}
+              {output.name}
             </div>
             <Handle
               type="source"
@@ -179,7 +182,7 @@ function CustomNode({
       </div>
       {renderExtraData()}
       <div>
-        <NodeFieldHandler data={attrs} node_data={data} />
+        <button onClick={handleEditClick}>Show</button>
       </div>
     </div>
   );

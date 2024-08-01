@@ -73,9 +73,7 @@ function NodeFieldHandler({ data, node_data }: { data: any; node_data: any }) {
 
   return (
     <div>
-      {node_data.node_type === 'DataNode' && (
-        <button onClick={handleEditClick}>Show</button>
-      )}
+      <button onClick={handleEditClick}>Show</button>
       <div style={{ marginTop: "8px" }}>{nodeChild}</div>
     </div>
   );
