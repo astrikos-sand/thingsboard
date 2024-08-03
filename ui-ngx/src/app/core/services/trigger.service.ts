@@ -22,6 +22,7 @@ export interface Task {
 }
 
 export interface PeriodicTrigger {
+  task: any;
   id: string;
   target: string;
   tags: Tag[];

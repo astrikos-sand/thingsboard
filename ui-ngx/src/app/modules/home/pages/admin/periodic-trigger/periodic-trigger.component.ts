@@ -11,6 +11,7 @@ import {
   PeriodicTrigger,
   TriggerService,
 } from "@app/core/services/trigger.service";
+import { TagService } from "@app/core/services/tag.service";
 
 interface TagNode {
   name: string;
@@ -30,9 +31,6 @@ export class PeriodicTriggerComponent implements OnInit {
   totalTriggers = 0;
   pageIndex = 0;
   pageSize = 10;
-
-  @ViewChild(MatSort) sort: MatSort;
-
   treeControl = new NestedTreeControl<TagNode>((node) => node.children);
   tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
   filteredTreeDataSource = new MatTreeNestedDataSource<TagNode>();
@@ -41,69 +39,44 @@ export class PeriodicTriggerComponent implements OnInit {
   searchQuery: string = "";
   selectedNode: TagNode;
 
+  @ViewChild(MatSort) sort: MatSort;
+
   constructor(
     private triggerService: TriggerService,
     private dialog: MatDialog,
-    private clipboard: Clipboard
+    private clipboard: Clipboard,
+    private tagService: TagService
   ) {}
 
   ngOnInit(): void {
-    this.loadTriggers();
+    this.loadTagsAndTriggers();
   }
 
-  loadTriggers(): void {
-    this.triggerService.getPeriodicTriggers().subscribe(
-      (data) => {
-        const rootNodes = this.buildTree(data);
+  loadTagsAndTriggers(): void {
+    this.tagService.getAllChildrenByName("Periodic Triggers").subscribe(
+      (rootTag) => {
+        const rootNodes = this.buildTree([rootTag]);
         this.tagTreeDataSource.data = rootNodes;
         this.filteredTreeDataSource.data = rootNodes;
         this.originalTreeData = rootNodes;
-        this.dataSource.data = data;
         this.treeControl.expandDescendants(rootNodes[0]);
-        this.totalTriggers = data.length;
-        this.dataSource.sort = this.sort;
-
-        if (this.selectedNode) {
-          const node = this.findNodeById(rootNodes, this.selectedNode.id);
-          if (node) {
-            this.onNodeSelect(node);
-          }
-        }
       },
       (error) => {
-        console.error("Error fetching periodic triggers: ", error);
+        console.error("Error fetching tags: ", error);
       }
     );
   }
 
-  buildTree(triggers: PeriodicTrigger[]): TagNode[] {
-    const root: TagNode = {
-      name: "Periodic Triggers",
-      id: "root",
-      children: [],
+  buildTree(tags: any[]): TagNode[] {
+    const buildNode = (tag: any): TagNode => {
+      return {
+        id: tag.id,
+        name: tag.name,
+        children: tag.children ? tag.children.map(buildNode) : [],
+      };
     };
-    const nodeMap: { [key: string]: TagNode } = { "Periodic Triggers": root };
 
-    triggers.forEach((trigger) => {
-      trigger.tags.forEach((tag) => {
-        const path = tag.full_name.split("/");
-        let currentNode = root;
-        path.forEach((part, index) => {
-          if (!nodeMap[part]) {
-            const newNode: TagNode = { name: part, id: tag.id, children: [] };
-            nodeMap[part] = newNode;
-            if (index === path.length - 1) {
-              newNode.triggers = [];
-            }
-            currentNode.children.push(newNode);
-          }
-          currentNode = nodeMap[part];
-        });
-        currentNode.triggers?.push(trigger);
-      });
-    });
-
-    return [root];
+    return tags.map(buildNode);
   }
 
   hasChild = (_: number, node: TagNode) =>
@@ -117,25 +90,20 @@ export class PeriodicTriggerComponent implements OnInit {
   copyPeriodicTriggerEndpoint(id: string) {
     const endpoint = `${window.location.origin}/backend/triggers/periodic/${id}/execute/`;
     this.clipboard.copy(endpoint);
-    alert("Endpoint " + endpoint);
+    alert("Copied Endpoint: " + endpoint);
   }
 
   onNodeSelect(node: TagNode): void {
     this.selectedNode = node;
-    this.selectedTriggers = this.collectTriggers(node);
-  }
-
-  collectTriggers(node: TagNode): PeriodicTrigger[] {
-    let triggers: PeriodicTrigger[] = [];
-    if (node.triggers) {
-      triggers = triggers.concat(node.triggers);
-    }
-    if (node.children) {
-      for (const child of node.children) {
-        triggers = triggers.concat(this.collectTriggers(child));
+    this.tagService.getItemsByTagId(node.id).subscribe(
+      (triggers) => {
+        this.selectedTriggers = triggers;
+        this.dataSource.data = triggers;
+      },
+      (error) => {
+        console.error("Error fetching triggers by tag: ", error);
       }
-    }
-    return triggers;
+    );
   }
 
   handlePageEvent(event: PageEvent): void {
@@ -157,7 +125,7 @@ export class PeriodicTriggerComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadTriggers();
+      this.loadTagsAndTriggers();
     });
   }
 
@@ -171,17 +139,17 @@ export class PeriodicTriggerComponent implements OnInit {
     this.dataSource.data = data.sort((a, b) => {
       const isAsc = sort.direction === "asc";
       switch (sort.active) {
-        case "":
-          return this.compare(a.target, b.target, isAsc);
+        case "id":
+          return compare(a.id, b.id, isAsc);
+        case "target":
+          return compare(a.target, b.target, isAsc);
+        case "task":
+          return compare(a.task.name, b.task.name, isAsc);
         default:
           return 0;
       }
     });
     this.updatePagedData();
-  }
-
-  private compare(a: string, b: string, isAsc: boolean): number {
-    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
   }
 
   filterNodes(query: string): void {
@@ -222,18 +190,11 @@ export class PeriodicTriggerComponent implements OnInit {
     return text.replace(regex, '<span class="highlight">$1</span>');
   }
 
-  findNodeById(nodes: TagNode[], id: string): TagNode | null {
-    for (const node of nodes) {
-      if (node.id === id) {
-        return node;
-      }
-      if (node.children) {
-        const found = this.findNodeById(node.children, id);
-        if (found) {
-          return found;
-        }
-      }
-    }
-    return null;
+  private showNotification(notification: any): void {
+    console.log(notification.message); // Replace with your notification service logic
   }
+}
+
+function compare(a: string, b: string, isAsc: boolean): number {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

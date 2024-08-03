@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Observable, map } from "rxjs";
+import { ArchiveFile } from "./archives.service";
 
 export interface Tag {
   id: string;
@@ -49,6 +50,7 @@ export class TagService {
   getTagsByIds(ids: string[]): Observable<Tag[]> {
     return this.http.get<Tag[]>(`${this.apiUrl}?ids=${ids.join(",")}`);
   }
+
   getAllChildren(tagId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}${tagId}/all_children`).pipe(
       map((response: { children: any; }) => {
@@ -64,5 +66,28 @@ export class TagService {
 
   createTag(tagData: { name: string; parent: string }): Observable<Tag> {
     return this.http.post<Tag>(this.apiUrl, tagData);
+  }
+
+  getItemsByTagId(tagId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}${tagId}/items/`);
+  }
+
+  getAllChildrenByName(name: string): Observable<Tag> {
+    return this.http.get<Tag>(`${this.apiUrl}all_children/?name=${name}`);
+  }
+
+  createItem(itemType: string, payload: any, isFormData: boolean = true): Observable<any> {
+    let headers = new HttpHeaders();
+    let body: any;
+
+    if (isFormData) {
+      body = payload;
+      body.append('item_type', itemType);
+    } else {
+      headers = headers.set('Content-Type', 'application/json');
+      body = { ...payload, item_type: itemType };
+    }
+
+    return this.http.post<any>(`${this.apiUrl}create_item/`, body, { headers });
   }
 }
