@@ -13,12 +13,14 @@ import {
 } from "@angular/forms";
 import { DialogComponent } from "@shared/components/dialog.component";
 import { Router } from "@angular/router";
-import { ArchivesService } from "@app/core/services/archives.service";
 import { TagService } from "@app/core/services/tag.service";
+import { BehaviorSubject } from "rxjs";
 
 export interface UploadFileDialogData {
   file?: string;
   filename?: string;
+  parentTag?: string;
+  parentTagName?: string;
 }
 
 @Component({
@@ -38,13 +40,16 @@ export class UploadFileDialogComponent
   submitted = false;
   selectedFileName: string;
   parentTags: any[] = [];
+  parentTagName: string;
+  currentTagName: string;
+  isLoading$ = new BehaviorSubject<boolean>(false);
+  createNewTag = false;
 
   @ViewChild('fileInput') fileInput: ElementRef;
 
   constructor(
     protected store: Store<AppState>,
     protected router: Router,
-    private archiveService: ArchivesService,
     private tagService: TagService,
     @Inject(MAT_DIALOG_DATA) public data: UploadFileDialogData,
     @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
@@ -56,17 +61,18 @@ export class UploadFileDialogComponent
 
   ngOnInit(): void {
     this.uploadFile = !this.data?.file;
+    this.parentTagName = this.data.parentTagName;
+    this.currentTagName = this.parentTagName;
     this.uploadFileFormGroup = this.fb.group({
       file: [null, [Validators.required]],
       filename: [this.data?.filename, [Validators.required]],
-      parentTag: [null, [Validators.required]],
-      newTag: [null, [Validators.required]],
+      parentTag: [this.data?.parentTag, [Validators.required]],
+      newTag: [null, []],
     });
 
     this.tagService.getTags().subscribe(tags => {
       this.parentTags = tags;
     });
-
   }
 
   onFileSelected(event: Event): void {
@@ -95,24 +101,61 @@ export class UploadFileDialogComponent
     this.dialogRef.close(null);
   }
 
+  createNewTagToggle(): void {
+    this.createNewTag = !this.createNewTag;
+    if (!this.createNewTag) {
+      this.uploadFileFormGroup.get('newTag').reset();
+      this.currentTagName = this.parentTagName;
+    }
+  }
+
   upload(): void {
     this.submitted = true;
     if (this.uploadFileFormGroup.valid) {
-      const file: File = this.uploadFileFormGroup.get("file").value;
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("filename", this.uploadFileFormGroup.get("filename").value);
-      formData.append("parentTag", this.uploadFileFormGroup.get("parentTag").value);
-      formData.append("newTag", this.uploadFileFormGroup.get("newTag").value);
-      this.archiveService.uploadFile(formData).subscribe(
-        () => {
-          console.log("File uploaded successfully");
-          this.dialogRef.close();
-        },
-        (error) => {
-          console.error("Error uploading file: ", error);
-        }
-      );
+      this.isLoading$.next(true);
+
+      if (this.createNewTag) {
+        const newTagName = this.uploadFileFormGroup.get('newTag').value;
+        const parentTagId = this.uploadFileFormGroup.get('parentTag').value;
+
+        // Create the new tag
+        const newTagData = {
+          name: newTagName,
+          parent: parentTagId
+        };
+        this.tagService.createTag(newTagData).subscribe(
+          (newTag) => {
+            const tagId = newTag.id;
+            this.uploadFileWithTag(tagId);
+          },
+          (error) => {
+            console.error("Error creating tag: ", error);
+            this.isLoading$.next(false);
+          }
+        );
+      } else {
+        const parentTagId = this.uploadFileFormGroup.get('parentTag').value;
+        this.uploadFileWithTag(parentTagId);
+      }
     }
+  }
+
+  uploadFileWithTag(tagId: string): void {
+    const file: File = this.uploadFileFormGroup.get("file").value;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("name", this.uploadFileFormGroup.get("filename").value);
+    formData.append("tag_ids", tagId);
+    this.tagService.createItem('archives', formData, true).subscribe(
+      () => {
+        console.log("File uploaded successfully");
+        this.isLoading$.next(false);
+        this.dialogRef.close();
+      },
+      (error) => {
+        console.error("Error uploading file: ", error);
+        this.isLoading$.next(false);
+      }
+    );
   }
 }

@@ -3,14 +3,13 @@ import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSort, Sort } from "@angular/material/sort";
 import { PageEvent } from "@angular/material/paginator";
-import { MatTreeNestedDataSource } from '@angular/material/tree';
-import { NestedTreeControl } from '@angular/cdk/tree';
-import { Clipboard } from '@angular/cdk/clipboard';
-import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
+import { MatTreeNestedDataSource } from "@angular/material/tree";
+import { NestedTreeControl } from "@angular/cdk/tree";
+import { Clipboard } from "@angular/cdk/clipboard";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
-import { NotificationMessage } from "@app/core/notification/notification.models";
 import { WebhookDialogComponent } from "./dialog.component";
 import { Webhook, TriggerService } from "@app/core/services/trigger.service";
+import { TagService } from "@app/core/services/tag.service";
 
 interface TagNode {
   name: string;
@@ -30,110 +29,80 @@ export class WebhookComponent implements OnInit {
   totalWebhooks = 0;
   pageIndex = 0;
   pageSize = 10;
-
-  @ViewChild(MatSort) sort: MatSort;
-
-  treeControl = new NestedTreeControl<TagNode>(node => node.children);
+  treeControl = new NestedTreeControl<TagNode>((node) => node.children);
   tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
   filteredTreeDataSource = new MatTreeNestedDataSource<TagNode>();
   selectedWebhooks: Webhook[] = [];
   originalTreeData: TagNode[] = [];
-  searchQuery: string = '';
+  searchQuery: string = "";
   selectedNode: TagNode;
+
+  @ViewChild(MatSort) sort: MatSort;
 
   constructor(
     private webhookservice: TriggerService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
-    private clipboard: Clipboard
+    private clipboard: Clipboard,
+    private tagService: TagService
   ) {}
 
   ngOnInit(): void {
-    this.loadWebhooks();
+    this.loadTagsAndWebhooks();
   }
 
-  loadWebhooks(): void {
-    this.webhookservice.getWebhooks().subscribe(
-      (data) => {
-        const rootNodes = this.buildTree(data);
+  loadTagsAndWebhooks(): void {
+    this.tagService.getAllChildrenByName("Webhooks").subscribe(
+      (rootTag) => {
+        const rootNodes = this.buildTree([rootTag]);
         this.tagTreeDataSource.data = rootNodes;
         this.filteredTreeDataSource.data = rootNodes;
         this.originalTreeData = rootNodes;
-        this.dataSource.data = data;
         this.treeControl.expandDescendants(rootNodes[0]);
-        this.totalWebhooks = data.length;
-        this.dataSource.sort = this.sort;
-
-        if (this.selectedNode) {
-          console.log(this.selectedNode)
-          const node = this.findNodeById(rootNodes, this.selectedNode.id);
-          console.log(node)
-          if (node) {
-            this.onNodeSelect(node);
-          }
-        }
       },
       (error) => {
-        console.error("Error fetching file archives: ", error);
+        console.error("Error fetching tags: ", error);
       }
     );
   }
 
-  buildTree(webhooks: Webhook[]): TagNode[] {
-    const root: TagNode = { name: 'Webhooks', id: 'root', children: [] };
-    const nodeMap: { [key: string]: TagNode } = { 'Webhooks': root };
+  buildTree(tags: any[]): TagNode[] {
+    const buildNode = (tag: any): TagNode => {
+      return {
+        id: tag.id,
+        name: tag.name,
+        children: tag.children ? tag.children.map(buildNode) : [],
+      };
+    };
 
-    webhooks.forEach(webhook => {
-      webhook.tags.forEach(tag => {
-        const path = tag.full_name.split('/');
-        let currentNode = root;
-        path.forEach((part, index) => {
-          if (!nodeMap[part]) {
-            const newNode: TagNode = { name: part, id: tag.id, children: [] };
-            nodeMap[part] = newNode;
-            if (index === path.length - 1) {
-              newNode.webhooks = [];
-            }
-            currentNode.children.push(newNode);
-          }
-          currentNode = nodeMap[part];
-        });
-        currentNode.webhooks?.push(webhook);
-      });
-    });
-
-    return [root];
+    return tags.map(buildNode);
   }
 
-  hasChild = (_: number, node: TagNode) => !!node.children && node.children.length > 0;
+  hasChild = (_: number, node: TagNode) =>
+    !!node.children && node.children.length > 0;
 
   copyId(id: string) {
     this.clipboard.copy(id);
-    alert('Copied ID: ' + id);
+    alert("Copied ID: " + id);
   }
 
   copyWebhookEndpoint(id: string) {
     const endpoint = `${window.location.origin}/backend/triggers/webhook/${id}/execute/`;
     this.clipboard.copy(endpoint);
-    alert('Endpoint ' + endpoint);
+    alert("Copied Endpoint: " + endpoint);
   }
 
   onNodeSelect(node: TagNode): void {
     this.selectedNode = node;
-    this.selectedWebhooks = this.collectWebhooks(node);
-  }
-
-  collectWebhooks(node: TagNode): Webhook[] {
-    let files: Webhook[] = [];
-    if (node.webhooks) {
-      files = files.concat(node.webhooks);
-    }
-    if (node.children) {
-      for (const child of node.children) {
-        files = files.concat(this.collectWebhooks(child));
+    this.tagService.getItemsByTagId(node.id).subscribe(
+      (webhooks) => {
+        this.selectedWebhooks = webhooks;
+        this.dataSource.data = webhooks;
+      },
+      (error) => {
+        console.error("Error fetching webhooks by tag: ", error);
       }
-    }
-    return files;
+    );
   }
 
   handlePageEvent(event: PageEvent): void {
@@ -151,11 +120,14 @@ export class WebhookComponent implements OnInit {
   openAddWebhookDialog(): void {
     const dialogRef = this.dialog.open(WebhookDialogComponent, {
       width: "800px",
-      data: {},
+      data: {
+        parentTag: this.selectedNode.id,
+        parentTagName: this.selectedNode.name,
+      },
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadWebhooks();
+      this.loadTagsAndWebhooks();
     });
   }
 
@@ -169,21 +141,15 @@ export class WebhookComponent implements OnInit {
     this.dataSource.data = data.sort((a, b) => {
       const isAsc = sort.direction === "asc";
       switch (sort.active) {
-        case "":
-          return this.compare(a.target, b.target, isAsc);
+        case "id":
+          return compare(a.id, b.id, isAsc);
+        case "target":
+          return compare(a.target, b.target, isAsc);
         default:
           return 0;
       }
     });
     this.updatePagedData();
-  }
-
-  private compare(a: string, b: string, isAsc: boolean): number {
-    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
-  }
-
-  private showNotification(notification: NotificationMessage): void {
-    this.toastNotificationService.dispatchNotification(notification);
   }
 
   filterNodes(query: string): void {
@@ -192,7 +158,10 @@ export class WebhookComponent implements OnInit {
       this.filteredTreeDataSource.data = this.originalTreeData;
       this.treeControl.expandDescendants(this.originalTreeData[0]);
     } else {
-      const filteredNodes = this.filterTree(this.originalTreeData, query.toLowerCase());
+      const filteredNodes = this.filterTree(
+        this.originalTreeData,
+        query.toLowerCase()
+      );
       this.filteredTreeDataSource.data = filteredNodes;
       this.treeControl.expandDescendants(filteredNodes[0]);
     }
@@ -200,8 +169,8 @@ export class WebhookComponent implements OnInit {
 
   filterTree(nodes: TagNode[], query: string): TagNode[] {
     return nodes
-      .map(node => ({ ...node }))
-      .filter(node => {
+      .map((node) => ({ ...node }))
+      .filter((node) => {
         if (node.name.toLowerCase().includes(query)) {
           return true;
         }
@@ -217,9 +186,10 @@ export class WebhookComponent implements OnInit {
     if (!query) {
       return text;
     }
-    const regex = new RegExp(`(${query})`, 'gi');
+    const regex = new RegExp(`(${query})`, "gi");
     return text.replace(regex, '<span class="highlight">$1</span>');
   }
+
   findNodeById(nodes: TagNode[], id: string): TagNode | null {
     for (const node of nodes) {
       if (node.id === id) {
@@ -234,4 +204,8 @@ export class WebhookComponent implements OnInit {
     }
     return null;
   }
+}
+
+function compare(a: string, b: string, isAsc: boolean): number {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

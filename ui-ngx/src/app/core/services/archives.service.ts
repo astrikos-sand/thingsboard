@@ -21,6 +21,10 @@ export class ArchivesService {
     return this.http.get<ArchiveFile[]>(this.apiUrl);
   }
 
+  getFilesByTag(tagId: string): Observable<ArchiveFile[]> {
+    return this.http.get<ArchiveFile[]>(`${this.apiUrl}?tag=${tagId}`);
+  }
+
   uploadFile(fileData: FormData): Observable<any> {
     return this.http.post<any>(this.apiUrl, fileData);
   }

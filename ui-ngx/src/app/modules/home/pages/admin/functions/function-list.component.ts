@@ -11,6 +11,7 @@ import { NotificationMessage } from "@app/core/notification/notification.models"
 import { NodeClassService } from "@app/core/services/node-classes.service";
 import { AddFunctionDialog } from "@home/pages/admin/functions/function-dialog.component";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
+import { TagService } from "@app/core/services/tag.service";
 
 interface FunctionNode {
   name: string;
@@ -25,18 +26,18 @@ interface FunctionNode {
   styleUrls: ["./function-list.component.scss"],
 })
 export class FunctionListComponent implements OnInit {
-  functions: any[] = [];
+  dataSource = new MatTableDataSource<any>();
   displayedColumns: string[] = ["name", "description", "actions"];
-  dataSource = new MatTableDataSource<any>(this.functions);
-  selectedFunctions: any[] = [];
   totalFiles = 0;
   pageIndex = 0;
   pageSize = 10;
   treeControl = new NestedTreeControl<FunctionNode>((node) => node.children);
   tagTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
   filteredTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
+  selectedFunctions: any[] = [];
   originalTreeData: FunctionNode[] = [];
   searchQuery: string = "";
+  selectedNode: FunctionNode;
 
   @ViewChild(MatSort) sort: MatSort;
 
@@ -44,61 +45,39 @@ export class FunctionListComponent implements OnInit {
     private nodeClassService: NodeClassService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
-    private clipboard: Clipboard
+    private clipboard: Clipboard,
+    private tagService: TagService
   ) {}
 
   ngOnInit(): void {
-    this.loadNodeClasses();
+    this.loadTagsAndFunctions();
   }
 
-  loadNodeClasses(): void {
-    this.nodeClassService.getNodeClasses().subscribe(
-      (data) => {
-        this.functions = data;
-        const rootNodes = this.buildTree(this.functions);
+  loadTagsAndFunctions(): void {
+    this.tagService.getAllChildrenByName("Functions").subscribe(
+      (rootTag) => {
+        const rootNodes = this.buildTree([rootTag]);
         this.tagTreeDataSource.data = rootNodes;
         this.filteredTreeDataSource.data = rootNodes;
         this.originalTreeData = rootNodes;
         this.treeControl.expandDescendants(rootNodes[0]);
-        this.dataSource.data = this.functions;
-        this.totalFiles = data.length;
-        this.dataSource.sort = this.sort;
-        this.updatePagedData();
       },
       (error) => {
-        console.error("Error fetching node classes: ", error);
+        console.error("Error fetching tags: ", error);
       }
     );
   }
 
-  buildTree(functions: any[]): FunctionNode[] {
-    const root: FunctionNode = { name: "Functions", id: "root", children: [] };
-    const nodeMap: { [key: string]: FunctionNode } = { Functions: root };
+  buildTree(tags: any[]): FunctionNode[] {
+    const buildNode = (tag: any): FunctionNode => {
+      return {
+        id: tag.id,
+        name: tag.name,
+        children: tag.children ? tag.children.map(buildNode) : [],
+      };
+    };
 
-    functions.forEach((func) => {
-      func.tags.forEach((tag) => {
-        const path = tag.full_name.split("/");
-        let currentNode = root;
-        path.forEach((part, index) => {
-          if (!nodeMap[part]) {
-            const newNode: FunctionNode = {
-              name: part,
-              id: tag.id,
-              children: [],
-            };
-            nodeMap[part] = newNode;
-            if (index === path.length - 1) {
-              newNode.functions = [];
-            }
-            currentNode.children.push(newNode);
-          }
-          currentNode = nodeMap[part];
-        });
-        currentNode.functions?.push(func);
-      });
-    });
-
-    return [root];
+    return tags.map(buildNode);
   }
 
   hasChild = (_: number, node: FunctionNode) =>
@@ -145,7 +124,7 @@ export class FunctionListComponent implements OnInit {
               type: "success",
               duration: 3000,
             });
-            this.loadNodeClasses();
+            this.loadTagsAndFunctions();
           },
           (error) => {
             this.showNotification({
@@ -168,23 +147,25 @@ export class FunctionListComponent implements OnInit {
   updatePagedData(): void {
     const startIndex = this.pageIndex * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.functions.slice(startIndex, endIndex);
+    this.dataSource.data = this.dataSource.data.slice(startIndex, endIndex);
   }
 
   openAddFunctionDialog(): void {
-    const dialogRef = this.dialog.open(AddFunctionDialog);
+    const dialogRef = this.dialog.open(AddFunctionDialog, {
+      width: "400px",
+      data: {
+        parentTag: this.selectedNode.id,
+        parentTagName: this.selectedNode.name,
+      },
+    });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result) {
-        return;
-      }
-      this.dataSource.data = [result, ...this.dataSource.data];
-      console.log("The dialog was closed");
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadTagsAndFunctions();
     });
   }
 
   sortData(sort: Sort): void {
-    const data = this.functions.slice();
+    const data = this.dataSource.data.slice();
     if (!sort.active || sort.direction === "") {
       this.dataSource.data = data;
       return;
@@ -241,21 +222,16 @@ export class FunctionListComponent implements OnInit {
   }
 
   onNodeSelect(node: FunctionNode): void {
-    this.selectedFunctions = this.collectFunctions(node);
-    this.dataSource.data = this.selectedFunctions;
-  }
-
-  collectFunctions(node: FunctionNode): any[] {
-    let functions: any[] = [];
-    if (node.functions) {
-      functions = functions.concat(node.functions);
-    }
-    if (node.children) {
-      for (const child of node.children) {
-        functions = functions.concat(this.collectFunctions(child));
+    this.selectedNode = node;
+    this.tagService.getItemsByTagId(node.id).subscribe(
+      (functions) => {
+        this.selectedFunctions = functions;
+        this.dataSource.data = functions;
+      },
+      (error) => {
+        console.error("Error fetching functions by tag: ", error);
       }
-    }
-    return functions;
+    );
   }
 
   private showNotification(notification: NotificationMessage): void {
