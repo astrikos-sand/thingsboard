@@ -38,7 +38,22 @@
       <mat-label>Outputs (comma-separated)</mat-label>
       <input matInput placeholder="Enter Outputs" formControlName="outputs" />
     </mat-form-field>
-
+    <div class="mat-block">
+      <p>
+        Current Tag: <strong>{{ currentTagName }}</strong>
+      </p>
+    </div>
+    <mat-checkbox (change)="createNewTagToggle()">
+      Create New Tag
+    </mat-checkbox>
+    <mat-form-field *ngIf="createNewTag" class="mat-block">
+      <input
+        matInput
+        [(ngModel)]="newTagName"
+        placeholder="New Tag Name"
+        name="newTagName"
+      />
+    </mat-form-field>
     <div style="height: 300px">
       <ngx-monaco-editor
         #editor
