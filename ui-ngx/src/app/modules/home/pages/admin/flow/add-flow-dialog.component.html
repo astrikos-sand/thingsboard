@@ -1,4 +1,4 @@
-<form (ngSubmit)="add()" style="min-width: 400px; width: 750px;">
+<form (ngSubmit)="add()" style="min-width: 400px; width: 750px">
   <mat-toolbar color="primary">
     <h2>Add New Flow File</h2>
     <span fxFlex></span>
@@ -6,19 +6,35 @@
       <mat-icon>close</mat-icon>
     </button>
   </mat-toolbar>
-  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading"></mat-progress-bar>
-  <div style="height: 4px;" *ngIf="!isLoading"></div>
+  <mat-progress-bar
+    color="warn"
+    mode="indeterminate"
+    *ngIf="isLoading$ | async"
+  ></mat-progress-bar>
+  <div style="height: 4px" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
     <mat-form-field>
       <mat-label>Flow Name</mat-label>
-      <input matInput placeholder="Enter Flow Name" [(ngModel)]="flowName" name="flowName" required>
+      <input
+        matInput
+        placeholder="Enter Flow Name"
+        [(ngModel)]="flowName"
+        name="flowName"
+        required
+      />
       <mat-error *ngIf="submitted && !flowName">
         Flow Name is required.
       </mat-error>
     </mat-form-field>
     <mat-form-field>
       <mat-label>Description</mat-label>
-      <textarea matInput placeholder="Enter Description" [(ngModel)]="description" name="description" required></textarea>
+      <textarea
+        matInput
+        placeholder="Enter Description"
+        [(ngModel)]="description"
+        name="description"
+        required
+      ></textarea>
       <mat-error *ngIf="submitted && !description">
         Description is required.
       </mat-error>
@@ -34,12 +50,37 @@
         Environment is required.
       </mat-error>
     </mat-form-field>
+    <div class="mat-block">
+      <p>
+        Current Tag: <strong>{{ currentTagName }}</strong>
+      </p>
+    </div>
+    <mat-checkbox (change)="createNewTagToggle()">
+      Create New Tag
+    </mat-checkbox>
+    <mat-form-field *ngIf="createNewTag" class="mat-block">
+      <input
+        matInput
+        placeholder="New Tag Name"
+        [(ngModel)]="newTagName"
+        name="newTagName"
+        required
+      />
+      <mat-error *ngIf="submitted && !newTagName">
+        New tag name is required.
+      </mat-error>
+    </mat-form-field>
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
     <button mat-button color="primary" type="button" (click)="cancel()">
       Cancel
     </button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="isLoading || !flowName || !description || !selectedEnv">
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="isLoading || !flowName || !description || !selectedEnv"
+    >
       Add
     </button>
   </div>

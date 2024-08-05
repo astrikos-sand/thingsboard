@@ -175,7 +175,6 @@ import { AddFlowDialogComponent } from '@home/pages/admin/flow/add-flow-dialog.c
 import { AddNewNodeDialog } from '@app/modules/home/pages/admin/flow/add-node-dialog.component';
 import { AddFunctionDialog } from '@home/pages/admin/functions/function-dialog.component';
 import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-dialog.component';
-import { CreateTagDialogComponent } from '../pages/admin/archives/create-tag-dialog.component';
 import { EditNodeDialogComponent } from '../pages/admin/flow/edit-node-dialog.component';
 import { WebhookDialogComponent } from '../pages/admin/webhook/dialog.component';
 import { PeriodicTriggerDialogComponent } from '../pages/admin/periodic-trigger/dialog.component';
@@ -193,7 +192,6 @@ import { PeriodicTriggerDialogComponent } from '../pages/admin/periodic-trigger/
       UploadFileDialogComponent,
       WebhookDialogComponent,
       PeriodicTriggerDialogComponent,
-      CreateTagDialogComponent,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
       EntityDetailsPageComponent,
@@ -349,7 +347,6 @@ import { PeriodicTriggerDialogComponent } from '../pages/admin/periodic-trigger/
     PeriodicTriggerDialogComponent,
     EditNodeDialogComponent,
     UploadFileDialogComponent,
-    CreateTagDialogComponent,
     DetailsPanelComponent,
     EntityDetailsPanelComponent,
     EntityDetailsPageComponent,
