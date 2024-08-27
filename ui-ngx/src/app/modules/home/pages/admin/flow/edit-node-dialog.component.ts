@@ -52,7 +52,7 @@ export class EditNodeDialogComponent implements OnInit {
         const keys = field["key"];
         const label = field["label"];
         const value = keys.reduce((acc: any, curr: any) => acc && acc[curr], node_data);
-        return { label, value: `http://localhost:8000${value}`, type: "link" };
+        return { label, value: `backend${value}`, type: "link" };
       }
       default: {
         return { label: field["label"], value: "Field type not defined", type: "unknown" };
@@ -64,7 +64,7 @@ export class EditNodeDialogComponent implements OnInit {
     const editedData = this.form.get('value')?.value;
     this.isLoading = true;
     try {
-      await axios.patch(`http://localhost:8000/v2/nodes/${this.data.id}/`, {
+      await axios.patch(`/backend/v2/nodes/${this.data.id}/`, {
         value: editedData,
       });
       this.dialogRef.close(editedData);

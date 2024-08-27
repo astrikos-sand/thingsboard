@@ -21,3 +21,12 @@ prod-up:
 	chmod +x application/target/bin/install/install_dev_db.sh
 	./application/target/bin/install/install_dev_db.sh
 	java -jar application/target/thingsboard-3.6.4-boot.jar &
+
+
+prod-up-new:
+	docker compose up timescaledb -d
+	docker compose up broker -d
+	mvn clean install -DskipTests
+	chmod +x application/target/bin/install/install_dev_db.sh
+	./application/target/bin/install/install_dev_db.sh
+	java -jar application/target/thingsboard-3.6.4-boot.jar &

@@ -17,7 +17,7 @@ export interface Tag {
   providedIn: "root",
 })
 export class TagService {
-  private apiUrl = "http://localhost:8000/v2/tags/";
+  private apiUrl = "/backend/v2/tags/";
 
   constructor(private http: HttpClient) {}
 
