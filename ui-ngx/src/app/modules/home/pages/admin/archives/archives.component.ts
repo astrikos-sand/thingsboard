@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSort, Sort } from "@angular/material/sort";
+import { PageEvent } from "@angular/material/paginator";
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { Clipboard } from '@angular/cdk/clipboard';
@@ -10,8 +11,8 @@ import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-di
 import { ToastNotificationService } from "@core/services/toast-notification.service";
 import { NotificationMessage } from "@app/core/notification/notification.models";
 import { UploadFileDialogComponent } from "./upload-file-dialog.component";
+import { CreateTagDialogComponent } from "./create-tag-dialog.component";
 import { TagService } from "@app/core/services/tag.service";
-import { PageEvent } from "@angular/material/paginator";
 
 interface TagNode {
   name: string;
@@ -46,37 +47,32 @@ export class ArchivesComponent implements OnInit {
     private archivesService: ArchivesService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
-    private clipboard: Clipboard,
-    private tagService: TagService
+    private clipboard: Clipboard
   ) {}
 
   ngOnInit(): void {
-    this.loadTagsAndFiles();
-  }
-
-  loadTagsAndFiles(): void {
-    this.tagService.getAllChildrenByName('Archives').subscribe(
-      (rootTag) => {
-        const rootNodes = this.buildTree([rootTag]);
-        this.tagTreeDataSource.data = rootNodes;
-        this.filteredTreeDataSource.data = rootNodes;
-        this.originalTreeData = rootNodes;
-        this.treeControl.expandDescendants(rootNodes[0]);
-      },
-      (error) => {
-        console.error("Error fetching tags: ", error);
-      }
-    );
+    this.loadFileArchives();
   }
 
   loadFileArchives(): void {
     this.archivesService.getFileArchives().subscribe(
       (data) => {
+        const rootNodes = this.buildTree(data);
+        this.tagTreeDataSource.data = rootNodes;
+        this.filteredTreeDataSource.data = rootNodes;
+        this.originalTreeData = rootNodes;
         this.dataSource.data = data;
+        this.treeControl.expandDescendants(rootNodes[0]);
         this.totalFiles = data.length;
         this.dataSource.sort = this.sort;
+
         if (this.selectedNode) {
-          this.onNodeSelect(this.selectedNode);
+          console.log(this.selectedNode)
+          const node = this.findNodeById(rootNodes, this.selectedNode.id);
+          console.log(node)
+          if (node) {
+            this.onNodeSelect(node);
+          }
         }
       },
       (error) => {
@@ -85,16 +81,30 @@ export class ArchivesComponent implements OnInit {
     );
   }
 
-  buildTree(tags: any[]): TagNode[] {
-    const buildNode = (tag: any): TagNode => {
-      return {
-        id: tag.id,
-        name: tag.name,
-        children: tag.children ? tag.children.map(buildNode) : []
-      };
-    };
+  buildTree(files: ArchiveFile[]): TagNode[] {
+    const root: TagNode = { name: 'Archives', id: 'root', children: [] };
+    const nodeMap: { [key: string]: TagNode } = { 'Archives': root };
 
-    return tags.map(buildNode);
+    files.forEach(file => {
+      file.tags.forEach(tag => {
+        const path = tag.full_name.split('/');
+        let currentNode = root;
+        path.forEach((part, index) => {
+          if (!nodeMap[part]) {
+            const newNode: TagNode = { name: part, id: tag.id, children: [] };
+            nodeMap[part] = newNode;
+            if (index === path.length - 1) {
+              newNode.files = [];
+            }
+            currentNode.children.push(newNode);
+          }
+          currentNode = nodeMap[part];
+        });
+        currentNode.files?.push(file);
+      });
+    });
+
+    return [root];
   }
 
   hasChild = (_: number, node: TagNode) => !!node.children && node.children.length > 0;
@@ -126,7 +136,7 @@ export class ArchivesComponent implements OnInit {
               type: "success",
               duration: 3000,
             });
-            this.loadTagsAndFiles();
+            this.loadFileArchives();
           },
           (error) => {
             console.error("Error deleting file: ", error);
@@ -143,14 +153,20 @@ export class ArchivesComponent implements OnInit {
 
   onNodeSelect(node: TagNode): void {
     this.selectedNode = node;
-    this.tagService.getItemsByTagId(node.id).subscribe(
-      (files) => {
-        this.selectedFiles = files;
-      },
-      (error) => {
-        console.error("Error fetching files by tag: ", error);
+    this.selectedFiles = this.collectFiles(node);
+  }
+
+  collectFiles(node: TagNode): ArchiveFile[] {
+    let files: ArchiveFile[] = [];
+    if (node.files) {
+      files = files.concat(node.files);
+    }
+    if (node.children) {
+      for (const child of node.children) {
+        files = files.concat(this.collectFiles(child));
       }
-    );
+    }
+    return files;
   }
 
   handlePageEvent(event: PageEvent): void {
@@ -168,11 +184,24 @@ export class ArchivesComponent implements OnInit {
   openAddFileDialog(): void {
     const dialogRef = this.dialog.open(UploadFileDialogComponent, {
       width: "400px",
-      data: { parentTag: this.selectedNode.id, parentTagName: this.selectedNode.name },
+      data: {},
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadTagsAndFiles();
+      this.loadFileArchives();
+    });
+  }
+
+  openCreateTagDialog(): void {
+    const dialogRef = this.dialog.open(CreateTagDialogComponent, {
+      width: "400px",
+      data: {},
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadFileArchives();
+      }
     });
   }
 
@@ -236,5 +265,19 @@ export class ArchivesComponent implements OnInit {
     }
     const regex = new RegExp(`(${query})`, 'gi');
     return text.replace(regex, '<span class="highlight">$1</span>');
+  }
+  findNodeById(nodes: TagNode[], id: string): TagNode | null {
+    for (const node of nodes) {
+      if (node.id === id) {
+        return node;
+      }
+      if (node.children) {
+        const found = this.findNodeById(node.children, id);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
   }
 }

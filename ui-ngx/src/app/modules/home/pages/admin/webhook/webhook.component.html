@@ -45,11 +45,13 @@
                   matTreeNodeToggle
                   [attr.aria-label]="'toggle ' + node.name"
                 >
-                  <mat-icon>{{
-                    treeControl.isExpanded(node)
-                      ? "expand_more"
-                      : "chevron_right"
-                  }}</mat-icon>
+                  <mat-icon>
+                    {{
+                      treeControl.isExpanded(node)
+                        ? "expand_more"
+                        : "chevron_right"
+                    }}
+                  </mat-icon>
                 </button>
                 <span
                   class="mat-tree-node-label"
@@ -91,17 +93,17 @@
             class="mat-elevation-z8"
           >
             <ng-container matColumnDef="id">
-              <mat-header-cell *matHeaderCellDef mat-sort-header
-                >Id</mat-header-cell
-              >
-              <mat-cell *matCellDef="let webhook">{{
-                webhook.id | slice : 0 : 7
-              }}</mat-cell>
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Id
+              </mat-header-cell>
+              <mat-cell *matCellDef="let webhook">
+                {{ webhook.id | slice : 0 : 7 }}
+              </mat-cell>
             </ng-container>
             <ng-container matColumnDef="target">
-              <mat-header-cell *matHeaderCellDef mat-sort-header
-                >Target</mat-header-cell
-              >
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                target
+              </mat-header-cell>
               <mat-cell *matCellDef="let webhook">
                 <a [routerLink]="['/flows/library', webhook.target]">{{
                   webhook.target | slice : 0 : 7
@@ -109,18 +111,17 @@
               </mat-cell>
             </ng-container>
             <ng-container matColumnDef="tags">
-              <mat-header-cell *matHeaderCellDef>Tags</mat-header-cell>
-              <mat-cell *matCellDef="let webhook">
-                <ng-container *ngIf="webhook.tags && webhook.tags.length > 0">
-                  <span *ngFor="let tag of webhook.tags">{{
-                    tag.full_name
-                  }}</span>
+              <mat-header-cell *matHeaderCellDef> Tags </mat-header-cell>
+              <mat-cell *matCellDef="let file">
+                <ng-container *ngIf="file.tags && file.tags.length > 0">
+                  <span *ngFor="let tag of file.tags">{{ tag.full_name }}</span>
                 </ng-container>
-                <ng-container *ngIf="!webhook.tags || webhook.tags.length === 0"
-                  >No tags</ng-container
-                >
+                <ng-container *ngIf="!file.tags || file.tags.length === 0">
+                  No tags
+                </ng-container>
               </mat-cell>
             </ng-container>
+
             <ng-container matColumnDef="actions">
               <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
               <mat-cell *matCellDef="let webhook">
@@ -132,6 +133,7 @@
                 </button>
               </mat-cell>
             </ng-container>
+
             <mat-header-row
               *matHeaderRowDef="displayedColumns"
             ></mat-header-row>
