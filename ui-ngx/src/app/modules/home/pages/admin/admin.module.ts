@@ -40,8 +40,6 @@ import { ArchivesComponent } from './archives/archives.component';
 import { FunctionListComponent } from './functions/function-list.component';
 import { WebhookComponent } from './webhook/webhook.component';
 import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
-import { TreeTableComponent } from './tree-table/tree-table.component';
-import { SafeHtmlPipe } from './tree-table/safe-html.pipe';
 
 @NgModule({
   declarations:
@@ -65,8 +63,6 @@ import { SafeHtmlPipe } from './tree-table/safe-html.pipe';
       FunctionListComponent,
       WebhookComponent,
       PeriodicTriggerComponent,
-      TreeTableComponent,
-      SafeHtmlPipe,
     ],
   imports: [
     CommonModule,

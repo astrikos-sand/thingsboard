@@ -5,7 +5,7 @@ import { Observable } from "rxjs";
 export interface ArchiveFile {
   tags: any;
   id: string;
-  name: string;
+  filename: string;
   file: string;
 }
 
