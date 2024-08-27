@@ -10,6 +10,7 @@ import { TreeTableComponent } from "../tree-table/tree-table.component";
 @Component({
   selector: "app-function-list",
   templateUrl: "./function-list.component.html",
+  styleUrls: ["./function-list.component.scss"],
 })
 export class FunctionListComponent implements OnInit {
   addFunctionDialogComponent = AddFunctionDialog;

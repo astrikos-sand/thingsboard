@@ -8,6 +8,7 @@ import { MatDialog } from "@angular/material/dialog";
 @Component({
   selector: "app-flow-list",
   templateUrl: "./flow-list.component.html",
+  styleUrls: ["./flow-list.component.scss"],
 })
 export class FlowListComponent implements OnInit {
   addFlowDialogComponent = AddFlowDialogComponent;
@@ -21,7 +22,7 @@ export class FlowListComponent implements OnInit {
     {
       columnDef: "name",
       header: "Flow Name",
-      cell: (element: any) => `${element.name}`,
+      cell: (element: any) => `${element.full_name}`,
     },
     {
       columnDef: "description",

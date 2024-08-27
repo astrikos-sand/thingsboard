@@ -39,7 +39,6 @@ export class FlowService {
   addNode(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/nodes/`, data);
   }
-  
   addFunction(data: FormData): Observable<any> {
     return this.http.post(`${this.baseUrl}/function-definitions/`, data);
   }
@@ -61,7 +60,7 @@ export class FlowService {
   }
 
   getEnv(id?: string): Observable<any> {
-    if (id) return this.http.get(`${this.baseUrl}/env/${id}/`);
+    if (id) return this.http.get<any>(`${this.baseUrl}/env/${id}/`)
     return this.http.get<any>(`${this.baseUrl}/env/`);
   }
 
