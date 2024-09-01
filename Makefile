@@ -14,19 +14,27 @@ down:
 timescaledb:
 	docker exec -it timescaledb psql -d thingsboard
 
-prod-up:
-	docker compose up timescaledb -d
-	docker compose up broker -d
-	mvn install -DskipTests
-	chmod +x application/target/bin/install/install_dev_db.sh
-	./application/target/bin/install/install_dev_db.sh
-	java -jar application/target/thingsboard-3.6.4-boot.jar &
-
+db-create:
+	docker exec -it timescaledb psql -U postgres -c "CREATE DATABASE thingsboard;"
 
 prod-up-new:
 	docker compose up timescaledb -d
 	docker compose up broker -d
+	make db-create
+
 	mvn clean install -DskipTests
-	chmod +x application/target/bin/install/install_dev_db.sh
-	./application/target/bin/install/install_dev_db.sh
-	java -jar application/target/thingsboard-3.6.4-boot.jar &
+
+	cd application/target/bin/install/
+	export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5434/thingsboard"
+	export JAVA_OPTS="-DSPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}"
+	chmod +x install_dev_db.sh
+	sudo -E ./install_dev_db.sh
+	cd -
+
+	java -jar application/target/thingsboard-3.6.4-boot.jar
+
+prod-up:
+	docker compose up timescaledb -d
+	docker compose up broker -d
+	mvn install -DskipTests
+	java -jar application/target/thingsboard-3.6.4-boot.jar
