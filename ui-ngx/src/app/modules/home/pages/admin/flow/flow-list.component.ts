@@ -92,6 +92,9 @@ export class FlowListComponent implements OnInit {
     const nodeMap: { [key: string]: FlowNode } = { 'Flows': root };
 
     flows.forEach(flow => {
+      if (flow.tags.length === 0) {
+        flow.tags = [{ id: 'untagged', full_name: 'Flows/Untagged' }];
+      }
       flow.tags.forEach(tag => {
         const path = tag.full_name.split('/');
         let currentNode = root;

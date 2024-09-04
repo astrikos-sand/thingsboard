@@ -48,7 +48,7 @@ export class ArchivesComponent implements OnInit {
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
     private clipboard: Clipboard
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadFileArchives();
@@ -86,6 +86,9 @@ export class ArchivesComponent implements OnInit {
     const nodeMap: { [key: string]: TagNode } = { 'Archives': root };
 
     files.forEach(file => {
+      if (file.tags.length === 0) {
+        file.tags = [{ id: 'untagged', full_name: 'Archives/Untagged' }];
+      }
       file.tags.forEach(tag => {
         const path = tag.full_name.split('/');
         let currentNode = root;
@@ -115,7 +118,11 @@ export class ArchivesComponent implements OnInit {
   }
 
   openFile(filepath: string): void {
-    window.open(filepath, '_blank');
+    let url = filepath;
+    if (!filepath.startsWith("http")) {
+      url = "backend/" + filepath;
+    }
+    window.open(url, '_blank');
   }
 
   deleteFile(fileId: string): void {

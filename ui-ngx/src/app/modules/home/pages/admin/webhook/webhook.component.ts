@@ -84,6 +84,9 @@ export class WebhookComponent implements OnInit {
     const nodeMap: { [key: string]: TagNode } = { 'Webhooks': root };
 
     webhooks.forEach(webhook => {
+      if (webhook.tags.length === 0) {
+        webhook.tags = [{ id: 'untagged', full_name: 'Webhooks/Untagged' }];
+      }
       webhook.tags.forEach(tag => {
         const path = tag.full_name.split('/');
         let currentNode = root;

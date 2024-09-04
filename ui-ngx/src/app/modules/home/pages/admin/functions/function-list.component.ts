@@ -76,6 +76,9 @@ export class FunctionListComponent implements OnInit {
     const nodeMap: { [key: string]: FunctionNode } = { Functions: root };
 
     functions.forEach((func) => {
+      if (func.tags.length === 0) {
+        func.tags = [{ id: 'untagged', full_name: 'Functions/Untagged' }];
+      }
       func.tags.forEach((tag) => {
         const path = tag.full_name.split("/");
         let currentNode = root;

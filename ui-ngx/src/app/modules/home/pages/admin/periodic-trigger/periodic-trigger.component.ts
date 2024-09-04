@@ -45,7 +45,7 @@ export class PeriodicTriggerComponent implements OnInit {
     private triggerService: TriggerService,
     private dialog: MatDialog,
     private clipboard: Clipboard
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadTriggers();
@@ -85,6 +85,9 @@ export class PeriodicTriggerComponent implements OnInit {
     const nodeMap: { [key: string]: TagNode } = { "Periodic Triggers": root };
 
     triggers.forEach((trigger) => {
+      if (trigger.tags.length === 0) {
+        trigger.tags = [{ id: "untagged", full_name: "Periodic Triggers/Untagged", name: "untagged", parent: null }];
+      }
       trigger.tags.forEach((tag) => {
         const path = tag.full_name.split("/");
         let currentNode = root;
