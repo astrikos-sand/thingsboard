@@ -120,7 +120,7 @@ export class ArchivesComponent implements OnInit {
   openFile(filepath: string): void {
     let url = filepath;
     if (!filepath.startsWith("http")) {
-      url = "backend/" + filepath;
+      url = "/backend" + filepath;
     }
     window.open(url, '_blank');
   }

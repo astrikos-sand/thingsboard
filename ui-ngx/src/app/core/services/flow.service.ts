@@ -69,4 +69,10 @@ export class FlowService {
       value: newValue,
     });
   }
+
+  duplicateFlow(flowId: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/data-transfer/duplicate/`, {
+      flow: flowId,
+    });
+  }
 }

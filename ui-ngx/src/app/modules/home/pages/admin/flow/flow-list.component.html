@@ -81,7 +81,7 @@
             </ng-container>
             <ng-container matColumnDef="environment">
               <mat-header-cell *matHeaderCellDef mat-sort-header> Environment </mat-header-cell>
-              <mat-cell *matCellDef="let flow"> {{ flow?.environment?.name }} </mat-cell>
+              <mat-cell *matCellDef="let flow"> {{ flow?.lib | slice:0:7 }} </mat-cell>
             </ng-container>
             <ng-container matColumnDef="actions">
               <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
@@ -89,7 +89,7 @@
                 <button mat-icon-button (click)="openFlow(flow?.id)" matTooltip="Open Flow">
                   <mat-icon>open_in_new</mat-icon>
                 </button>
-                <button mat-icon-button (click)="openEnvironmentFile($event, flow?.environment?.requirements)" matTooltip="Open Environment File">
+                <button mat-icon-button (click)="duplicate_flow(flow?.id)" matTooltip="Duplicate Flow">
                   <mat-icon>folder_open</mat-icon>
                 </button>
                 <button mat-icon-button (click)="copyId(flow?.id)" matTooltip="Copy Flow ID">
