@@ -132,6 +132,17 @@ export class FlowListComponent implements OnInit {
     window.open(filePath, "_blank");
   }
 
+  duplicate_flow(flowId: string): void {
+    this.flowService.duplicateFlow(flowId).subscribe(
+      (data) => {
+        this.fetchFlows();
+      },
+      (error) => {
+        console.error("Error duplicating flow:", error);
+      }
+    );
+  }
+
   handlePageEvent(event: PageEvent): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;

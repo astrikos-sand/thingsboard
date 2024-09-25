@@ -88,7 +88,7 @@
             <ng-container matColumnDef="actions">
               <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
               <mat-cell *matCellDef="let file">
-                <button mat-button (click)="openFile(file.file)">
+                <button mat-button (click)="openFile(file.url)">
                   Open File
                 </button>
                 <button mat-button (click)="deleteFile(file.id)">
