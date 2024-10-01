@@ -38,8 +38,16 @@
       <mat-label>Outputs (comma-separated)</mat-label>
       <input matInput placeholder="Enter Outputs" formControlName="outputs" />
     </mat-form-field>
-
-    <div style="height: 300px">
+    <mat-form-field>
+      <mat-label>Prefix</mat-label>
+      <input
+        matInput
+        [value]="selectedPrefix"
+        name="prefix"
+        disabled
+      />
+    </mat-form-field>
+    <div style="height: 300px; overflow: auto;">
       <ngx-monaco-editor
         #editor
         [options]="editorOptions"

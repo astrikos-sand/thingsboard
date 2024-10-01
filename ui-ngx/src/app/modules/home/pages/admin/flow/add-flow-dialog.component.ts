@@ -1,24 +1,28 @@
-import { Component, OnInit } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
-import { FlowService } from '@app/core/services/flow.service';
+import { Component, OnInit, Inject } from "@angular/core";
+import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
+import { FlowService } from "@app/core/services/flow.service";
 
 @Component({
-  selector: 'app-add-flow-dialog',
-  templateUrl: './add-flow-dialog.component.html',
-  styleUrls: ['./add-flow-dialog.component.scss']
+  selector: "app-add-flow-dialog",
+  templateUrl: "./add-flow-dialog.component.html",
+  styleUrls: ["./add-flow-dialog.component.scss"],
 })
 export class AddFlowDialogComponent implements OnInit {
-  flowName: string = '';
-  description: string = '';
-  selectedEnv: string = '';
+  flowName: string = "";
+  description: string = "";
+  selectedEnv: string = "";
   submitted = false;
   isLoading = false;
   environments: any[] = [];
+  selectedPrefix: string = "";
 
   constructor(
-    public dialogRef: MatDialogRef<AddFlowDialogComponent>, 
-    private flowService: FlowService
-  ) {}
+    public dialogRef: MatDialogRef<AddFlowDialogComponent>,
+    private flowService: FlowService,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    this.selectedPrefix = data.selectedPrefix;
+  }
 
   ngOnInit(): void {
     this.loadEnvironments();
@@ -29,8 +33,8 @@ export class AddFlowDialogComponent implements OnInit {
       (data: any[]) => {
         this.environments = data;
       },
-      error => {
-        console.error('Error loading environments:', error);
+      (error) => {
+        console.error("Error loading environments:", error);
       }
     );
   }
@@ -43,12 +47,18 @@ export class AddFlowDialogComponent implements OnInit {
     this.submitted = true;
     if (this.flowName && this.description && this.selectedEnv) {
       this.isLoading = true;
-      this.flowService.addFlow({ name: this.flowName, description: this.description, lib: this.selectedEnv }).subscribe(
-        newFlow => {
+      const flowData = {
+        name: this.flowName,
+        description: this.description,
+        lib: this.selectedEnv,
+        prefix: this.selectedPrefix,
+      };
+      this.flowService.addFlow(flowData).subscribe(
+        (newFlow) => {
           this.dialogRef.close(newFlow);
         },
-        error => {
-          console.error('Error adding flow:', error);
+        (error) => {
+          console.error("Error adding flow:", error);
           this.isLoading = false;
         }
       );

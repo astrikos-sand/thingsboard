@@ -5,52 +5,34 @@
         <div fxFlex="30" class="tree-container scrollable-container">
           <mat-form-field appearance="outline">
             <mat-label>Search Folders</mat-label>
-            <input matInput (input)="filterNodes($event.target.value)" placeholder="Search folders...">
+            <input
+              matInput
+              (input)="filterNodes($event.target.value)"
+              placeholder="Search folders..."
+            />
           </mat-form-field>
-          <mat-tree
-            [dataSource]="filteredTreeDataSource"
-            [treeControl]="treeControl"
-            class="example-tree"
-          >
-            <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-              <div class="mat-tree-node-content hover-pointer" (click)="onNodeSelect(node)">
-                <button mat-icon-button disabled></button>
-                <span class="mat-tree-node-label" [innerHTML]="highlightText(node.name, searchQuery)"></span>
-                <button
-                  mat-icon-button
-                  class="mat-tree-node-actions"
-                  (click)="copyId(node.id)"
-                >
-                  <mat-icon>content_copy</mat-icon>
+          <mat-tree [dataSource]="flowTreeDataSource" [treeControl]="treeControl">
+            <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+              <div
+                class="mat-tree-node-content hover-pointer"
+                (click)="onNodeSelect(node)"
+              >
+                <button mat-icon-button matTreeNodeToggle>
+                  <mat-icon>{{
+                    treeControl.isExpanded(node)
+                      ? "expand_more"
+                      : "chevron_right"
+                  }}</mat-icon>
                 </button>
-              </div>
-            </mat-tree-node>
-            <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
-              <div class="mat-tree-node-content hover-pointer" (click)="onNodeSelect(node)">
-                <button
-                  mat-icon-button
-                  matTreeNodeToggle
-                  [attr.aria-label]="'toggle ' + node.name"
-                >
-                  <mat-icon>
-                    {{
-                      treeControl.isExpanded(node)
-                        ? "expand_more"
-                        : "chevron_right"
-                    }}
-                  </mat-icon>
-                </button>
-                <span class="mat-tree-node-label" [innerHTML]="highlightText(node.name, searchQuery)"></span>
-                <button
-                  mat-icon-button
-                  class="mat-tree-node-actions"
-                  (click)="copyId(node.id)"
-                >
+                <span
+                  class="mat-tree-node-label"
+                  [innerHTML]="highlightText(node.name, searchQuery)"
+                ></span>
+                <button mat-icon-button (click)="copyId(node.id)">
                   <mat-icon>content_copy</mat-icon>
                 </button>
               </div>
               <div
-                class="mat-tree-node-children"
                 [class.example-tree-invisible]="!treeControl.isExpanded(node)"
               >
                 <ng-container matTreeNodeOutlet></ng-container>
@@ -62,43 +44,77 @@
           <mat-toolbar>
             <span>Flows</span>
             <span fxFlex></span>
-            <button mat-raised-button color="primary" (click)="openAddFlowDialog()">
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="openAddFlowDialog()"
+            >
               Add Flow
             </button>
           </mat-toolbar>
-          <mat-table [dataSource]="selectedFlows" matSort class="mat-elevation-z8">
+          <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
             <ng-container matColumnDef="id">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Flow ID </mat-header-cell>
-              <mat-cell *matCellDef="let flow"> {{ flow?.id | slice:0:7 }} </mat-cell>
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Flow ID
+              </mat-header-cell>
+              <mat-cell *matCellDef="let flow">
+                {{ flow?.id | slice : 0 : 7 }}
+              </mat-cell>
             </ng-container>
             <ng-container matColumnDef="name">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Flow Name </mat-header-cell>
-              <mat-cell *matCellDef="let flow"> {{ flow?.full_name }} </mat-cell>
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Flow Name
+              </mat-header-cell>
+              <mat-cell *matCellDef="let flow">
+                {{ flow?.full_name }}
+              </mat-cell>
             </ng-container>
             <ng-container matColumnDef="description">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Description </mat-header-cell>
-              <mat-cell *matCellDef="let flow"> {{ flow?.description }} </mat-cell>
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Description
+              </mat-header-cell>
+              <mat-cell *matCellDef="let flow">
+                {{ flow?.description }}
+              </mat-cell>
             </ng-container>
             <ng-container matColumnDef="environment">
-              <mat-header-cell *matHeaderCellDef mat-sort-header> Environment </mat-header-cell>
-              <mat-cell *matCellDef="let flow"> {{ flow?.lib | slice:0:7 }} </mat-cell>
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Environment
+              </mat-header-cell>
+              <mat-cell *matCellDef="let flow">
+                {{ flow?.lib | slice : 0 : 7 }}
+              </mat-cell>
             </ng-container>
             <ng-container matColumnDef="actions">
-              <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
+              <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
               <mat-cell *matCellDef="let flow">
-                <button mat-icon-button (click)="openFlow(flow?.id)" matTooltip="Open Flow">
+                <button
+                  mat-icon-button
+                  (click)="openFlow(flow?.id)"
+                  matTooltip="Open Flow"
+                >
                   <mat-icon>open_in_new</mat-icon>
                 </button>
-                <button mat-icon-button (click)="duplicate_flow(flow?.id)" matTooltip="Duplicate Flow">
+                <button
+                  mat-icon-button
+                  (click)="duplicate_flow(flow?.id)"
+                  matTooltip="Duplicate Flow"
+                >
                   <mat-icon>folder_open</mat-icon>
                 </button>
-                <button mat-icon-button (click)="copyId(flow?.id)" matTooltip="Copy Flow ID">
+                <button
+                  mat-icon-button
+                  (click)="copyId(flow?.id)"
+                  matTooltip="Copy Flow ID"
+                >
                   <mat-icon>content_copy</mat-icon>
                 </button>
               </mat-cell>
             </ng-container>
 
-            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-header-row
+              *matHeaderRowDef="displayedColumns"
+            ></mat-header-row>
             <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
           </mat-table>
         </div>

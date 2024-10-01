@@ -145,6 +145,7 @@ export class AddNewNodeDialog implements OnInit {
       const nodeData = {
         node_type: this.form.value.nodeType,
         flow: this.data.flowId,
+        position: this.data.flowPosition,
         ...this.form.value.fields.reduce((acc: any, field: any) => {
           if (field.type === "array") {
             acc[field.label] = field.fields;

@@ -38,6 +38,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.data.subscribe((data) => {
+      console.log(data)
       const flowDetails = data['flowDetails'];
       this.node_fields = data['nodeFields'];
 
@@ -61,6 +62,16 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   }
 
   openAddNewNodeDialog(): void {
+    console.log({
+      flowId: this.flowId,
+      nodes: this.nodes,
+      node_fields: this.node_fields,
+      setNodes: (newNodes: any[]) => (this.nodes = newNodes),
+      flowPosition: this.flowPosition,
+      addNode: (newNode: Node) => {
+        this.nodes = [...this.nodes, newNode];
+      },
+    },)
     const dialogRef = this.dialog.open(AddNewNodeDialog, {
       data: {
         flowId: this.flowId,

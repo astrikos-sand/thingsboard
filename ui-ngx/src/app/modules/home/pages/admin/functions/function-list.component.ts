@@ -25,18 +25,16 @@ interface FunctionNode {
   styleUrls: ["./function-list.component.scss"],
 })
 export class FunctionListComponent implements OnInit {
-  functions: any[] = [];
   displayedColumns: string[] = ["name", "description", "actions"];
-  dataSource = new MatTableDataSource<any>(this.functions);
+  dataSource = new MatTableDataSource<any>([]);
   selectedFunctions: any[] = [];
   totalFiles = 0;
   pageIndex = 0;
   pageSize = 10;
   treeControl = new NestedTreeControl<FunctionNode>((node) => node.children);
-  tagTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
-  filteredTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
-  originalTreeData: FunctionNode[] = [];
+  functionTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
   searchQuery: string = "";
+  selectedNode: FunctionNode | null = null;
 
   @ViewChild(MatSort) sort: MatSort;
 
@@ -48,64 +46,78 @@ export class FunctionListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadNodeClasses();
+    this.loadInitialFunctions();
   }
 
-  loadNodeClasses(): void {
-    this.nodeClassService.getNodeClasses().subscribe(
+  loadInitialFunctions(): void {
+    this.nodeClassService.fetchFunctions().subscribe(
       (data) => {
-        this.functions = data;
-        const rootNodes = this.buildTree(this.functions);
-        this.tagTreeDataSource.data = rootNodes;
-        this.filteredTreeDataSource.data = rootNodes;
-        this.originalTreeData = rootNodes;
-        this.treeControl.expandDescendants(rootNodes[0]);
-        this.dataSource.data = this.functions;
-        this.totalFiles = data.length;
+        const rootNode: FunctionNode = {
+          id: "root",
+          name: "Functions",
+          children: this.buildTree(data.tree),
+          functions: data.items,
+        };
+        this.functionTreeDataSource.data = [rootNode];
+        this.selectedFunctions = data.items;
+        this.dataSource.data = this.selectedFunctions;
+        this.totalFiles = data.items.length;
         this.dataSource.sort = this.sort;
         this.updatePagedData();
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode;
       },
       (error) => {
-        console.error("Error fetching node classes: ", error);
+        console.error("Error loading initial functions:", error);
       }
     );
   }
 
-  buildTree(functions: any[]): FunctionNode[] {
-    const root: FunctionNode = { name: "Functions", id: "root", children: [] };
-    const nodeMap: { [key: string]: FunctionNode } = { Functions: root };
-
-    functions.forEach((func) => {
-      if (func.tags.length === 0) {
-        func.tags = [{ id: 'untagged', full_name: 'Functions/Untagged' }];
+  fetchChildFunctions(parentNode: FunctionNode): void {
+    this.nodeClassService.fetchFunctionsByParent(parentNode.id).subscribe(
+      (data) => {
+        const childNodes = this.buildTree(data.tree);
+        parentNode.children = childNodes;
+        parentNode.functions = data.items;
+        this.functionTreeDataSource.data = [...this.functionTreeDataSource.data];
+        this.treeControl.expand(parentNode);
+        this.selectedFunctions = data.items;
+        this.dataSource.data = this.selectedFunctions;
+        this.totalFiles = data.items.length;
+        this.dataSource.sort = this.sort;
+        this.updatePagedData();
+      },
+      (error) => {
+        console.error("Error fetching child functions:", error);
       }
-      func.tags.forEach((tag) => {
-        const path = tag.full_name.split("/");
-        let currentNode = root;
-        path.forEach((part, index) => {
-          if (!nodeMap[part]) {
-            const newNode: FunctionNode = {
-              name: part,
-              id: tag.id,
-              children: [],
-            };
-            nodeMap[part] = newNode;
-            if (index === path.length - 1) {
-              newNode.functions = [];
-            }
-            currentNode.children.push(newNode);
-          }
-          currentNode = nodeMap[part];
-        });
-        currentNode.functions?.push(func);
-      });
-    });
+    );
+  }
 
-    return [root];
+  buildTree(nodes: any[]): FunctionNode[] {
+    return nodes.map((node) => ({
+      name: node.name,
+      id: node.id,
+      children: [],
+      functions: [],
+    }));
   }
 
   hasChild = (_: number, node: FunctionNode) =>
     !!node.children && node.children.length > 0;
+
+  hasNoChild = (_: number, node: FunctionNode) => !this.hasChild(_, node);
+
+  onNodeSelect(node: FunctionNode): void {
+    this.selectedNode = node;
+    if (node.children && node.children.length > 0) {
+      this.selectedFunctions = node.functions || [];
+      this.dataSource.data = this.selectedFunctions;
+      this.totalFiles = this.selectedFunctions.length;
+      this.treeControl.expand(node);
+    } else {
+      this.fetchChildFunctions(node);
+    }
+  }
 
   copyId(id: string) {
     this.clipboard.copy(id);
@@ -122,7 +134,7 @@ export class FunctionListComponent implements OnInit {
           duration: 3000,
         });
       })
-      .catch((error) => {
+      .catch(() => {
         this.showNotification({
           message: "Failed to copy file URL",
           type: "error",
@@ -148,9 +160,9 @@ export class FunctionListComponent implements OnInit {
               type: "success",
               duration: 3000,
             });
-            this.loadNodeClasses();
+            this.loadInitialFunctions();
           },
-          (error) => {
+          () => {
             this.showNotification({
               message: "Error deleting file",
               type: "error",
@@ -171,23 +183,26 @@ export class FunctionListComponent implements OnInit {
   updatePagedData(): void {
     const startIndex = this.pageIndex * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.functions.slice(startIndex, endIndex);
+    this.dataSource.data = this.selectedFunctions.slice(startIndex, endIndex);
   }
 
   openAddFunctionDialog(): void {
-    const dialogRef = this.dialog.open(AddFunctionDialog);
+    const dialogRef = this.dialog.open(AddFunctionDialog, {
+      data: {
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
+      },
+    });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (!result) {
         return;
       }
       this.dataSource.data = [result, ...this.dataSource.data];
-      console.log("The dialog was closed");
     });
   }
 
   sortData(sort: Sort): void {
-    const data = this.functions.slice();
+    const data = this.selectedFunctions.slice();
     if (!sort.active || sort.direction === "") {
       this.dataSource.data = data;
       return;
@@ -208,15 +223,17 @@ export class FunctionListComponent implements OnInit {
   filterNodes(query: string): void {
     this.searchQuery = query;
     if (!query) {
-      this.filteredTreeDataSource.data = this.originalTreeData;
-      this.treeControl.expandDescendants(this.originalTreeData[0]);
+      this.functionTreeDataSource.data = this.functionTreeDataSource.data;
+      this.treeControl.expandDescendants(this.functionTreeDataSource.data[0]);
     } else {
       const filteredNodes = this.filterTree(
-        this.originalTreeData,
+        this.functionTreeDataSource.data,
         query.toLowerCase()
       );
-      this.filteredTreeDataSource.data = filteredNodes;
-      this.treeControl.expandDescendants(filteredNodes[0]);
+      this.functionTreeDataSource.data = filteredNodes;
+      if (filteredNodes.length > 0) {
+        this.treeControl.expandDescendants(filteredNodes[0]);
+      }
     }
   }
 
@@ -241,24 +258,6 @@ export class FunctionListComponent implements OnInit {
     }
     const regex = new RegExp(`(${query})`, "gi");
     return text.replace(regex, '<span class="highlight">$1</span>');
-  }
-
-  onNodeSelect(node: FunctionNode): void {
-    this.selectedFunctions = this.collectFunctions(node);
-    this.dataSource.data = this.selectedFunctions;
-  }
-
-  collectFunctions(node: FunctionNode): any[] {
-    let functions: any[] = [];
-    if (node.functions) {
-      functions = functions.concat(node.functions);
-    }
-    if (node.children) {
-      for (const child of node.children) {
-        functions = functions.concat(this.collectFunctions(child));
-      }
-    }
-    return functions;
   }
 
   private showNotification(notification: NotificationMessage): void {

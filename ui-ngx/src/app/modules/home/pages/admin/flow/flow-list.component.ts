@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { Router } from "@angular/router";
 import { FlowService } from "@app/core/services/flow.service";
 import { MatDialog } from "@angular/material/dialog";
@@ -6,14 +6,14 @@ import { AddFlowDialogComponent } from "./add-flow-dialog.component";
 import { MatTableDataSource } from "@angular/material/table";
 import { PageEvent } from "@angular/material/paginator";
 import { MatSort, Sort } from "@angular/material/sort";
-import { MatTreeNestedDataSource } from '@angular/material/tree';
-import { NestedTreeControl } from '@angular/cdk/tree';
-import { Clipboard } from '@angular/cdk/clipboard';
+import { MatTreeNestedDataSource } from "@angular/material/tree";
+import { NestedTreeControl } from "@angular/cdk/tree";
+import { Clipboard } from "@angular/cdk/clipboard";
 
 interface FlowNode {
   name: string;
   id: string;
-  children?: FlowNode[];
+  children: FlowNode[];
   flows?: any[];
 }
 
@@ -23,7 +23,7 @@ interface FlowNode {
   styleUrls: ["./flow-list.component.scss"],
 })
 export class FlowListComponent implements OnInit {
-  flows: any[] = [];
+  selectedFlows: any[] = [];
   displayedColumns: string[] = [
     "id",
     "name",
@@ -31,16 +31,14 @@ export class FlowListComponent implements OnInit {
     "environment",
     "actions",
   ];
-  dataSource = new MatTableDataSource<any>(this.flows);
-  selectedFlows: any[] = [];
+  dataSource = new MatTableDataSource<any>(this.selectedFlows);
   totalFlows = 0;
   pageIndex = 0;
   pageSize = 10;
-  treeControl = new NestedTreeControl<FlowNode>(node => node.children);
-  tagTreeDataSource = new MatTreeNestedDataSource<FlowNode>();
-  filteredTreeDataSource = new MatTreeNestedDataSource<FlowNode>();
-  originalTreeData: FlowNode[] = [];
-  searchQuery: string = '';
+  treeControl = new NestedTreeControl<FlowNode>((node) => node.children);
+  flowTreeDataSource = new MatTreeNestedDataSource<FlowNode>();
+  searchQuery: string = "";
+  selectedNode: FlowNode | null = null;
 
   @ViewChild(MatSort) sort: MatSort;
 
@@ -48,94 +46,95 @@ export class FlowListComponent implements OnInit {
     private flowService: FlowService,
     private router: Router,
     public dialog: MatDialog,
-    private clipboard: Clipboard
+    private clipboard: Clipboard,
+    private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.fetchFlows();
+    this.loadInitialFlows();
   }
 
-  fetchFlows(): void {
+  loadInitialFlows(): void {
     this.flowService.fetchFlows().subscribe(
-      async (data) => {
-        this.flows = data;
-        await this.loadEnvironmentDetails();
-        const rootNodes = this.buildTree(this.flows);
-        this.tagTreeDataSource.data = rootNodes;
-        this.filteredTreeDataSource.data = rootNodes;
-        this.originalTreeData = rootNodes;
-        this.treeControl.expandDescendants(rootNodes[0]);
-        this.dataSource.data = this.flows;
-        this.totalFlows = data.length;
+      (data) => {
+        const rootNode: FlowNode = {
+          id: "root",
+          name: "Flows",
+          children: this.buildTree(data.tree),
+          flows: data.items,
+        };
+        this.flowTreeDataSource.data = [rootNode];
+        this.selectedFlows = data.items;
+        this.dataSource.data = this.selectedFlows;
+        this.totalFlows = data.items.length;
         this.dataSource.sort = this.sort;
         this.updatePagedData();
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode;
       },
       (error) => {
-        console.error("Error fetching flows:", error);
+        console.error("Error loading initial flows:", error);
       }
     );
   }
 
-  async loadEnvironmentDetails(): Promise<void> {
-    for (const flow of this.flows) {
-      try {
-        const env = await this.flowService.getEnv(flow.environment).toPromise();
-        flow.environment = env;
-      } catch (error) {
-        console.error("Error fetching environment details:", error);
+  fetchChildFlows(parentNode: FlowNode): void {
+    this.flowService.fetchFlowsByParent(parentNode.id).subscribe(
+      (data) => {
+        console.log('Fetched data:', data);
+        const childNodes = this.buildTree(data.tree);
+        parentNode.children = childNodes;
+        parentNode.flows = data.items;
+
+        console.log('Updated parentNode:', parentNode);
+
+        this.refreshTreeData();
+
+        this.treeControl.expand(parentNode);
+        this.selectedFlows = data.items;
+        this.dataSource.data = this.selectedFlows;
+        this.totalFlows = data.items.length;
+        this.dataSource.sort = this.sort;
+        this.updatePagedData();
+      },
+      (error) => {
+        console.error("Error fetching child flows:", error);
       }
-    }
+    );
   }
 
-  buildTree(flows: any[]): FlowNode[] {
-    const root: FlowNode = { name: 'Flows', id: 'root', children: [] };
-    const nodeMap: { [key: string]: FlowNode } = { 'Flows': root };
-
-    flows.forEach(flow => {
-      if (flow.tags.length === 0) {
-        flow.tags = [{ id: 'untagged', full_name: 'Flows/Untagged' }];
-      }
-      flow.tags.forEach(tag => {
-        const path = tag.full_name.split('/');
-        let currentNode = root;
-        path.forEach((part, index) => {
-          if (!nodeMap[part]) {
-            const newNode: FlowNode = { name: part, id: tag.id, children: [] };
-            nodeMap[part] = newNode;
-            if (index === path.length - 1) {
-              newNode.flows = [];
-            }
-            currentNode.children.push(newNode);
-          }
-          currentNode = nodeMap[part];
-        });
-        currentNode.flows?.push(flow);
-      });
-    });
-
-    return [root];
+  refreshTreeData(): void {
+    this.flowTreeDataSource.data = [...this.flowTreeDataSource.data];
+    this.cdr.detectChanges();
   }
 
-  hasChild = (_: number, node: FlowNode) => !!node.children && node.children.length > 0;
+  buildTree(nodes: any[]): FlowNode[] {
+    return nodes.map((node) => ({
+      name: node.name,
+      id: node.id,
+      children: [],
+      flows: [],
+    }));
+  }
+
+  onNodeSelect(node: FlowNode): void {
+    this.selectedNode = node;
+    this.fetchChildFlows(node);
+  }
 
   copyId(id: string) {
     this.clipboard.copy(id);
-    alert('Copied ID: ' + id);
+    alert("Copied ID: " + id);
   }
 
   openFlow(flowId: string): void {
     this.router.navigate([`flows/library/${flowId}`]);
   }
 
-  openEnvironmentFile(event: Event, filePath: string): void {
-    event.stopPropagation();
-    window.open(filePath, "_blank");
-  }
-
   duplicate_flow(flowId: string): void {
     this.flowService.duplicateFlow(flowId).subscribe(
-      (data) => {
-        this.fetchFlows();
+      () => {
+        this.loadInitialFlows();
       },
       (error) => {
         console.error("Error duplicating flow:", error);
@@ -152,14 +151,17 @@ export class FlowListComponent implements OnInit {
   updatePagedData(): void {
     const startIndex = this.pageIndex * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.flows.slice(startIndex, endIndex);
+    this.dataSource.data = this.selectedFlows.slice(startIndex, endIndex);
   }
 
   openAddFlowDialog(): void {
-    const dialogRef = this.dialog.open(AddFlowDialogComponent);
-
-    dialogRef.afterClosed().subscribe((result) => {
-      this.fetchFlows();
+    const dialogRef = this.dialog.open(AddFlowDialogComponent, {
+      data: {
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
+      },
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadInitialFlows();
     });
   }
 
@@ -169,7 +171,7 @@ export class FlowListComponent implements OnInit {
   }
 
   sortData(sort: Sort): void {
-    const data = this.flows.slice();
+    const data = this.selectedFlows.slice();
     if (!sort.active || sort.direction === "") {
       this.dataSource.data = data;
       return;
@@ -196,19 +198,24 @@ export class FlowListComponent implements OnInit {
   filterNodes(query: string): void {
     this.searchQuery = query;
     if (!query) {
-      this.filteredTreeDataSource.data = this.originalTreeData;
-      this.treeControl.expandDescendants(this.originalTreeData[0]);
+      this.flowTreeDataSource.data = this.flowTreeDataSource.data;
+      this.treeControl.expandDescendants(this.flowTreeDataSource.data[0]);
     } else {
-      const filteredNodes = this.filterTree(this.originalTreeData, query.toLowerCase());
-      this.filteredTreeDataSource.data = filteredNodes;
-      this.treeControl.expandDescendants(filteredNodes[0]);
+      const filteredNodes = this.filterTree(
+        this.flowTreeDataSource.data,
+        query.toLowerCase()
+      );
+      this.flowTreeDataSource.data = filteredNodes;
+      if (filteredNodes.length > 0) {
+        this.treeControl.expandDescendants(filteredNodes[0]);
+      }
     }
   }
 
   filterTree(nodes: FlowNode[], query: string): FlowNode[] {
     return nodes
-      .map(node => ({ ...node }))
-      .filter(node => {
+      .map((node) => ({ ...node }))
+      .filter((node) => {
         if (node.name.toLowerCase().includes(query)) {
           return true;
         }
@@ -224,29 +231,15 @@ export class FlowListComponent implements OnInit {
     if (!query) {
       return text;
     }
-    const regex = new RegExp(`(${query})`, 'gi');
+    const regex = new RegExp(`(${query})`, "gi");
     return text.replace(regex, '<span class="highlight">$1</span>');
-  }
-
-  onNodeSelect(node: FlowNode): void {
-    this.selectedFlows = this.collectFlows(node);
-    this.dataSource.data = this.selectedFlows;
-  }
-
-  collectFlows(node: FlowNode): any[] {
-    let flows: any[] = [];
-    if (node.flows) {
-      flows = flows.concat(node.flows);
-    }
-    if (node.children) {
-      for (const child of node.children) {
-        flows = flows.concat(this.collectFlows(child));
-      }
-    }
-    return flows;
   }
 }
 
-function compare(a: number | string, b: number | string, isAsc: boolean): number {
+function compare(
+  a: number | string,
+  b: number | string,
+  isAsc: boolean
+): number {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

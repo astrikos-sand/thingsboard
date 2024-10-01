@@ -1,14 +1,14 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Injectable } from "@angular/core";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { Observable } from "rxjs";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class FlowService {
   private baseUrl = "/backend/v2";
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getNodeTypes(): Observable<any> {
     return this.http.get(`${this.baseUrl}/fields/node_types/`);
@@ -20,31 +20,42 @@ export class FlowService {
 
   getFormFields(nodeType: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/fields/form_fields/`, {
-      params: { node_type: nodeType }
+      params: { node_type: nodeType },
     });
   }
 
   fetchFlows(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/flow/`);
+    return this.http.get(`${this.baseUrl}/flows/page-data/`);
+  }
+
+  fetchFlowsByParent(parentId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/flows/page-data/`, {
+      params: { parent: parentId },
+    });
   }
 
   getNodeClasses(): Observable<any> {
     return this.http.get(`${this.baseUrl}/node-classes/`);
   }
 
-  addFlow(flow: { name: string; description: string, lib: string }): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/flow/`, flow);
+  addFlow(flow: {
+    name: string;
+    description: string;
+    lib: string;
+    prefix: string;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/flows/`, flow);
   }
 
   addNode(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/nodes/`, data);
   }
   addFunction(data: FormData): Observable<any> {
-    return this.http.post(`${this.baseUrl}/function-definitions/`, data);
+    return this.http.post(`${this.baseUrl}/functions/`, data);
   }
 
   fetchFlowDetails(flowId: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/flow/${flowId}/nodes/`);
+    return this.http.get(`${this.baseUrl}/flows/${flowId}/nodes/`);
   }
 
   saveFlowDetails(flowId: string, data: any): Observable<any> {
@@ -60,19 +71,21 @@ export class FlowService {
   }
 
   getEnv(id?: string): Observable<any> {
-    if (id) return this.http.get<any>(`${this.baseUrl}/env/${id}/`)
+    if (id) return this.http.get<any>(`${this.baseUrl}/env/${id}/`);
     return this.http.get<any>(`${this.baseUrl}/env/`);
   }
 
-  updateDataNodeValue(flowId: string, nodeId: string, newValue: string): Observable<any> {
+  updateDataNodeValue(
+    flowId: string,
+    nodeId: string,
+    newValue: string
+  ): Observable<any> {
     return this.http.patch(`${this.baseUrl}/nodes/${nodeId}/`, {
       value: newValue,
     });
   }
 
   duplicateFlow(flowId: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/data-transfer/duplicate/`, {
-      flow: flowId,
-    });
+    return this.http.post(`${this.baseUrl}/flows/${flowId}/duplicate/`, {});
   }
 }

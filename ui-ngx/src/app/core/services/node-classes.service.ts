@@ -2,11 +2,9 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 
-export type NodeClass = {
-  id: string;
-  name: string;
-  description: string;
-  code: string;
+export interface FunctionData {
+  tree: any[];
+  items: any[];
 }
 
 @Injectable({
@@ -17,15 +15,21 @@ export class NodeClassService {
 
   constructor(private http: HttpClient) {}
 
-  getNodeClasses(): Observable<NodeClass[]> {
-    return this.http.get<NodeClass[]>(`${this.baseUrl}/function-definitions/`);
+  fetchFunctions(): Observable<FunctionData> {
+    return this.http.get<FunctionData>(`${this.baseUrl}/page-data`);
+  }
+
+  fetchFunctionsByParent(prefixId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}/page-data/`, {
+      params: { parent: prefixId }
+    });
   }
 
   addBaseClass(data: FormData): Observable<any> {
-    return this.http.post(`${this.baseUrl}/function-definitions/`, data);
+    return this.http.post(`${this.baseUrl}/`, data);
   }
 
   deleteFile(fileId: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/function-definitions/${fileId}/`);
+    return this.http.delete<any>(`${this.baseUrl}/${fileId}/`);
   }
 }

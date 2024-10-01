@@ -12,11 +12,14 @@
             />
           </mat-form-field>
           <mat-tree
-            [dataSource]="filteredTreeDataSource"
+            [dataSource]="functionTreeDataSource"
             [treeControl]="treeControl"
-            class="example-tree"
           >
-            <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+            <!-- Leaf node template -->
+            <mat-tree-node
+              *matTreeNodeDef="let node; when: hasNoChild"
+              matTreeNodePadding
+            >
               <div
                 class="mat-tree-node-content hover-pointer"
                 (click)="onNodeSelect(node)"
@@ -35,7 +38,11 @@
                 </button>
               </div>
             </mat-tree-node>
-            <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
+            <!-- Expandable node template -->
+            <mat-nested-tree-node
+              *matTreeNodeDef="let node; when: hasChild"
+              matTreeNodePadding
+            >
               <div
                 class="mat-tree-node-content hover-pointer"
                 (click)="onNodeSelect(node)"
@@ -87,7 +94,7 @@
             </button>
           </mat-toolbar>
           <mat-table
-            [dataSource]="selectedFunctions"
+            [dataSource]="dataSource"
             matSort
             class="mat-elevation-z8"
           >
@@ -127,7 +134,9 @@
             <mat-header-row
               *matHeaderRowDef="displayedColumns"
             ></mat-header-row>
-            <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+            <mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></mat-row>
           </mat-table>
         </div>
       </div>

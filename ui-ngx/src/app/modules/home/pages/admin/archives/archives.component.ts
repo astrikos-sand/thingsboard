@@ -3,16 +3,14 @@ import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSort, Sort } from "@angular/material/sort";
 import { PageEvent } from "@angular/material/paginator";
-import { MatTreeNestedDataSource } from '@angular/material/tree';
-import { NestedTreeControl } from '@angular/cdk/tree';
-import { Clipboard } from '@angular/cdk/clipboard';
-import { ArchivesService, ArchiveFile } from "@app/core/services/archives.service";
+import { MatTreeNestedDataSource } from "@angular/material/tree";
+import { NestedTreeControl } from "@angular/cdk/tree";
+import { Clipboard } from "@angular/cdk/clipboard";
+import { ArchivesService, ArchiveFile, ArchiveData } from "@app/core/services/archives.service";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
 import { NotificationMessage } from "@app/core/notification/notification.models";
 import { UploadFileDialogComponent } from "./upload-file-dialog.component";
-import { CreateTagDialogComponent } from "./create-tag-dialog.component";
-import { TagService } from "@app/core/services/tag.service";
 
 interface TagNode {
   name: string;
@@ -28,93 +26,96 @@ interface TagNode {
 })
 export class ArchivesComponent implements OnInit {
   dataSource = new MatTableDataSource<ArchiveFile>();
-  displayedColumns: string[] = ["filename", "tags", "actions"];
+  displayedColumns: string[] = ["name", "prefix", "actions"];
   totalFiles = 0;
   pageIndex = 0;
   pageSize = 10;
 
   @ViewChild(MatSort) sort: MatSort;
 
-  treeControl = new NestedTreeControl<TagNode>(node => node.children);
+  treeControl = new NestedTreeControl<TagNode>((node) => node.children);
   tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
-  filteredTreeDataSource = new MatTreeNestedDataSource<TagNode>();
   selectedFiles: ArchiveFile[] = [];
-  originalTreeData: TagNode[] = [];
-  searchQuery: string = '';
-  selectedNode: TagNode;
+  searchQuery: string = "";
+  selectedNode: TagNode | null = null;
 
   constructor(
     private archivesService: ArchivesService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
     private clipboard: Clipboard
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.loadFileArchives();
+    this.loadInitialFiles();
   }
 
-  loadFileArchives(): void {
+  loadInitialFiles(): void {
     this.archivesService.getFileArchives().subscribe(
-      (data) => {
-        const rootNodes = this.buildTree(data);
-        this.tagTreeDataSource.data = rootNodes;
-        this.filteredTreeDataSource.data = rootNodes;
-        this.originalTreeData = rootNodes;
-        this.dataSource.data = data;
-        this.treeControl.expandDescendants(rootNodes[0]);
-        this.totalFiles = data.length;
+      (data: ArchiveData) => {
+        const rootNode: TagNode = {
+          id: "root",
+          name: "Archives",
+          children: this.buildTree(data.tree),
+          files: data.items,
+        };
+        this.tagTreeDataSource.data = [rootNode];
+        this.selectedFiles = data.items;
+        this.dataSource.data = this.selectedFiles;
+        this.totalFiles = data.items.length;
         this.dataSource.sort = this.sort;
-
-        if (this.selectedNode) {
-          console.log(this.selectedNode)
-          const node = this.findNodeById(rootNodes, this.selectedNode.id);
-          console.log(node)
-          if (node) {
-            this.onNodeSelect(node);
-          }
-        }
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode; // Set root as the initial selected node
       },
       (error) => {
-        console.error("Error fetching file archives: ", error);
+        console.error("Error loading initial files:", error);
       }
     );
   }
 
-  buildTree(files: ArchiveFile[]): TagNode[] {
-    const root: TagNode = { name: 'Archives', id: 'root', children: [] };
-    const nodeMap: { [key: string]: TagNode } = { 'Archives': root };
-
-    files.forEach(file => {
-      if (file.tags.length === 0) {
-        file.tags = [{ id: 'untagged', full_name: 'Archives/Untagged' }];
+  fetchChildFiles(parentNode: TagNode): void {
+    this.archivesService.fetchFilesByParent(parentNode.id).subscribe(
+      (data: ArchiveData) => {
+        const childNodes = this.buildTree(data.tree);
+        parentNode.children = childNodes;
+        parentNode.files = data.items;
+        this.tagTreeDataSource.data = [...this.tagTreeDataSource.data];
+        this.treeControl.expand(parentNode);
+        this.selectedFiles = data.items;
+        this.dataSource.data = this.selectedFiles;
+        this.totalFiles = data.items.length;
+        this.dataSource.sort = this.sort;
+      },
+      (error) => {
+        console.error("Error fetching child files:", error);
       }
-      file.tags.forEach(tag => {
-        const path = tag.full_name.split('/');
-        let currentNode = root;
-        path.forEach((part, index) => {
-          if (!nodeMap[part]) {
-            const newNode: TagNode = { name: part, id: tag.id, children: [] };
-            nodeMap[part] = newNode;
-            if (index === path.length - 1) {
-              newNode.files = [];
-            }
-            currentNode.children.push(newNode);
-          }
-          currentNode = nodeMap[part];
-        });
-        currentNode.files?.push(file);
-      });
-    });
-
-    return [root];
+    );
   }
 
-  hasChild = (_: number, node: TagNode) => !!node.children && node.children.length > 0;
+  buildTree(nodes: any[]): TagNode[] {
+    return nodes.map((node) => ({
+      name: node.name,
+      id: node.id,
+      children: [],
+      files: [],
+    }));
+  }
+
+  onNodeSelect(node: TagNode): void {
+    this.selectedNode = node;
+    if (node.children && node.children.length > 0) {
+      this.selectedFiles = node.files || [];
+      this.dataSource.data = this.selectedFiles;
+      this.totalFiles = this.selectedFiles.length;
+      this.treeControl.expand(node);
+    } else {
+      this.fetchChildFiles(node);
+    }
+  }
 
   copyId(id: string) {
     this.clipboard.copy(id);
-    alert('Copied ID: ' + id);
+    alert("Copied ID: " + id);
   }
 
   openFile(filepath: string): void {
@@ -122,7 +123,7 @@ export class ArchivesComponent implements OnInit {
     if (!filepath.startsWith("http")) {
       url = "/backend" + filepath;
     }
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   }
 
   deleteFile(fileId: string): void {
@@ -143,7 +144,7 @@ export class ArchivesComponent implements OnInit {
               type: "success",
               duration: 3000,
             });
-            this.loadFileArchives();
+            this.loadInitialFiles();
           },
           (error) => {
             console.error("Error deleting file: ", error);
@@ -158,24 +159,6 @@ export class ArchivesComponent implements OnInit {
     });
   }
 
-  onNodeSelect(node: TagNode): void {
-    this.selectedNode = node;
-    this.selectedFiles = this.collectFiles(node);
-  }
-
-  collectFiles(node: TagNode): ArchiveFile[] {
-    let files: ArchiveFile[] = [];
-    if (node.files) {
-      files = files.concat(node.files);
-    }
-    if (node.children) {
-      for (const child of node.children) {
-        files = files.concat(this.collectFiles(child));
-      }
-    }
-    return files;
-  }
-
   handlePageEvent(event: PageEvent): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
@@ -185,35 +168,24 @@ export class ArchivesComponent implements OnInit {
   updatePagedData(): void {
     const startIndex = this.pageIndex * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.dataSource.data.slice(startIndex, endIndex);
+    this.dataSource.data = this.selectedFiles.slice(startIndex, endIndex);
   }
 
   openAddFileDialog(): void {
     const dialogRef = this.dialog.open(UploadFileDialogComponent, {
       width: "400px",
-      data: {},
+      data: {
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
+      },
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadFileArchives();
-    });
-  }
-
-  openCreateTagDialog(): void {
-    const dialogRef = this.dialog.open(CreateTagDialogComponent, {
-      width: "400px",
-      data: {},
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadFileArchives();
-      }
+      this.loadInitialFiles();
     });
   }
 
   sortData(sort: Sort): void {
-    const data = this.dataSource.data.slice();
+    const data = this.selectedFiles.slice();
     if (!sort.active || sort.direction === "") {
       this.dataSource.data = data;
       return;
@@ -222,8 +194,8 @@ export class ArchivesComponent implements OnInit {
     this.dataSource.data = data.sort((a, b) => {
       const isAsc = sort.direction === "asc";
       switch (sort.active) {
-        case "filename":
-          return this.compare(a.filename, b.filename, isAsc);
+        case "name":
+          return compare(a.name, b.name, isAsc);
         default:
           return 0;
       }
@@ -231,30 +203,24 @@ export class ArchivesComponent implements OnInit {
     this.updatePagedData();
   }
 
-  private compare(a: string, b: string, isAsc: boolean): number {
-    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
-  }
-
-  private showNotification(notification: NotificationMessage): void {
-    this.toastNotificationService.dispatchNotification(notification);
-  }
-
   filterNodes(query: string): void {
     this.searchQuery = query;
     if (!query) {
-      this.filteredTreeDataSource.data = this.originalTreeData;
-      this.treeControl.expandDescendants(this.originalTreeData[0]);
+      this.tagTreeDataSource.data = this.tagTreeDataSource.data;
+      this.treeControl.expandDescendants(this.tagTreeDataSource.data[0]);
     } else {
-      const filteredNodes = this.filterTree(this.originalTreeData, query.toLowerCase());
-      this.filteredTreeDataSource.data = filteredNodes;
-      this.treeControl.expandDescendants(filteredNodes[0]);
+      const filteredNodes = this.filterTree(this.tagTreeDataSource.data, query.toLowerCase());
+      this.tagTreeDataSource.data = filteredNodes;
+      if (filteredNodes.length > 0) {
+        this.treeControl.expandDescendants(filteredNodes[0]);
+      }
     }
   }
 
   filterTree(nodes: TagNode[], query: string): TagNode[] {
     return nodes
-      .map(node => ({ ...node }))
-      .filter(node => {
+      .map((node) => ({ ...node }))
+      .filter((node) => {
         if (node.name.toLowerCase().includes(query)) {
           return true;
         }
@@ -270,21 +236,15 @@ export class ArchivesComponent implements OnInit {
     if (!query) {
       return text;
     }
-    const regex = new RegExp(`(${query})`, 'gi');
+    const regex = new RegExp(`(${query})`, "gi");
     return text.replace(regex, '<span class="highlight">$1</span>');
   }
-  findNodeById(nodes: TagNode[], id: string): TagNode | null {
-    for (const node of nodes) {
-      if (node.id === id) {
-        return node;
-      }
-      if (node.children) {
-        const found = this.findNodeById(node.children, id);
-        if (found) {
-          return found;
-        }
-      }
-    }
-    return null;
+
+  private showNotification(notification: NotificationMessage): void {
+    this.toastNotificationService.dispatchNotification(notification);
   }
+}
+
+function compare(a: string, b: string, isAsc: boolean): number {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
