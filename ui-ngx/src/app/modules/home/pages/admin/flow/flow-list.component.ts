@@ -9,12 +9,14 @@ import { MatSort, Sort } from "@angular/material/sort";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
+import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
 
 interface FlowNode {
   name: string;
   id: string;
   children: FlowNode[];
   flows?: any[];
+  isLoaded?: boolean;
 }
 
 @Component({
@@ -47,7 +49,7 @@ export class FlowListComponent implements OnInit {
     private router: Router,
     public dialog: MatDialog,
     private clipboard: Clipboard,
-    private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +64,7 @@ export class FlowListComponent implements OnInit {
           name: "Flows",
           children: this.buildTree(data.tree),
           flows: data.items,
+          isLoaded: true,
         };
         this.flowTreeDataSource.data = [rootNode];
         this.selectedFlows = data.items;
@@ -78,24 +81,20 @@ export class FlowListComponent implements OnInit {
     );
   }
 
-  fetchChildFlows(parentNode: FlowNode): void {
-    this.flowService.fetchFlowsByParent(parentNode.id).subscribe(
+  fetchChildFlows(node: FlowNode): void {
+    if (node.isLoaded) {
+      this.updateSelectedNode(node);
+      return;
+    }
+
+    this.flowService.fetchFlowsByParent(node.id).subscribe(
       (data) => {
-        console.log('Fetched data:', data);
-        const childNodes = this.buildTree(data.tree);
-        parentNode.children = childNodes;
-        parentNode.flows = data.items;
+        node.children = this.buildTree(data.tree);
+        node.flows = data.items;
+        node.isLoaded = true;
 
-        console.log('Updated parentNode:', parentNode);
-
+        this.updateSelectedNode(node);
         this.refreshTreeData();
-
-        this.treeControl.expand(parentNode);
-        this.selectedFlows = data.items;
-        this.dataSource.data = this.selectedFlows;
-        this.totalFlows = data.items.length;
-        this.dataSource.sort = this.sort;
-        this.updatePagedData();
       },
       (error) => {
         console.error("Error fetching child flows:", error);
@@ -103,8 +102,34 @@ export class FlowListComponent implements OnInit {
     );
   }
 
+  toggleNode(node: FlowNode): void {
+    if (this.treeControl.isExpanded(node)) {
+      this.treeControl.collapse(node);
+    } else {
+      this.treeControl.expand(node);
+    }
+
+    if (!node.isLoaded && this.treeControl.isExpanded(node)) {
+      this.fetchChildFlows(node);
+    }
+
+    this.updateSelectedNode(node);
+  }
+
+  updateSelectedNode(node: FlowNode): void {
+    this.selectedNode = node;
+    this.selectedFlows = node.flows || [];
+    this.dataSource.data = this.selectedFlows;
+    this.totalFlows = this.selectedFlows.length;
+    this.dataSource.sort = this.sort;
+    this.updatePagedData();
+    this.cdr.detectChanges();
+  }
+
   refreshTreeData(): void {
-    this.flowTreeDataSource.data = [...this.flowTreeDataSource.data];
+    const data = this.flowTreeDataSource.data;
+    this.flowTreeDataSource.data = null;
+    this.flowTreeDataSource.data = data;
     this.cdr.detectChanges();
   }
 
@@ -114,11 +139,11 @@ export class FlowListComponent implements OnInit {
       id: node.id,
       children: [],
       flows: [],
+      isLoaded: false,
     }));
   }
 
   onNodeSelect(node: FlowNode): void {
-    this.selectedNode = node;
     this.fetchChildFlows(node);
   }
 
@@ -160,6 +185,19 @@ export class FlowListComponent implements OnInit {
         selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
       },
     });
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadInitialFlows();
+    });
+  }
+
+  openAddPrefixDialog(): void {
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        parentPrefix: this.selectedNode ? this.selectedNode.id : 'root',
+        type: "archives",
+      },
+    });
+
     dialogRef.afterClosed().subscribe(() => {
       this.loadInitialFlows();
     });

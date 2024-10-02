@@ -45,7 +45,7 @@ export const FlowProvider = ({ children }: { children: ReactNode }) => {
     const fetchNodeFields = async () => {
       try {
         const response = await axios.get(
-          `/backend/v2/fields/node_fields/`
+          `http://127.0.0.1:8000/v2/fields/node_fields/`
         );
         setNodeFields(response.data);
       } catch (error) {

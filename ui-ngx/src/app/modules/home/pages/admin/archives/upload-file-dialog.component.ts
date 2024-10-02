@@ -14,7 +14,6 @@ import {
 import { DialogComponent } from "@shared/components/dialog.component";
 import { Router } from "@angular/router";
 import { ArchivesService } from "@app/core/services/archives.service";
-import { TagService } from "@app/core/services/tag.service";
 
 export interface UploadFileDialogData {
   selectedPrefix: string;
@@ -46,7 +45,6 @@ export class UploadFileDialogComponent
     protected store: Store<AppState>,
     protected router: Router,
     private archiveService: ArchivesService,
-    private tagService: TagService,
     @Inject(MAT_DIALOG_DATA) public data: UploadFileDialogData,
     @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
     public dialogRef: MatDialogRef<UploadFileDialogComponent>,
@@ -98,7 +96,7 @@ export class UploadFileDialogComponent
       const formData = new FormData();
       formData.append("file", file);
       formData.append("name", this.uploadFileFormGroup.get("filename").value);
-      formData.append("prefix", this.selectedPrefix);
+      formData.append("prefix", this.selectedPrefix == 'root' ? null : this.selectedPrefix);
       this.archiveService.uploadFile(formData).subscribe(
         () => {
           console.log("File uploaded successfully");

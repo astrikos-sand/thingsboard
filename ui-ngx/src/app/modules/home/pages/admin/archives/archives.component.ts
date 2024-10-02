@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSort, Sort } from "@angular/material/sort";
@@ -6,17 +6,23 @@ import { PageEvent } from "@angular/material/paginator";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
-import { ArchivesService, ArchiveFile, ArchiveData } from "@app/core/services/archives.service";
+import {
+  ArchivesService,
+  ArchiveFile,
+  ArchiveData,
+} from "@app/core/services/archives.service";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
 import { NotificationMessage } from "@app/core/notification/notification.models";
 import { UploadFileDialogComponent } from "./upload-file-dialog.component";
+import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
 
 interface TagNode {
   name: string;
   id: string;
   children?: TagNode[];
   files?: ArchiveFile[];
+  isLoaded?: boolean;
 }
 
 @Component({
@@ -26,7 +32,7 @@ interface TagNode {
 })
 export class ArchivesComponent implements OnInit {
   dataSource = new MatTableDataSource<ArchiveFile>();
-  displayedColumns: string[] = ["name", "prefix", "actions"];
+  displayedColumns: string[] = ["name", "actions"];
   totalFiles = 0;
   pageIndex = 0;
   pageSize = 10;
@@ -43,7 +49,8 @@ export class ArchivesComponent implements OnInit {
     private archivesService: ArchivesService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
-    private clipboard: Clipboard
+    private clipboard: Clipboard,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -53,19 +60,22 @@ export class ArchivesComponent implements OnInit {
   loadInitialFiles(): void {
     this.archivesService.getFileArchives().subscribe(
       (data: ArchiveData) => {
+        console.log(data)
         const rootNode: TagNode = {
           id: "root",
           name: "Archives",
           children: this.buildTree(data.tree),
           files: data.items,
+          isLoaded: true,
         };
         this.tagTreeDataSource.data = [rootNode];
         this.selectedFiles = data.items;
         this.dataSource.data = this.selectedFiles;
         this.totalFiles = data.items.length;
         this.dataSource.sort = this.sort;
+        this.updatePagedData();
         this.treeControl.expand(rootNode);
-        this.selectedNode = rootNode; // Set root as the initial selected node
+        this.selectedNode = rootNode;
       },
       (error) => {
         console.error("Error loading initial files:", error);
@@ -73,23 +83,55 @@ export class ArchivesComponent implements OnInit {
     );
   }
 
-  fetchChildFiles(parentNode: TagNode): void {
-    this.archivesService.fetchFilesByParent(parentNode.id).subscribe(
+  fetchChildFiles(node: TagNode): void {
+    if (node.isLoaded) {
+      this.updateSelectedNode(node);
+      return;
+    }
+    this.archivesService.fetchFilesByParent(node.id).subscribe(
       (data: ArchiveData) => {
-        const childNodes = this.buildTree(data.tree);
-        parentNode.children = childNodes;
-        parentNode.files = data.items;
-        this.tagTreeDataSource.data = [...this.tagTreeDataSource.data];
-        this.treeControl.expand(parentNode);
-        this.selectedFiles = data.items;
-        this.dataSource.data = this.selectedFiles;
-        this.totalFiles = data.items.length;
-        this.dataSource.sort = this.sort;
+        node.children = this.buildTree(data.tree);
+        node.files = data.items;
+        node.isLoaded = true;
+
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
       },
       (error) => {
         console.error("Error fetching child files:", error);
       }
     );
+  }
+
+  toggleNode(node: TagNode): void {
+    if (this.treeControl.isExpanded(node)) {
+      this.treeControl.collapse(node);
+    } else {
+      this.treeControl.expand(node);
+    }
+
+    if (!node.isLoaded && this.treeControl.isExpanded(node)) {
+      this.fetchChildFiles(node);
+    }
+
+    this.updateSelectedNode(node);
+  }
+
+  updateSelectedNode(node: TagNode): void {
+    this.selectedNode = node;
+    this.selectedFiles = node.files || [];
+    this.dataSource.data = this.selectedFiles;
+    this.totalFiles = this.selectedFiles.length;
+    this.dataSource.sort = this.sort;
+    this.updatePagedData();
+    this.cdr.detectChanges();
+  }
+
+  refreshTreeData(): void {
+    const data = this.tagTreeDataSource.data;
+    this.tagTreeDataSource.data = null;
+    this.tagTreeDataSource.data = data;
+    this.cdr.detectChanges();
   }
 
   buildTree(nodes: any[]): TagNode[] {
@@ -98,19 +140,12 @@ export class ArchivesComponent implements OnInit {
       id: node.id,
       children: [],
       files: [],
+      isLoaded: false,
     }));
   }
 
   onNodeSelect(node: TagNode): void {
-    this.selectedNode = node;
-    if (node.children && node.children.length > 0) {
-      this.selectedFiles = node.files || [];
-      this.dataSource.data = this.selectedFiles;
-      this.totalFiles = this.selectedFiles.length;
-      this.treeControl.expand(node);
-    } else {
-      this.fetchChildFiles(node);
-    }
+    this.fetchChildFiles(node);
   }
 
   copyId(id: string) {
@@ -156,6 +191,19 @@ export class ArchivesComponent implements OnInit {
           }
         );
       }
+    });
+  }
+
+  openAddPrefixDialog(): void {
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        parentPrefix: this.selectedNode ? this.selectedNode.id : 'root',
+        type: "archives",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadInitialFiles();
     });
   }
 
@@ -209,7 +257,10 @@ export class ArchivesComponent implements OnInit {
       this.tagTreeDataSource.data = this.tagTreeDataSource.data;
       this.treeControl.expandDescendants(this.tagTreeDataSource.data[0]);
     } else {
-      const filteredNodes = this.filterTree(this.tagTreeDataSource.data, query.toLowerCase());
+      const filteredNodes = this.filterTree(
+        this.tagTreeDataSource.data,
+        query.toLowerCase()
+      );
       this.tagTreeDataSource.data = filteredNodes;
       if (filteredNodes.length > 0) {
         this.treeControl.expandDescendants(filteredNodes[0]);

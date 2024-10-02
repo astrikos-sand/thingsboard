@@ -1,6 +1,12 @@
 import { Component, Inject, OnInit, ChangeDetectorRef } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { FormGroup, FormBuilder, Validators, FormArray, AbstractControl } from "@angular/forms";
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+  FormArray,
+  AbstractControl,
+} from "@angular/forms";
 import { FlowService } from "@app/core/services/flow.service";
 
 interface FieldConfig {
@@ -108,20 +114,23 @@ export class AddNewNodeDialog implements OnInit {
   }
 
   addSlot(fieldIndex: number): void {
-    const fieldsArray = this.form.get('fields') as FormArray;
+    const fieldsArray = this.form.get("fields") as FormArray;
     const fieldGroup = fieldsArray.at(fieldIndex) as FormGroup;
-    const slotsArray = fieldGroup.get('fields') as FormArray;
-    const slotFields = fieldGroup.get('slotFields')?.value;
-    
+    const slotsArray = fieldGroup.get("fields") as FormArray;
+    const slotFields = fieldGroup.get("slotFields")?.value;
+
     const slotGroup = this.fb.group({});
     slotFields.forEach((slotField: any) => {
-      slotGroup.addControl(slotField.label, this.fb.control('', slotField.required ? Validators.required : null));
+      slotGroup.addControl(
+        slotField.label,
+        this.fb.control("", slotField.required ? Validators.required : null)
+      );
     });
-  
+
     slotsArray.push(slotGroup);
     this.cdr.detectChanges();
   }
-  
+
   removeSlot(fieldIndex: number, slotIndex: number): void {
     const fieldsArray = this.form.get("fields") as FormArray;
     const fieldGroup = fieldsArray.at(fieldIndex) as FormGroup;
@@ -158,14 +167,24 @@ export class AddNewNodeDialog implements OnInit {
 
       this.flowService.addNode(nodeData).subscribe(
         (response: any) => {
-          const { id, position, connections_in, node_type,  connections_out, polymorphic_ctype, input_slots, output_slots, ...rest } = response;
+          const {
+            id,
+            position,
+            connections_in,
+            node_type,
+            connections_out,
+            polymorphic_ctype,
+            input_slots,
+            output_slots,
+            ...rest
+          } = response;
           const newDataNode = {
             id: id.toString(),
             position: position,
-            type: 'custom',
+            type: "custom",
             data: {
               id: id,
-              label: 'Node',
+              label: "Node",
               position: position,
               polymorphic_ctype: polymorphic_ctype,
               input_slots: input_slots,
@@ -174,10 +193,11 @@ export class AddNewNodeDialog implements OnInit {
               flow: this.data.flowId,
               node_fields: this.data.node_fields[node_type],
               isScopeNode: false,
-              
+              node_type: node_type,
               ...rest,
             },
           };
+          console.log(newDataNode);
           this.data.addNode(newDataNode);
           this.isLoading = false;
           this.dialogRef.close();

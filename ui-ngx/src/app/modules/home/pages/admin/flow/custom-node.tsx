@@ -11,6 +11,7 @@ function CustomNode({
   isConnectable: any;
 }) {
   if (!data.toShow) return null;
+
   const color = data.node_fields["color"];
   const attrs = data.node_fields["attrs"];
   const [offset, setOffset] = useState({ x: 100, y: data.position.y });
@@ -24,10 +25,10 @@ function CustomNode({
     setEdges,
   } = useContext(FlowContext) as FlowContextType;
   const [openScopes, setOpenScopes] = useState<boolean>(false);
-  const { setOpenEditingDialogBox } = useContext(
-    FlowContext
-  ) as FlowContextType;
+  const { setOpenEditingDialogBox } = useContext(FlowContext) as FlowContextType;
   data.styles = data.styles || {};
+
+  const nodeName = data.definition?.name || data.name || "Unnamed Node";
 
   const renderExtraData = () => {
     if (data.cases) {
@@ -130,9 +131,12 @@ function CustomNode({
     }
     return null;
   };
+
   const handleEditClick = () => {
+    console.log(data)
     setOpenEditingDialogBox(data);
   };
+
   return (
     <div
       id={data.id}
@@ -142,7 +146,7 @@ function CustomNode({
       }}
     >
       <div className="custom-node__header">
-        <strong>{data.node_type}</strong>
+        <strong>{data.node_type}: {nodeName}</strong>
       </div>
       <div className="custom-node__body">
         {data.input_slots?.map((input: any) => (

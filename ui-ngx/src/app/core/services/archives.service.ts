@@ -18,7 +18,7 @@ export interface ArchiveFile {
   providedIn: "root",
 })
 export class ArchivesService {
-  private apiUrl = "/backend/v2/archives";
+  private apiUrl = "http://127.0.0.1:8000/v2/archives";
 
   constructor(private http: HttpClient) {}
 

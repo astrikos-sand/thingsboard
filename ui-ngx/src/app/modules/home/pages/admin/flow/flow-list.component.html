@@ -11,11 +11,14 @@
               placeholder="Search folders..."
             />
           </mat-form-field>
-          <mat-tree [dataSource]="flowTreeDataSource" [treeControl]="treeControl">
+          <mat-tree
+            [dataSource]="flowTreeDataSource"
+            [treeControl]="treeControl"
+          >
             <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
               <div
                 class="mat-tree-node-content hover-pointer"
-                (click)="onNodeSelect(node)"
+                (click)="toggleNode(node)"
               >
                 <button mat-icon-button matTreeNodeToggle>
                   <mat-icon>{{
@@ -28,12 +31,17 @@
                   class="mat-tree-node-label"
                   [innerHTML]="highlightText(node.name, searchQuery)"
                 ></span>
-                <button mat-icon-button (click)="copyId(node.id)">
+                <button
+                  mat-icon-button
+                  (click)="copyId(node.id)"
+                  class="mat-tree-node-actions"
+                >
                   <mat-icon>content_copy</mat-icon>
                 </button>
               </div>
               <div
                 [class.example-tree-invisible]="!treeControl.isExpanded(node)"
+                class="mat-tree-node-children"
               >
                 <ng-container matTreeNodeOutlet></ng-container>
               </div>
@@ -44,6 +52,14 @@
           <mat-toolbar>
             <span>Flows</span>
             <span fxFlex></span>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="openAddPrefixDialog()"
+              style="margin: 10px"
+            >
+              Add Prefix
+            </button>
             <button
               mat-raised-button
               color="primary"

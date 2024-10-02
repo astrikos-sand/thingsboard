@@ -77,13 +77,13 @@
           margin-right: 8px;
         }
       }
-
-      .mat-tree-node-children {
-        padding-left: 32px;
-      }
     }
   }
 
+  .mat-tree-node-children {
+    padding-left: 1rem;
+  }
+  
   .tree-container {
     padding: 16px;
     background: #f9f9f9;

@@ -64,7 +64,7 @@ export class EditNodeDialogComponent implements OnInit {
     const editedData = this.form.get('value')?.value;
     this.isLoading = true;
     try {
-      await axios.patch(`/backend/v2/nodes/${this.data.id}/`, {
+      await axios.patch(`http://127.0.0.1:8000/v2/nodes/${this.data.id}/`, {
         value: editedData,
       });
       this.dialogRef.close(editedData);

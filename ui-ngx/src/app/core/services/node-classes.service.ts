@@ -11,7 +11,7 @@ export interface FunctionData {
   providedIn: "root",
 })
 export class NodeClassService {
-  private baseUrl = "/backend/v2";
+  private baseUrl = "http://127.0.0.1:8000/v2/functions";
 
   constructor(private http: HttpClient) {}
 
@@ -25,6 +25,10 @@ export class NodeClassService {
     });
   }
 
+  updateFunction(functionData: any): Observable<any> {
+    return this.http.put(`/api/functions/${functionData.id}/`, functionData);
+  }  
+  
   addBaseClass(data: FormData): Observable<any> {
     return this.http.post(`${this.baseUrl}/`, data);
   }

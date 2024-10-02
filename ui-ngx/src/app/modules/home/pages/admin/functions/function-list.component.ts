@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
@@ -11,12 +11,15 @@ import { NotificationMessage } from "@app/core/notification/notification.models"
 import { NodeClassService } from "@app/core/services/node-classes.service";
 import { AddFunctionDialog } from "@home/pages/admin/functions/function-dialog.component";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
+import { EditFunctionDialogComponent } from "./edit-function-dialog.component";
+import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
 
 interface FunctionNode {
   name: string;
   id: string;
   children?: FunctionNode[];
   functions?: any[];
+  isLoaded?: boolean;
 }
 
 @Component({
@@ -26,8 +29,8 @@ interface FunctionNode {
 })
 export class FunctionListComponent implements OnInit {
   displayedColumns: string[] = ["name", "description", "actions"];
-  dataSource = new MatTableDataSource<any>([]);
   selectedFunctions: any[] = [];
+  dataSource = new MatTableDataSource<any>(this.selectedFunctions);
   totalFiles = 0;
   pageIndex = 0;
   pageSize = 10;
@@ -42,7 +45,8 @@ export class FunctionListComponent implements OnInit {
     private nodeClassService: NodeClassService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
-    private clipboard: Clipboard
+    private clipboard: Clipboard,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -57,6 +61,7 @@ export class FunctionListComponent implements OnInit {
           name: "Functions",
           children: this.buildTree(data.tree),
           functions: data.items,
+          isLoaded: true,
         };
         this.functionTreeDataSource.data = [rootNode];
         this.selectedFunctions = data.items;
@@ -74,23 +79,55 @@ export class FunctionListComponent implements OnInit {
   }
 
   fetchChildFunctions(parentNode: FunctionNode): void {
+    if (parentNode.isLoaded) {
+      this.updateSelectedNode(parentNode);
+      return;
+    }
+
     this.nodeClassService.fetchFunctionsByParent(parentNode.id).subscribe(
       (data) => {
-        const childNodes = this.buildTree(data.tree);
-        parentNode.children = childNodes;
+        parentNode.children = this.buildTree(data.tree);
         parentNode.functions = data.items;
-        this.functionTreeDataSource.data = [...this.functionTreeDataSource.data];
-        this.treeControl.expand(parentNode);
-        this.selectedFunctions = data.items;
-        this.dataSource.data = this.selectedFunctions;
-        this.totalFiles = data.items.length;
-        this.dataSource.sort = this.sort;
-        this.updatePagedData();
+        parentNode.isLoaded = true;
+
+        this.updateSelectedNode(parentNode);
+        this.refreshTreeData();
       },
       (error) => {
         console.error("Error fetching child functions:", error);
       }
     );
+  }
+
+  toggleNode(node: FunctionNode): void {
+    if (this.treeControl.isExpanded(node)) {
+      this.treeControl.collapse(node);
+    } else {
+      this.treeControl.expand(node);
+    }
+
+    if (!node.isLoaded && this.treeControl.isExpanded(node)) {
+      this.fetchChildFunctions(node);
+    }
+
+    this.updateSelectedNode(node);
+  }
+
+  updateSelectedNode(node: FunctionNode): void {
+    this.selectedNode = node;
+    this.selectedFunctions = node.functions || [];
+    this.dataSource.data = this.selectedFunctions;
+    this.totalFiles = this.selectedFunctions.length;
+    this.dataSource.sort = this.sort;
+    this.updatePagedData();
+    this.cdr.detectChanges();
+  }
+
+  refreshTreeData(): void {
+    const data = this.functionTreeDataSource.data;
+    this.functionTreeDataSource.data = null;
+    this.functionTreeDataSource.data = data;
+    this.cdr.detectChanges();
   }
 
   buildTree(nodes: any[]): FunctionNode[] {
@@ -99,24 +136,12 @@ export class FunctionListComponent implements OnInit {
       id: node.id,
       children: [],
       functions: [],
+      isLoaded: false,
     }));
   }
 
-  hasChild = (_: number, node: FunctionNode) =>
-    !!node.children && node.children.length > 0;
-
-  hasNoChild = (_: number, node: FunctionNode) => !this.hasChild(_, node);
-
   onNodeSelect(node: FunctionNode): void {
-    this.selectedNode = node;
-    if (node.children && node.children.length > 0) {
-      this.selectedFunctions = node.functions || [];
-      this.dataSource.data = this.selectedFunctions;
-      this.totalFiles = this.selectedFunctions.length;
-      this.treeControl.expand(node);
-    } else {
-      this.fetchChildFunctions(node);
-    }
+    this.fetchChildFunctions(node);
   }
 
   copyId(id: string) {
@@ -258,6 +283,33 @@ export class FunctionListComponent implements OnInit {
     }
     const regex = new RegExp(`(${query})`, "gi");
     return text.replace(regex, '<span class="highlight">$1</span>');
+  }
+
+  openEditFunctionDialog(file: any): void {
+    const dialogRef = this.dialog.open(EditFunctionDialogComponent, {
+      data: {
+        functionData: file,
+      },
+    });
+  
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadInitialFunctions();
+      }
+    });
+  }
+  
+  openAddPrefixDialog(): void {
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        parentPrefix: this.selectedNode ? this.selectedNode.id : 'root',
+        type: "archives",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadInitialFunctions();
+    });
   }
 
   private showNotification(notification: NotificationMessage): void {

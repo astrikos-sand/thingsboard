@@ -1,0 +1,65 @@
+<mat-toolbar color="primary">
+  <h2>Executions</h2>
+  <span fxFlex></span>
+  <button mat-icon-button (click)="closeDialog()" type="button">
+    <mat-icon>close</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div mat-dialog-content>
+  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+
+  <table *ngIf="!isLoading" class="mat-elevation-z8">
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Status</th>
+        <th>Container Logs</th>
+        <th>JSON Logs</th>
+        <th>HTML Logs</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let execution of executions">
+        <td>{{ execution.timestamp }}</td>
+        <td>
+          <span [style.color]="getStatusColor(execution.status)">{{
+            execution.status
+          }}</span>
+        </td>
+        <td>
+          <a
+            *ngIf="execution.container_logs"
+            [href]="execution.container_logs"
+            target="_blank"
+            >View</a
+          >
+        </td>
+        <td>
+          <a
+            *ngIf="execution.json_logs"
+            [href]="execution.json_logs"
+            target="_blank"
+            >View</a
+          >
+        </td>
+        <td>
+          <a
+            *ngIf="execution.html_logs"
+            [href]="execution.html_logs"
+            target="_blank"
+            >View</a
+          >
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="executions.length === 0 && !isLoading">
+    <p>No executions found for this flow.</p>
+  </div>
+</div>
+
+<mat-dialog-actions>
+  <button mat-button (click)="closeDialog()">Close</button>
+</mat-dialog-actions>

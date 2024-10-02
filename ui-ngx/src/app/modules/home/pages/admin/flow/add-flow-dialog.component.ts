@@ -51,7 +51,7 @@ export class AddFlowDialogComponent implements OnInit {
         name: this.flowName,
         description: this.description,
         lib: this.selectedEnv,
-        prefix: this.selectedPrefix,
+        prefix: this.selectedPrefix == 'root' ? null : this.selectedPrefix,
       };
       this.flowService.addFlow(flowData).subscribe(
         (newFlow) => {

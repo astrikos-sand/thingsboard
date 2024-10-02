@@ -1,0 +1,43 @@
+<form [formGroup]="createPrefixFormGroup" (ngSubmit)="createPrefix()">
+  <mat-toolbar color="primary">
+    <h2>Create New Prefix</h2>
+    <span fxFlex></span>
+    <button mat-icon-button (click)="cancel()" type="button">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <div mat-dialog-content>
+    <fieldset>
+      <!-- Prefix Name Input -->
+      <mat-form-field class="mat-block">
+        <input
+          matInput
+          formControlName="prefixName"
+          placeholder="Prefix Name"
+        />
+        <mat-error *ngIf="createPrefixFormGroup.get('prefixName').hasError('required')">
+          Prefix name is <strong>required</strong>
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Parent Prefix Dropdown -->
+      <mat-form-field class="mat-block" *ngIf="!hasParentPrefix">
+        <mat-select formControlName="parentPrefix" placeholder="Select Parent Prefix">
+          <mat-option *ngFor="let prefix of parentPrefixes" [value]="prefix.id">
+            {{ prefix.full_name }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="createPrefixFormGroup.get('parentPrefix').hasError('required')">
+          Parent prefix is <strong>required</strong>
+        </mat-error>
+      </mat-form-field>
+    </fieldset>
+  </div>
+
+  <div mat-dialog-actions>
+    <button mat-raised-button color="primary" type="submit">
+      Create Prefix
+    </button>
+  </div>
+</form>

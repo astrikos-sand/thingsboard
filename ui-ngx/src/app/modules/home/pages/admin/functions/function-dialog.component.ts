@@ -1,7 +1,10 @@
 import { Component, OnInit, Inject, ViewChild } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { MonacoEditorComponent, MonacoEditorConstructionOptions } from "@materia-ui/ngx-monaco-editor";
+import {
+  MonacoEditorComponent,
+  MonacoEditorConstructionOptions,
+} from "@materia-ui/ngx-monaco-editor";
 import { FlowService } from "@app/core/services/flow.service";
 
 @Component({
@@ -12,9 +15,12 @@ import { FlowService } from "@app/core/services/flow.service";
 export class AddFunctionDialog implements OnInit {
   form: FormGroup;
   isLoading = false;
-  selectedPrefix: string;
+  selectedPrefix: string = "";
+  prefixes: string[] = [];
 
-  @ViewChild(MonacoEditorComponent, { static: false }) monacoComponent: MonacoEditorComponent | undefined;
+  @ViewChild(MonacoEditorComponent, { static: false }) monacoComponent:
+    | MonacoEditorComponent
+    | undefined;
 
   editorOptions: MonacoEditorConstructionOptions = {
     language: "python",
@@ -43,22 +49,32 @@ export class AddFunctionDialog implements OnInit {
     private flowService: FlowService,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
-    this.selectedPrefix = data.selectedPrefix;
+    this.selectedPrefix = data?.selectedPrefix || "";
     this.form = this.fb.group({
       name: ["", Validators.required],
       description: ["", Validators.required],
       inputs: [""],
       outputs: [""],
+      prefix: [this.selectedPrefix, Validators.required],
     });
   }
 
   ngOnInit(): void {
+    this.loadPrefixes();
     this.form.get("inputs")?.valueChanges.subscribe(() => {
       this.updateFunctionSignature();
     });
     this.form.get("outputs")?.valueChanges.subscribe(() => {
       this.updateReturnStatement();
     });
+  }
+
+  loadPrefixes() {
+    if (!this.selectedPrefix) {
+      this.flowService.getPrefixes("functions").subscribe((response: any) => {
+        this.prefixes = response.tree.map((prefix: any) => prefix.full_name);
+      });
+    }
   }
 
   updateFunctionSignature() {
@@ -95,7 +111,7 @@ export class AddFunctionDialog implements OnInit {
     }
 
     this.isLoading = true;
-    const { name, description, inputs, outputs } = this.form.value;
+    const { name, description, inputs, outputs, prefix } = this.form.value;
 
     const fields = [];
 
@@ -128,8 +144,10 @@ export class AddFunctionDialog implements OnInit {
     codeFileFormData.append("code", codeBlob, `${name}-code.py`);
     codeFileFormData.append("name", name);
     codeFileFormData.append("description", description);
-    codeFileFormData.append("prefix", this.selectedPrefix);
-    const fieldBlob = new Blob([JSON.stringify(fields)], { type: "application/json" });
+    codeFileFormData.append("prefix", prefix == 'root' ? null : prefix,);
+    const fieldBlob = new Blob([JSON.stringify(fields)], {
+      type: "application/json",
+    });
     codeFileFormData.append("fields", fieldBlob);
 
     this.flowService.addFunction(codeFileFormData).subscribe(

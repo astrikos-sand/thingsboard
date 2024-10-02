@@ -79,7 +79,7 @@ export const handleOpenScope = async (
 }> => {
   try {
     const response = await axios.get(
-      `/backend/v2/flow/${scopeId}/nodes/`
+      `http://127.0.0.1:8000/v2/flow/${scopeId}/nodes/`
     );
     const { nodes: scopeNodes, edges: scopeEdges } = convertData(
       response.data.nodes,
@@ -481,7 +481,7 @@ export const handleCollapseAllScopes = async (
     await handleCollapseScope(scope, nodes, edges);
   }
   const response = await axios.get(
-    `/backend/v2/flow/${data.flow}/nodes/`
+    `http://127.0.0.1:8000/v2/flow/${data.flow}/nodes/`
   );
   const { nodes: newNodes, edges: newEdges } = convertData(
     response.data.nodes,

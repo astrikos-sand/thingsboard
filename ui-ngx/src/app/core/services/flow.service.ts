@@ -6,7 +6,7 @@ import { Observable } from "rxjs";
   providedIn: "root",
 })
 export class FlowService {
-  private baseUrl = "/backend/v2";
+  private baseUrl = "http://127.0.0.1:8000/v2";
 
   constructor(private http: HttpClient) {}
 
@@ -50,8 +50,17 @@ export class FlowService {
   addNode(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/nodes/`, data);
   }
+
   addFunction(data: FormData): Observable<any> {
     return this.http.post(`${this.baseUrl}/functions/`, data);
+  }
+
+  getPrefixes(type: string) {
+    return this.http.get(`${this.baseUrl}/prefix/by-type/?type=${type}`);
+  }  
+
+  createPrefix(data: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/prefix/`, data);
   }
 
   fetchFlowDetails(flowId: string): Observable<any> {
@@ -87,5 +96,9 @@ export class FlowService {
 
   duplicateFlow(flowId: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/flows/${flowId}/duplicate/`, {});
+  }
+
+  getExecutions(flowId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/flows/${flowId}/executions/`, {});
   }
 }
