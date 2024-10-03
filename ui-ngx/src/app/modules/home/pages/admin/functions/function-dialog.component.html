@@ -38,8 +38,18 @@
       <mat-label>Outputs (comma-separated)</mat-label>
       <input matInput placeholder="Enter Outputs" formControlName="outputs" />
     </mat-form-field>
-
-    <div style="height: 300px">
+    <mat-form-field>
+      <mat-label>Prefix</mat-label>
+      <ng-container *ngIf="selectedPrefix; else prefixSelect">
+        <input matInput [value]="selectedPrefix" name="prefix" disabled />
+      </ng-container>
+      <ng-template #prefixSelect>
+        <mat-select formControlName="prefix">
+          <mat-option *ngFor="let prefix of prefixes" [value]="prefix">{{ prefix }}</mat-option>
+        </mat-select>
+      </ng-template>
+    </mat-form-field>    
+    <div style="height: 300px; overflow: auto;">
       <ngx-monaco-editor
         #editor
         [options]="editorOptions"

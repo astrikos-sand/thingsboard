@@ -8,11 +8,12 @@ import { convertData, executeFlow } from "./nodeUtils";
 import { EditNodeDialogComponent } from "./edit-node-dialog.component";
 import { FlowService } from "@app/core/services/flow.service";
 import { AddFunctionDialog } from "../functions/function-dialog.component";
+import { ViewExecutionsDialogComponent } from "./view-executions-dialog.component";
 
 @Component({
-  selector: 'flow-map',
-  templateUrl: './flow-map.component.html',
-  styleUrls: ['./flow-map.component.scss'],
+  selector: "flow-map",
+  templateUrl: "./flow-map.component.html",
+  styleUrls: ["./flow-map.component.scss"],
 })
 export class FlowMapComponent implements OnInit, OnDestroy {
   nodes: Node[] = [];
@@ -38,11 +39,12 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.data.subscribe((data) => {
-      const flowDetails = data['flowDetails'];
-      this.node_fields = data['nodeFields'];
+      const flowDetails = data["flowDetails"];
+      this.node_fields = data["nodeFields"];
 
       if (flowDetails) {
-        this.flowId = flowDetails.id;
+        this.flowId = flowDetails.flow.id;
+        console.log(flowDetails, flowDetails.flow.id, this.flowId);
         const { nodes, edges } = convertData(
           flowDetails.nodes,
           this.flowId,
@@ -75,7 +77,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      console.log('The dialog was closed');
+      console.log("The dialog was closed");
     });
   }
 
@@ -83,7 +85,19 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(AddFunctionDialog);
 
     dialogRef.afterClosed().subscribe((result) => {
-      console.log('The dialog was closed');
+      console.log("The dialog was closed");
+    });
+  }
+
+  openViewExecutionsDialog(): void {
+    const dialogRef = this.dialog.open(ViewExecutionsDialogComponent, {
+      data: {
+        flowId: this.flowId,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log("Executions dialog closed");
     });
   }
 
@@ -91,9 +105,9 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     try {
       this.saveFlow = this.flowId;
-      alert('Saved to backend');
+      alert("Saved to backend");
     } catch (error) {
-      console.error('Error saving to backend:', error);
+      console.error("Error saving to backend:", error);
     } finally {
       this.isLoading = false;
     }
@@ -103,23 +117,23 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const startTime = new Date();
     try {
-      console.log(this.flowId)
+      console.log(this.flowId);
       await executeFlow(this.flowId, this.flowService);
       const endTime = new Date();
       this.executionTime = (endTime.getTime() - startTime.getTime()) / 1000;
-      this.executionStatus = 'Flow executed successfully';
-      alert('Flow executed successfully');
+      this.executionStatus = "Flow executed successfully";
+      alert("Flow executed successfully");
     } catch (error) {
-      console.error('Error executing flow:', error);
-      this.executionStatus = 'Error executing flow';
-      alert('Error executing flow');
+      console.error("Error executing flow:", error);
+      this.executionStatus = "Error executing flow";
+      alert("Error executing flow");
     } finally {
       this.isLoading = false;
     }
   }
 
   navigateToFlows(): void {
-    this.router.navigate(['/resources/flows']);
+    this.router.navigate(["/resources/flows"]);
   }
 
   onNodesChange(updatedNodes: Node[]): void {
@@ -139,22 +153,28 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   }
 
   onOpenEditingDialogBox(nodeData: any): void {
-    console.log(nodeData)
+    console.log(nodeData);
     this.openEditingDialogBox = nodeData;
     if (nodeData) {
       const dialogRef = this.dialog.open(EditNodeDialogComponent, {
         data: nodeData,
       });
-      console.log(nodeData)
+      console.log(nodeData);
       dialogRef.afterClosed().subscribe((result) => {
-        if (result !== null) {
-          const updatedNodes = this.nodes.map((node) =>
-            node.id === nodeData.id
-              ? { ...node, data: { ...node.data, value: result } }
-              : node
-          );
-          this.nodes = updatedNodes;
-        }
+        console.log(result);
+        const updatedNodes = this.nodes.map((node) =>
+          node.id === nodeData.id
+            ? {
+                ...node,
+                data: {
+                  ...node.data,
+                  value: result !== undefined ? result : nodeData.value,
+                },
+              }
+            : node
+        );
+        console.log(updatedNodes.map((node) => node.id === nodeData.id));
+        this.nodes = updatedNodes;
         this.openEditingDialogBox = null;
       });
     }

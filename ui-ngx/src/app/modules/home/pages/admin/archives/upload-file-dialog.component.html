@@ -43,25 +43,14 @@
           File name is <strong>required</strong>
         </mat-error>
       </mat-form-field>
-      <mat-form-field class="mat-block">
-        <mat-select formControlName="parentTag" placeholder="Select Parent Tag">
-          <mat-option *ngFor="let tag of parentTags" [value]="tag.id">
-            {{ tag.full_name }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="uploadFileFormGroup.get('parentTag').hasError('required')">
-          Parent tag is <strong>required</strong>
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field class="mat-block">
+      <mat-form-field>
+        <mat-label>Prefix</mat-label>
         <input
           matInput
-          formControlName="newTag"
-          placeholder="New Tag"
+          [value]="selectedPrefix"
+          name="prefix"
+          disabled
         />
-        <mat-error *ngIf="uploadFileFormGroup.get('newTag').hasError('required')">
-          New tag is <strong>required</strong>
-        </mat-error>
       </mat-form-field>
     </fieldset>
   </div>

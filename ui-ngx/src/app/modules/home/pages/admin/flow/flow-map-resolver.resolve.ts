@@ -8,6 +8,7 @@ export class FlowDetailsResolver implements Resolve<any> {
 
   resolve(route: ActivatedRouteSnapshot) {
     const flowId = route.params['flowId'];
+    console.log(flowId)
     return this.flowService.fetchFlowDetails(flowId);
   }
 }

@@ -11,17 +11,25 @@
   <div mat-dialog-content>
     <mat-form-field>
       <mat-label>Flow Name</mat-label>
-      <input matInput placeholder="Enter Flow Name" [(ngModel)]="flowName" name="flowName" required>
-      <mat-error *ngIf="submitted && !flowName">
-        Flow Name is required.
-      </mat-error>
+      <input
+        matInput
+        placeholder="Enter Flow Name"
+        [(ngModel)]="flowName"
+        name="flowName"
+        required
+      />
+      <mat-error *ngIf="submitted && !flowName">Flow Name is required.</mat-error>
     </mat-form-field>
     <mat-form-field>
       <mat-label>Description</mat-label>
-      <textarea matInput placeholder="Enter Description" [(ngModel)]="description" name="description" required></textarea>
-      <mat-error *ngIf="submitted && !description">
-        Description is required.
-      </mat-error>
+      <textarea
+        matInput
+        placeholder="Enter Description"
+        [(ngModel)]="description"
+        name="description"
+        required
+      ></textarea>
+      <mat-error *ngIf="submitted && !description">Description is required.</mat-error>
     </mat-form-field>
     <mat-form-field>
       <mat-label>Environment</mat-label>
@@ -30,16 +38,26 @@
           {{ env.name }}
         </mat-option>
       </mat-select>
-      <mat-error *ngIf="submitted && !selectedEnv">
-        Environment is required.
-      </mat-error>
+      <mat-error *ngIf="submitted && !selectedEnv">Environment is required.</mat-error>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Prefix</mat-label>
+      <input
+        matInput
+        [value]="selectedPrefix"
+        name="prefix"
+        disabled
+      />
     </mat-form-field>
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
-    <button mat-button color="primary" type="button" (click)="cancel()">
-      Cancel
-    </button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="isLoading || !flowName || !description || !selectedEnv">
+    <button mat-button color="primary" type="button" (click)="cancel()">Cancel</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="isLoading || !flowName || !description || !selectedEnv"
+    >
       Add
     </button>
   </div>

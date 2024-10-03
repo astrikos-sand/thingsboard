@@ -57,47 +57,51 @@
               <mat-option
                 *ngFor="let option of field.get('choices')?.value"
                 [value]="option.value"
-                >{{ option.label }}</mat-option
               >
+                {{ option.label }}
+              </mat-option>
             </mat-select>
           </ng-container>
         </mat-form-field>
-        <div *ngIf="field.get('type')?.value === 'array'" class="array-fields" formArrayName="fields">
+        <div
+          *ngIf="field.get('type')?.value === 'array'"
+          class="array-fields"
+          formArrayName="fields"
+        >
           <div
             *ngFor="let slot of getFieldControls(field).controls; let j = index"
             [formGroupName]="j"
             class="form-field"
           >
-            <mat-form-field mat-dialog-content class="dialog-content">
-              <mat-label>Slot {{ j + 1 }}</mat-label>
-              <ng-container
-                *ngFor="let slotField of field.get('slotFields')?.value"
-              >
-                <mat-form-field>
-                  <ng-container [ngSwitch]="slotField.type">
-                    <input
-                      *ngSwitchCase="'input'"
-                      matInput
-                      [formControlName]="slotField.label"
-                      [placeholder]="slotField.placeholder"
-                    />
-                    <mat-select
-                      *ngSwitchCase="'select'"
-                      [formControlName]="slotField.label"
-                    >
-                      <mat-option
-                        *ngFor="let option of slotField.choices"
-                        [value]="option.value"
-                        >{{ option.label }}</mat-option
-                      >
-                    </mat-select>
-                  </ng-container>
-                </mat-form-field>
-              </ng-container>
-              <button mat-button type="button" (click)="removeSlot(i, j)">
-                Remove Slot
-              </button>
-            </mat-form-field>
+            <ng-container
+              *ngFor="let slotField of field.get('slotFields')?.value"
+            >
+              <mat-form-field *ngIf="slotField.type === 'input'">
+                <mat-label>{{ slotField.placeholder }}</mat-label>
+                <input
+                  matInput
+                  [formControlName]="slotField.label"
+                  [placeholder]="slotField.placeholder"
+                  [required]="slotField.required"
+                />
+              </mat-form-field>
+
+              <mat-form-field *ngIf="slotField.type === 'select'">
+                <mat-label>{{ slotField.placeholder }}</mat-label>
+                <mat-select [formControlName]="slotField.label">
+                  <mat-option
+                    *ngFor="let option of slotField.choices"
+                    [value]="option.value"
+                  >
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </ng-container>
+
+            <button mat-button type="button" (click)="removeSlot(i, j)">
+              Remove Slot
+            </button>
           </div>
 
           <button mat-button type="button" (click)="addSlot(i)">
@@ -107,6 +111,7 @@
       </div>
     </ng-container>
   </div>
+
   <div mat-dialog-actions class="dialog-actions" fxLayoutAlign="end center">
     <button mat-button class="secondary" type="button" (click)="cancel()">
       Cancel

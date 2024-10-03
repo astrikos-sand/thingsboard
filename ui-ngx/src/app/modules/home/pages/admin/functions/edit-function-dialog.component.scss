@@ -1,0 +1,132 @@
+form {
+    min-width: 400px;
+    width: 750px;
+    display: flex;
+    flex-direction: column;
+  
+    mat-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  
+      h2 {
+        margin: 0;
+      }
+  
+      button {
+        mat-icon {
+          font-size: 24px;
+        }
+      }
+    }
+  
+    mat-progress-bar {
+      margin-top: -4px;
+    }
+  
+    div {
+      &::ng-deep {
+        mat-form-field {
+          width: 100%;
+  
+          mat-label {
+            font-weight: bold;
+          }
+  
+          input,
+          textarea {
+            width: 100%;
+          }
+  
+          mat-error {
+            color: red;
+          }
+        }
+      }
+    }
+  
+    div[mat-dialog-content] {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+  
+      mat-form-field {
+        width: 100%;
+  
+        mat-label {
+          font-weight: bold;
+        }
+  
+        input,
+        textarea,
+        mat-select {
+          width: 100%;
+        }
+      }
+    }
+  
+    div[mat-dialog-actions] {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 16px;
+  
+      button {
+        margin-left: 8px;
+      }
+    }
+  
+    .modal-container {
+      background: white;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+  
+      mat-form-field {
+        width: 100%;
+  
+        mat-label {
+          font-weight: bold;
+        }
+  
+        input,
+        textarea,
+        mat-select {
+          width: 100%;
+        }
+      }
+    }
+  
+    .array-fields {
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+  
+    .array-fields .form-field {
+      margin-bottom: 16px;
+    }
+  
+    .array-fields mat-form-field {
+      margin-top: 16px;
+    }
+  
+    .array-fields button {
+      margin-top: 8px;
+    }
+  }
+  
+  .mat-select {
+    mat-option {
+      display: flex;
+      align-items: center;
+    }
+    .read-only {
+        background-color: #f0f0f0;
+      }      
+  }
+  

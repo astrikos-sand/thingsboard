@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
 import { PageEvent } from "@angular/material/paginator";
@@ -11,12 +11,15 @@ import { NotificationMessage } from "@app/core/notification/notification.models"
 import { NodeClassService } from "@app/core/services/node-classes.service";
 import { AddFunctionDialog } from "@home/pages/admin/functions/function-dialog.component";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
+import { EditFunctionDialogComponent } from "./edit-function-dialog.component";
+import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
 
 interface FunctionNode {
   name: string;
   id: string;
   children?: FunctionNode[];
   functions?: any[];
+  isLoaded?: boolean;
 }
 
 @Component({
@@ -25,18 +28,16 @@ interface FunctionNode {
   styleUrls: ["./function-list.component.scss"],
 })
 export class FunctionListComponent implements OnInit {
-  functions: any[] = [];
   displayedColumns: string[] = ["name", "description", "actions"];
-  dataSource = new MatTableDataSource<any>(this.functions);
   selectedFunctions: any[] = [];
+  dataSource = new MatTableDataSource<any>(this.selectedFunctions);
   totalFiles = 0;
   pageIndex = 0;
   pageSize = 10;
   treeControl = new NestedTreeControl<FunctionNode>((node) => node.children);
-  tagTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
-  filteredTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
-  originalTreeData: FunctionNode[] = [];
+  functionTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
   searchQuery: string = "";
+  selectedNode: FunctionNode | null = null;
 
   @ViewChild(MatSort) sort: MatSort;
 
@@ -44,68 +45,104 @@ export class FunctionListComponent implements OnInit {
     private nodeClassService: NodeClassService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
-    private clipboard: Clipboard
+    private clipboard: Clipboard,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.loadNodeClasses();
+    this.loadInitialFunctions();
   }
 
-  loadNodeClasses(): void {
-    this.nodeClassService.getNodeClasses().subscribe(
+  loadInitialFunctions(): void {
+    this.nodeClassService.fetchFunctions().subscribe(
       (data) => {
-        this.functions = data;
-        const rootNodes = this.buildTree(this.functions);
-        this.tagTreeDataSource.data = rootNodes;
-        this.filteredTreeDataSource.data = rootNodes;
-        this.originalTreeData = rootNodes;
-        this.treeControl.expandDescendants(rootNodes[0]);
-        this.dataSource.data = this.functions;
-        this.totalFiles = data.length;
+        const rootNode: FunctionNode = {
+          id: "root",
+          name: "Functions",
+          children: this.buildTree(data.tree),
+          functions: data.items,
+          isLoaded: true,
+        };
+        this.functionTreeDataSource.data = [rootNode];
+        this.selectedFunctions = data.items;
+        this.dataSource.data = this.selectedFunctions;
+        this.totalFiles = data.items.length;
         this.dataSource.sort = this.sort;
         this.updatePagedData();
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode;
       },
       (error) => {
-        console.error("Error fetching node classes: ", error);
+        console.error("Error loading initial functions:", error);
       }
     );
   }
 
-  buildTree(functions: any[]): FunctionNode[] {
-    const root: FunctionNode = { name: "Functions", id: "root", children: [] };
-    const nodeMap: { [key: string]: FunctionNode } = { Functions: root };
+  fetchChildFunctions(parentNode: FunctionNode): void {
+    if (parentNode.isLoaded) {
+      this.updateSelectedNode(parentNode);
+      return;
+    }
 
-    functions.forEach((func) => {
-      if (func.tags.length === 0) {
-        func.tags = [{ id: 'untagged', full_name: 'Functions/Untagged' }];
+    this.nodeClassService.fetchFunctionsByParent(parentNode.id).subscribe(
+      (data) => {
+        parentNode.children = this.buildTree(data.tree);
+        parentNode.functions = data.items;
+        parentNode.isLoaded = true;
+
+        this.updateSelectedNode(parentNode);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error fetching child functions:", error);
       }
-      func.tags.forEach((tag) => {
-        const path = tag.full_name.split("/");
-        let currentNode = root;
-        path.forEach((part, index) => {
-          if (!nodeMap[part]) {
-            const newNode: FunctionNode = {
-              name: part,
-              id: tag.id,
-              children: [],
-            };
-            nodeMap[part] = newNode;
-            if (index === path.length - 1) {
-              newNode.functions = [];
-            }
-            currentNode.children.push(newNode);
-          }
-          currentNode = nodeMap[part];
-        });
-        currentNode.functions?.push(func);
-      });
-    });
-
-    return [root];
+    );
   }
 
-  hasChild = (_: number, node: FunctionNode) =>
-    !!node.children && node.children.length > 0;
+  toggleNode(node: FunctionNode): void {
+    if (this.treeControl.isExpanded(node)) {
+      this.treeControl.collapse(node);
+    } else {
+      this.treeControl.expand(node);
+    }
+
+    if (!node.isLoaded && this.treeControl.isExpanded(node)) {
+      this.fetchChildFunctions(node);
+    }
+
+    this.updateSelectedNode(node);
+  }
+
+  updateSelectedNode(node: FunctionNode): void {
+    this.selectedNode = node;
+    this.selectedFunctions = node.functions || [];
+    this.dataSource.data = this.selectedFunctions;
+    this.totalFiles = this.selectedFunctions.length;
+    this.dataSource.sort = this.sort;
+    this.updatePagedData();
+    this.cdr.detectChanges();
+  }
+
+  refreshTreeData(): void {
+    const data = this.functionTreeDataSource.data;
+    this.functionTreeDataSource.data = null;
+    this.functionTreeDataSource.data = data;
+    this.cdr.detectChanges();
+  }
+
+  buildTree(nodes: any[]): FunctionNode[] {
+    return nodes.map((node) => ({
+      name: node.name,
+      id: node.id,
+      children: [],
+      functions: [],
+      isLoaded: false,
+    }));
+  }
+
+  onNodeSelect(node: FunctionNode): void {
+    this.fetchChildFunctions(node);
+  }
 
   copyId(id: string) {
     this.clipboard.copy(id);
@@ -122,7 +159,7 @@ export class FunctionListComponent implements OnInit {
           duration: 3000,
         });
       })
-      .catch((error) => {
+      .catch(() => {
         this.showNotification({
           message: "Failed to copy file URL",
           type: "error",
@@ -148,9 +185,9 @@ export class FunctionListComponent implements OnInit {
               type: "success",
               duration: 3000,
             });
-            this.loadNodeClasses();
+            this.loadInitialFunctions();
           },
-          (error) => {
+          () => {
             this.showNotification({
               message: "Error deleting file",
               type: "error",
@@ -171,23 +208,26 @@ export class FunctionListComponent implements OnInit {
   updatePagedData(): void {
     const startIndex = this.pageIndex * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.functions.slice(startIndex, endIndex);
+    this.dataSource.data = this.selectedFunctions.slice(startIndex, endIndex);
   }
 
   openAddFunctionDialog(): void {
-    const dialogRef = this.dialog.open(AddFunctionDialog);
+    const dialogRef = this.dialog.open(AddFunctionDialog, {
+      data: {
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
+      },
+    });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (!result) {
         return;
       }
       this.dataSource.data = [result, ...this.dataSource.data];
-      console.log("The dialog was closed");
     });
   }
 
   sortData(sort: Sort): void {
-    const data = this.functions.slice();
+    const data = this.selectedFunctions.slice();
     if (!sort.active || sort.direction === "") {
       this.dataSource.data = data;
       return;
@@ -208,15 +248,17 @@ export class FunctionListComponent implements OnInit {
   filterNodes(query: string): void {
     this.searchQuery = query;
     if (!query) {
-      this.filteredTreeDataSource.data = this.originalTreeData;
-      this.treeControl.expandDescendants(this.originalTreeData[0]);
+      this.functionTreeDataSource.data = this.functionTreeDataSource.data;
+      this.treeControl.expandDescendants(this.functionTreeDataSource.data[0]);
     } else {
       const filteredNodes = this.filterTree(
-        this.originalTreeData,
+        this.functionTreeDataSource.data,
         query.toLowerCase()
       );
-      this.filteredTreeDataSource.data = filteredNodes;
-      this.treeControl.expandDescendants(filteredNodes[0]);
+      this.functionTreeDataSource.data = filteredNodes;
+      if (filteredNodes.length > 0) {
+        this.treeControl.expandDescendants(filteredNodes[0]);
+      }
     }
   }
 
@@ -243,22 +285,31 @@ export class FunctionListComponent implements OnInit {
     return text.replace(regex, '<span class="highlight">$1</span>');
   }
 
-  onNodeSelect(node: FunctionNode): void {
-    this.selectedFunctions = this.collectFunctions(node);
-    this.dataSource.data = this.selectedFunctions;
-  }
-
-  collectFunctions(node: FunctionNode): any[] {
-    let functions: any[] = [];
-    if (node.functions) {
-      functions = functions.concat(node.functions);
-    }
-    if (node.children) {
-      for (const child of node.children) {
-        functions = functions.concat(this.collectFunctions(child));
+  openEditFunctionDialog(file: any): void {
+    const dialogRef = this.dialog.open(EditFunctionDialogComponent, {
+      data: {
+        functionData: file,
+      },
+    });
+  
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadInitialFunctions();
       }
-    }
-    return functions;
+    });
+  }
+  
+  openAddPrefixDialog(): void {
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        parentPrefix: this.selectedNode ? this.selectedNode.id : 'root',
+        type: "archives",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadInitialFunctions();
+    });
   }
 
   private showNotification(notification: NotificationMessage): void {

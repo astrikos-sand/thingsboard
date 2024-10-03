@@ -14,9 +14,9 @@ import {
 import { DialogComponent } from "@shared/components/dialog.component";
 import { Router } from "@angular/router";
 import { ArchivesService } from "@app/core/services/archives.service";
-import { TagService } from "@app/core/services/tag.service";
 
 export interface UploadFileDialogData {
+  selectedPrefix: string;
   file?: string;
   filename?: string;
 }
@@ -37,7 +37,7 @@ export class UploadFileDialogComponent
   uploadFile = true;
   submitted = false;
   selectedFileName: string;
-  parentTags: any[] = [];
+  selectedPrefix: string;
 
   @ViewChild('fileInput') fileInput: ElementRef;
 
@@ -45,13 +45,13 @@ export class UploadFileDialogComponent
     protected store: Store<AppState>,
     protected router: Router,
     private archiveService: ArchivesService,
-    private tagService: TagService,
     @Inject(MAT_DIALOG_DATA) public data: UploadFileDialogData,
     @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
     public dialogRef: MatDialogRef<UploadFileDialogComponent>,
     public fb: UntypedFormBuilder
   ) {
     super(store, router, dialogRef);
+    this.selectedPrefix = data.selectedPrefix;
   }
 
   ngOnInit(): void {
@@ -59,14 +59,8 @@ export class UploadFileDialogComponent
     this.uploadFileFormGroup = this.fb.group({
       file: [null, [Validators.required]],
       filename: [this.data?.filename, [Validators.required]],
-      parentTag: [null, [Validators.required]],
-      newTag: [null, [Validators.required]],
+      prefix: [{ value: this.selectedPrefix, disabled: true }, [Validators.required]],
     });
-
-    this.tagService.getTags().subscribe(tags => {
-      this.parentTags = tags;
-    });
-
   }
 
   onFileSelected(event: Event): void {
@@ -101,9 +95,8 @@ export class UploadFileDialogComponent
       const file: File = this.uploadFileFormGroup.get("file").value;
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("filename", this.uploadFileFormGroup.get("filename").value);
-      formData.append("parentTag", this.uploadFileFormGroup.get("parentTag").value);
-      formData.append("newTag", this.uploadFileFormGroup.get("newTag").value);
+      formData.append("name", this.uploadFileFormGroup.get("filename").value);
+      formData.append("prefix", this.selectedPrefix == 'root' ? null : this.selectedPrefix);
       this.archiveService.uploadFile(formData).subscribe(
         () => {
           console.log("File uploaded successfully");
