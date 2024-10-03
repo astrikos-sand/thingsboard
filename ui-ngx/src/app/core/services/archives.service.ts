@@ -18,12 +18,12 @@ export interface ArchiveFile {
   providedIn: "root",
 })
 export class ArchivesService {
-  private apiUrl = "http://127.0.0.1:8000/v2/archives";
+  private apiUrl = "/backend/v2/archives";
 
   constructor(private http: HttpClient) {}
 
   getFileArchives(): Observable<ArchiveData> {
-    return this.http.get<ArchiveData>(`${this.apiUrl}/page-data`);
+    return this.http.get<ArchiveData>(`${this.apiUrl}/page-data/`);
   }
 
   fetchFilesByParent(parentId: string): Observable<any> {

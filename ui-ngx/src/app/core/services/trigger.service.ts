@@ -42,7 +42,7 @@ export interface PeriodicTrigger {
   providedIn: "root",
 })
 export class TriggerService {
-  private apiUrl = "http://127.0.0.1:8000/triggers/";
+  private apiUrl = "/backend/triggers/";
 
   constructor(private http: HttpClient) {}
 

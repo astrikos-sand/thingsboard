@@ -49,12 +49,16 @@ export class AddPrefixDialogComponent implements OnInit {
     this.submitted = true;
 
     if (this.createPrefixFormGroup.valid) {
-      const newPrefix = {
+      let newPrefix = {
         name: this.createPrefixFormGroup.get("prefixName").value,
         parent: this.createPrefixFormGroup.get("parentPrefix").value || this.data?.parentPrefix,
       };
 
-      this.flowService.createPrefix(newPrefix).subscribe(
+      if (newPrefix.parent === 'root') {
+        newPrefix.parent = null;
+      }
+
+      this.flowService.createPrefix(newPrefix, this.data.type).subscribe(
         () => {
           this.dialogRef.close(true);
         },

@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Observable } from "rxjs";
 
 export interface FunctionData {
@@ -11,12 +11,12 @@ export interface FunctionData {
   providedIn: "root",
 })
 export class NodeClassService {
-  private baseUrl = "http://127.0.0.1:8000/v2/functions";
+  private baseUrl = "/backend/v2/functions";
 
   constructor(private http: HttpClient) {}
 
   fetchFunctions(): Observable<FunctionData> {
-    return this.http.get<FunctionData>(`${this.baseUrl}/page-data`);
+    return this.http.get<FunctionData>(`${this.baseUrl}/page-data/`);
   }
 
   fetchFunctionsByParent(prefixId: string): Observable<any> {
@@ -25,8 +25,14 @@ export class NodeClassService {
     });
   }
 
-  updateFunction(functionData: any): Observable<any> {
-    return this.http.put(`/api/functions/${functionData.id}/`, functionData);
+  updateFunction(functionData: any, formData): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'multipart/form-data'
+    });
+  
+    return this.http.patch(`${this.baseUrl}/${functionData.id}/`, formData, {
+      headers: headers
+    });
   }  
   
   addBaseClass(data: FormData): Observable<any> {

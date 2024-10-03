@@ -97,11 +97,15 @@ export class EditFunctionDialogComponent implements OnInit {
     const updatedCode = `${this.functionSignature}\n${this.functionBody}\n${this.functionReturn}`;
 
     const updatedFunction = {
-      ...this.data.functionData,
+      id: this.data.functionData.id,
       code: updatedCode,
     };
 
-    this.nodeClassService.updateFunction(updatedFunction).subscribe(
+    const blob = new Blob([JSON.stringify(updatedCode)], { type: 'text/plain' });
+    const formData = new FormData();
+    formData.append("code", blob, `${this.data.functionData.name}--updatecode.py`);
+
+    this.nodeClassService.updateFunction(updatedFunction, formData).subscribe(
       () => {
         this.dialogRef.close(true);
       },
