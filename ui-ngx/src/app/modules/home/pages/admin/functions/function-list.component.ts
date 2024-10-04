@@ -303,7 +303,7 @@ export class FunctionListComponent implements OnInit {
     const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
       data: {
         parentPrefix: this.selectedNode ? this.selectedNode.id : 'root',
-        type: "archives",
+        type: "functions",
       },
     });
 

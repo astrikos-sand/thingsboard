@@ -21,8 +21,28 @@ export class ViewExecutionsDialogComponent implements OnInit {
     const flowId = this.data.flowId;
     
     this.flowService.getExecutions(flowId).subscribe(
-      (response) => {
-        this.executions = response;
+      (executions) => {
+        const temp = [];
+        for (const execution of executions) {
+          let html_url = execution.html_logs || '#';
+          let container_url = execution.container_logs || '#';
+          let json_url = execution.json_logs || '#';
+
+          if (!html_url.startsWith("http")) {
+            html_url = "/backend" + html_url;
+            container_url = "/backend" + container_url;
+            json_url = "/backend" + json_url;
+          }
+
+          temp.push({
+            status: execution.status,
+            timestamp: execution.timestamp,
+            html_logs: html_url,
+            container_logs: container_url,
+            json_logs: json_url,
+          });
+        }
+        this.executions = temp;
         this.isLoading = false;
       },
       (error) => {

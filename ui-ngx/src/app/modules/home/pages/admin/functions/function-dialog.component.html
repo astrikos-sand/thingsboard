@@ -45,7 +45,7 @@
       </ng-container>
       <ng-template #prefixSelect>
         <mat-select formControlName="prefix">
-          <mat-option *ngFor="let prefix of prefixes" [value]="prefix">{{ prefix }}</mat-option>
+          <mat-option *ngFor="let prefix of prefixes" [value]="prefix.id">{{ prefix.full_name }}</mat-option>
         </mat-select>
       </ng-template>
     </mat-form-field>    

@@ -26,13 +26,7 @@ export class NodeClassService {
   }
 
   updateFunction(functionData: any, formData): Observable<any> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'multipart/form-data'
-    });
-  
-    return this.http.patch(`${this.baseUrl}/${functionData.id}/`, formData, {
-      headers: headers
-    });
+    return this.http.patch(`${this.baseUrl}/${functionData.id}/`, formData);
   }  
   
   addBaseClass(data: FormData): Observable<any> {
