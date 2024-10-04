@@ -104,7 +104,9 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   async saveToBackend(): Promise<void> {
     this.isLoading = true;
     try {
+      console.log(this.saveFlow)
       this.saveFlow = this.flowId;
+      console.log(this.saveFlow)
       alert("Saved to backend");
     } catch (error) {
       console.error("Error saving to backend:", error);

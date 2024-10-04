@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { Node, Edge } from 'reactflow';
+import axios from "axios";
+import { Node, Edge } from "reactflow";
 
 export const convertData = (
   nodesData: any[],
@@ -24,10 +24,10 @@ export const convertData = (
     convertedNodes.push({
       id: id.toString(),
       position: position,
-      type: 'custom',
+      type: "custom",
       data: {
         id: id,
-        label: 'Node',
+        label: "Node",
         position: position,
         polymorphic_ctype: polymorphic_ctype,
         input_slots: input_slots,
@@ -87,10 +87,10 @@ export const handleOpenScope = async (
       nodeFields
     );
     const inputNode = scopeNodes.find(
-      (node: any) => node.data.node_type === 'InputNode'
+      (node: any) => node.data.node_type === "InputNode"
     );
     const outputNode = scopeNodes.find(
-      (node: any) => node.data.node_type === 'OutputNode'
+      (node: any) => node.data.node_type === "OutputNode"
     );
 
     if (inputNode) {
@@ -126,7 +126,7 @@ export const handleOpenScope = async (
 
     const scopeRegion = {
       id: `scope-region-${scopeId}`,
-      type: 'scopeRegion',
+      type: "scopeRegion",
       data: {
         flow: data.flow,
         parentNode: data.id,
@@ -142,9 +142,9 @@ export const handleOpenScope = async (
       style: {
         width: rightmost - leftmost + 400,
         height: topmost - bottommost + 400,
-        border: '2px dashed #888',
-        backgroundColor: 'rgba(173, 216, 230, 0.5)',
-        borderRadius: '10px',
+        border: "2px dashed #888",
+        backgroundColor: "rgba(173, 216, 230, 0.5)",
+        borderRadius: "10px",
       },
     };
     let newScopeEdges: any[] = [];
@@ -204,7 +204,7 @@ export const handleOpenScope = async (
     data.output_slots.push({
       id: `node-${data.id}-output-${scopeId}`,
       name: response.data.name,
-      attachment_type: 'OUT',
+      attachment_type: "OUT",
     });
     newScopeEdges.push({
       id: `new-edge-${data.id}-to-${scopeId}`,
@@ -226,7 +226,7 @@ export const handleOpenScope = async (
       shift: rightmost - leftmost + 400,
     };
   } catch (error) {
-    console.error('Error opening scope:', error);
+    console.error("Error opening scope:", error);
     return {
       nodes,
       edges,
@@ -255,18 +255,18 @@ export const handleCollapseScope = async (
     );
 
     if (scopeNodes.length === 0) {
-      console.error('No scope nodes found to collapse');
+      console.error("No scope nodes found to collapse");
     }
 
     const inputNode = scopeNodes.find(
-      (node) => node.data.node_type === 'InputNode'
+      (node) => node.data.node_type === "InputNode"
     );
     const outputNode = scopeNodes.find(
-      (node) => node.data.node_type === 'OutputNode'
+      (node) => node.data.node_type === "OutputNode"
     );
 
     if (!inputNode || !outputNode) {
-      console.error('Scope must have input and output nodes');
+      console.error("Scope must have input and output nodes");
     }
 
     if (inputNode) {
@@ -289,11 +289,11 @@ export const handleCollapseScope = async (
         source: edge.source,
         target: edge.target,
         source_slot: edge.sourceHandle
-          ?.replace(`node-${edge.source}`, '')
-          .replace('-output-', ''),
+          ?.replace(`node-${edge.source}`, "")
+          .replace("-output-", ""),
         target_slot: edge.targetHandle
-          ?.replace(`node-${edge.target}`, '')
-          .replace('-input-', ''),
+          ?.replace(`node-${edge.target}`, "")
+          .replace("-input-", ""),
       })),
     };
 
@@ -303,7 +303,7 @@ export const handleCollapseScope = async (
     //   flow_id: id,
     // });
   } catch (error) {
-    console.error('Error opening scope:', error);
+    console.error("Error opening scope:", error);
   }
 };
 
@@ -350,7 +350,7 @@ export const handleOpenAllScopes = async (
     shift = Math.max(shift, result.shift);
   }
   const shiftedNodes = nodes
-    .filter((node) => node.type === 'custom')
+    .filter((node) => node.type === "custom")
     .map((node) =>
       node.position.x > data.position.x
         ? {
@@ -398,8 +398,7 @@ export const handleOpenAllScopes = async (
   };
 
   const parentScope: any = nodes.find(
-    (node) =>
-      node.type === 'scopeRegion' && node.data.scopeId === data.flow
+    (node) => node.type === "scopeRegion" && node.data.scopeId === data.flow
   );
 
   if (parentScope) {
@@ -441,7 +440,7 @@ export const handleOpenAllScopes = async (
       },
     });
   }
-  console.log([...shiftedNodes, ...shiftedUpdatedNodes])
+  console.log([...shiftedNodes, ...shiftedUpdatedNodes]);
   setNodes([...shiftedNodes, ...shiftedUpdatedNodes]);
   setEdges([
     ...edges.filter((ed: any) => !removeEdges.includes(ed)),
@@ -467,13 +466,13 @@ export const handleCollapseAllScopes = async (
   data.input_slots = [
     ...data.input_slots,
     ...removedSlots.filter(
-      (slot: { attachment_type: string }) => slot.attachment_type === 'IN'
+      (slot: { attachment_type: string }) => slot.attachment_type === "IN"
     ),
   ];
   data.output_slots = [
     ...data.output_slots,
     ...removedSlots.filter(
-      (slot: { attachment_type: string }) => slot.attachment_type === 'OUT'
+      (slot: { attachment_type: string }) => slot.attachment_type === "OUT"
     ),
   ];
 
@@ -496,5 +495,62 @@ export const handleCollapseAllScopes = async (
 };
 
 export const executeFlow = async (flowId: string, flowService: any) => {
-  await axios.post(`/backend/v2/flows/${flowId}/execute/`, {})
+  await axios.post(`/backend/v2/flow/${flowId}/execute/`, {});
+};
+
+export const updateNodePosition = async (
+  nodeId: string,
+  position: { x: number; y: number }
+) => {
+  try {
+    await axios.patch(`http://127.0.0.1:8000/v2/nodes/${nodeId}/`, {
+      position,
+    });
+  } catch (error) {
+    console.error("Error updating node position:", error);
+  }
+};
+
+export const deleteNode = async (nodeId: string) => {
+  try {
+    await axios.delete(`http://127.0.0.1:8000/v2/nodes/${nodeId}/`);
+  } catch (error) {
+    console.error("Error deleting node:", error);
+  }
+};
+
+export const deleteEdge = async (edgeId: string) => {
+  try {
+    await axios.delete(`http://127.0.0.1:8000/v2/connections/${edgeId}/`);
+  } catch (error) {
+    console.error("Error deleting connection:", error);
+  }
+};
+
+export const createConnection = async (connectionData: any) => {
+  const convertedConnection = {
+    id: connectionData.id,
+    source: connectionData.source,
+    target: connectionData.target,
+    from_slot: connectionData.sourceHandle
+      ?.replace(`node-${connectionData.source}`, "")
+      .replace("-output-", ""),
+    to_slot: connectionData.targetHandle
+      ?.replace(`node-${connectionData.target}`, "")
+      .replace("-input-", ""),
+  };
+  console.log(convertedConnection);
+  try {
+    const response = await axios.post("http://127.0.0.1:8000/v2/connections/", convertedConnection);
+    return response.data.id;
+  } catch (error) {
+    console.error("Error creating connection:", error);
+    return null;
+  }
+};
+
+const extractSlotId = (handleId: string | null): string => {
+  if (!handleId) return "";
+  const parts = handleId.split("-");
+  return parts[parts.length - 1];
 };

@@ -27,7 +27,13 @@ import CustomNode from "./custom-node";
 import { FlowContext, FlowContextType, FlowProvider } from "./flow-context";
 import ScopeRegion from "./ScopeRegion";
 import isEqual from "lodash.isequal";
-import { handleCollapseAllScopes } from "./nodeUtils";
+import {
+  createConnection,
+  deleteEdge,
+  deleteNode,
+  handleCollapseAllScopes,
+  updateNodePosition,
+} from "./nodeUtils";
 import axios from "axios";
 
 const fitViewOptions: FitViewOptions = {
@@ -59,21 +65,55 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
   const [openScopes, setOpenScopes] = useState<boolean>(false);
 
   const onNodesChange: OnNodesChange = useCallback(
-    (changes) => {
+    async (changes) => {
+      let nodesChanged = false;
+
       setNodes((nds) => {
         const updatedNodes = applyNodeChanges(changes, nds);
+
+        changes.forEach(async (change) => {
+          if (change.type === "remove") {
+            await deleteNode(change.id);
+          }
+        });
+
+        nodesChanged = true;
         props.onNodesChange(updatedNodes);
         return updatedNodes;
       });
-      checkNodeOverlap();
+
+      if (nodesChanged) {
+        checkNodeOverlap();
+      }
     },
     [setNodes, nodes, props]
   );
 
+  const onNodeDragStop = useCallback(
+    async (event, node) => {
+      const updatedNodes = nodes.map((n) =>
+        n.id === node.id ? { ...n, position: node.position } : n
+      );
+
+      setNodes(updatedNodes);
+      props.onNodesChange(updatedNodes);
+
+      await updateNodePosition(node.id, node.position);
+    },
+    [nodes, setNodes, props]
+  );
+
   const onEdgesChange: OnEdgesChange = useCallback(
-    (changes) => {
+    async (changes) => {
       setEdges((eds) => {
         const updatedEdges = applyEdgeChanges(changes, eds);
+
+        changes.forEach(async (change) => {
+          if (change.type === "remove") {
+            await deleteEdge(change.id);
+          }
+        });
+
         props.onEdgesChange(updatedEdges);
         return updatedEdges;
       });
@@ -82,12 +122,25 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
   );
 
   const onConnect: OnConnect = useCallback(
-    (connection) => {
-      setEdges((eds) => {
-        const updatedEdges = addEdge(connection, eds);
+    async (connection) => {
+      const tempId = `${connection.source}-${connection.target}`;
+      const tempConnection = { ...connection, id: tempId };
+  
+      let updatedEdges = addEdge(tempConnection, edges);
+      setEdges(updatedEdges);
+      props.onEdgesChange(updatedEdges);
+  
+      const backendId = await createConnection(connection);
+  
+      if (backendId) {
+        updatedEdges = updatedEdges.map((edge) =>
+          edge.id === tempId ? { ...edge, id: backendId } : edge
+        );
+        setEdges(updatedEdges);
         props.onEdgesChange(updatedEdges);
-        return updatedEdges;
-      });
+      } else {
+        console.error("Failed to create connection on backend");
+      }
     },
     [setEdges, edges, props]
   );
@@ -104,7 +157,6 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
             !visitedScopes.has(scopeRegion.id) &&
             isNodeOverlappingScopeRegion(currentNode, scopeRegion)
           ) {
-
             visitedScopes.add(scopeRegion.id);
             if (currentDepth + 1 > maxDepth) {
               maxDepth = currentDepth + 1;
@@ -339,7 +391,7 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
         .replace("-input-", ""),
     }));
 
-    const response = await axios.post('http://127:0.0.1:8000/v2/save', {
+    const response = await axios.post("http://127:0.0.1:8000/v2/save", {
       nodes: convertedNodes,
       connections: convertedConnections,
       flow_id: props.saveFlow,
@@ -376,6 +428,7 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
+        onNodeDragStop={onNodeDragStop}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onMouseMove={onMouseMove}
