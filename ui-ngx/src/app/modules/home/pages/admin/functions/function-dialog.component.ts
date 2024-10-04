@@ -72,7 +72,7 @@ export class AddFunctionDialog implements OnInit {
   loadPrefixes() {
     if (!this.selectedPrefix) {
       this.flowService.getPrefixes("functions").subscribe((response: any) => {
-        this.prefixes = response.tree.map((prefix: any) => prefix.full_name);
+        this.prefixes = response.tree.map((prefix: any) => prefix);
       });
     }
   }

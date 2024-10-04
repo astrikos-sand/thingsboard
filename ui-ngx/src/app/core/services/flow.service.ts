@@ -95,7 +95,9 @@ export class FlowService {
   }
 
   duplicateFlow(flowId: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}/flows/${flowId}/duplicate/`, {});
+    return this.http.post(`${this.baseUrl}/data-transfer/duplicate/`, {
+      flow: flowId,
+    });
   }
 
   getExecutions(flowId: string): Observable<any[]> {
