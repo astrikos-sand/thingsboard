@@ -161,6 +161,12 @@ export class ArchivesComponent implements OnInit {
     window.open(url, "_blank");
   }
 
+  copy_url(url: string) {
+    const endpoint = url.split('media')[1]
+    const new_url = 'http://host.docker.internal:8000/media' + endpoint
+    this.clipboard.copy(new_url);
+  }
+
   deleteFile(fileId: string): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {

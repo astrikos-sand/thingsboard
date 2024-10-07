@@ -6,10 +6,6 @@
     <button (click)="execute_flow()">Execute Flow</button>
     <button (click)="openViewExecutionsDialog()">View Executions</button>
     <div *ngIf="isLoading">Loading...</div>
-    <div *ngIf="executionTime !== undefined">
-      Execution time: {{ executionTime }} seconds
-    </div>
-    <div *ngIf="executionStatus">{{ executionStatus }}</div>
   </div>
   <reactflow-wrapper
     [nodes]="nodes"
