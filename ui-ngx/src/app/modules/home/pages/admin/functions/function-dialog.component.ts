@@ -72,7 +72,7 @@ export class AddFunctionDialog implements OnInit {
   loadPrefixes() {
     if (!this.selectedPrefix) {
       this.flowService.getPrefixes("functions").subscribe((response: any) => {
-        this.prefixes = response.tree.map((prefix: any) => prefix.full_name);
+        this.prefixes = response.tree.map((prefix: any) => prefix);
       });
     }
   }
@@ -80,21 +80,33 @@ export class AddFunctionDialog implements OnInit {
   updateFunctionSignature() {
     const inputs = this.form.get("inputs")?.value || "";
 
-    const functionRegex = /^def func\([^)]*\):/m;
-    this.code = this.code.replace(functionRegex, `def func(${inputs}):`);
+    const functionStartIndex = this.code.indexOf("def func(");
+
+    if (functionStartIndex !== -1) {
+      const functionEndIndex = this.code.indexOf("):", functionStartIndex);
+      if (functionEndIndex !== -1) {
+        const codeBeforeFunc = this.code.substring(0, functionStartIndex);
+        const codeAfterFunc = this.code.substring(functionEndIndex + 2); // +2 to skip past "):"
+
+        // Update the function signature
+        this.code = `${codeBeforeFunc}def func(${inputs}):${codeAfterFunc}`;
+      }
+    }
   }
 
   updateReturnStatement() {
     const outputs = this.form.get("outputs")?.value || "";
 
-    const returnRegex = /^\s*return\s.*$/m;
-    if (returnRegex.test(this.code)) {
-      if (outputs.length > 0) {
-        this.code = this.code.replace(returnRegex, `    return ${outputs}`);
-      } else {
-        this.code = this.code.replace(returnRegex, `    return`);
-      }
+    const lastReturnIndex = this.code.lastIndexOf("return");
+
+    if (lastReturnIndex !== -1) {
+      // If a return statement exists, replace the last occurrence
+      const codeBeforeReturn = this.code.substring(0, lastReturnIndex);
+      const updatedReturn = outputs.length > 0 ? `return ${outputs}` : `return`;
+
+      this.code = codeBeforeReturn + updatedReturn;
     } else {
+      // If no return statement exists, append a new one at the end
       if (outputs.length > 0) {
         this.code += `\n    return ${outputs}`;
       }
@@ -144,11 +156,15 @@ export class AddFunctionDialog implements OnInit {
     codeFileFormData.append("code", codeBlob, `${name}-code.py`);
     codeFileFormData.append("name", name);
     codeFileFormData.append("description", description);
-    codeFileFormData.append("prefix", prefix == 'root' ? null : prefix,);
-    const fieldBlob = new Blob([JSON.stringify(fields)], {
-      type: "application/json",
-    });
-    codeFileFormData.append("fields", fieldBlob);
+    if (prefix !== 'root')
+      codeFileFormData.append("prefix", prefix);
+
+    if (fields.length !== 0) {
+      const fieldBlob = new Blob([JSON.stringify(fields)], {
+        type: "application/json",
+      });
+      codeFileFormData.append("fields", fieldBlob);
+    }
 
     this.flowService.addFunction(codeFileFormData).subscribe(
       (newFunction) => {

@@ -391,7 +391,7 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
         .replace("-input-", ""),
     }));
 
-    const response = await axios.post("http://127:0.0.1:8000/v2/save", {
+    const response = await axios.post('/backend/v2/save/', {
       nodes: convertedNodes,
       connections: convertedConnections,
       flow_id: props.saveFlow,

@@ -76,12 +76,12 @@ export class EditFunctionDialogComponent implements OnInit {
     const returnMatch = code.match(returnRegex);
 
     if (signatureMatch && returnMatch) {
-      this.functionSignature = signatureMatch[0];
-      this.functionReturn = returnMatch[0];
+      this.functionSignature = '';
+      this.functionReturn = '';
 
-      const bodyStart = code.indexOf(this.functionSignature) + this.functionSignature.length;
-      const bodyEnd = code.indexOf(this.functionReturn);
-      this.functionBody = code.slice(bodyStart, bodyEnd).trim();
+      // const bodyStart = code.indexOf(this.functionSignature) + this.functionSignature.length;
+      // const bodyEnd = code.indexOf(this.functionReturn);
+      this.functionBody = code;
     }
   }
 
@@ -94,14 +94,14 @@ export class EditFunctionDialogComponent implements OnInit {
 
     this.isLoading = true;
 
-    const updatedCode = `${this.functionSignature}\n${this.functionBody}\n${this.functionReturn}`;
+    const updatedCode = `${this.functionBody}`;
 
     const updatedFunction = {
       id: this.data.functionData.id,
       code: updatedCode,
     };
 
-    const blob = new Blob([JSON.stringify(updatedCode)], { type: 'text/plain' });
+    const blob = new Blob([updatedCode], { type: 'text/plain' });
     const formData = new FormData();
     formData.append("code", blob, `${this.data.functionData.name}--updatecode.py`);
 
