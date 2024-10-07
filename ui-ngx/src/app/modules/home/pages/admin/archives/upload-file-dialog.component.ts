@@ -31,8 +31,7 @@ export interface UploadFileDialogData {
 })
 export class UploadFileDialogComponent
   extends DialogComponent<UploadFileDialogComponent>
-  implements OnInit, ErrorStateMatcher
-{
+  implements OnInit, ErrorStateMatcher {
   uploadFileFormGroup: UntypedFormGroup;
   uploadFile = true;
   submitted = false;
@@ -96,7 +95,9 @@ export class UploadFileDialogComponent
       const formData = new FormData();
       formData.append("file", file);
       formData.append("name", this.uploadFileFormGroup.get("filename").value);
-      formData.append("prefix", this.selectedPrefix == 'root' ? null : this.selectedPrefix);
+      if (this.selectedPrefix !== 'root')
+        formData.append("prefix", this.selectedPrefix);
+
       this.archiveService.uploadFile(formData).subscribe(
         () => {
           console.log("File uploaded successfully");
