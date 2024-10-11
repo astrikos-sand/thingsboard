@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
-import { PageEvent } from "@angular/material/paginator";
+import { MatPaginator } from "@angular/material/paginator";
 import { MatSort, Sort } from "@angular/material/sort";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
@@ -27,19 +27,18 @@ interface FunctionNode {
   templateUrl: "./function-list.component.html",
   styleUrls: ["./function-list.component.scss"],
 })
-export class FunctionListComponent implements OnInit {
+export class FunctionListComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ["name", "description", "actions"];
   selectedFunctions: any[] = [];
   dataSource = new MatTableDataSource<any>(this.selectedFunctions);
-  totalFiles = 0;
-  pageIndex = 0;
-  pageSize = 10;
+
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+
   treeControl = new NestedTreeControl<FunctionNode>((node) => node.children);
   functionTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
   searchQuery: string = "";
   selectedNode: FunctionNode | null = null;
-
-  @ViewChild(MatSort) sort: MatSort;
 
   constructor(
     private nodeClassService: NodeClassService,
@@ -51,6 +50,11 @@ export class FunctionListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadInitialFunctions();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   loadInitialFunctions(): void {
@@ -66,9 +70,6 @@ export class FunctionListComponent implements OnInit {
         this.functionTreeDataSource.data = [rootNode];
         this.selectedFunctions = data.items;
         this.dataSource.data = this.selectedFunctions;
-        this.totalFiles = data.items.length;
-        this.dataSource.sort = this.sort;
-        this.updatePagedData();
         this.treeControl.expand(rootNode);
         this.selectedNode = rootNode;
       },
@@ -117,9 +118,6 @@ export class FunctionListComponent implements OnInit {
     this.selectedNode = node;
     this.selectedFunctions = node.functions || [];
     this.dataSource.data = this.selectedFunctions;
-    this.totalFiles = this.selectedFunctions.length;
-    this.dataSource.sort = this.sort;
-    this.updatePagedData();
     this.cdr.detectChanges();
   }
 
@@ -199,18 +197,6 @@ export class FunctionListComponent implements OnInit {
     });
   }
 
-  handlePageEvent(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.updatePagedData();
-  }
-
-  updatePagedData(): void {
-    const startIndex = this.pageIndex * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.selectedFunctions.slice(startIndex, endIndex);
-  }
-
   openAddFunctionDialog(): void {
     const dialogRef = this.dialog.open(AddFunctionDialog, {
       data: {
@@ -242,7 +228,6 @@ export class FunctionListComponent implements OnInit {
           return 0;
       }
     });
-    this.updatePagedData();
   }
 
   filterNodes(query: string): void {

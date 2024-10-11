@@ -1,11 +1,17 @@
-import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  ChangeDetectorRef,
+} from "@angular/core";
 import { Router } from "@angular/router";
 import { FlowService } from "@app/core/services/flow.service";
 import { MatDialog } from "@angular/material/dialog";
 import { AddFlowDialogComponent } from "./add-flow-dialog.component";
 import { MatTableDataSource } from "@angular/material/table";
-import { PageEvent } from "@angular/material/paginator";
-import { MatSort, Sort } from "@angular/material/sort";
+import { MatPaginator } from "@angular/material/paginator";
+import { MatSort } from "@angular/material/sort";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
@@ -24,7 +30,7 @@ interface FlowNode {
   templateUrl: "./flow-list.component.html",
   styleUrls: ["./flow-list.component.scss"],
 })
-export class FlowListComponent implements OnInit {
+export class FlowListComponent implements OnInit, AfterViewInit {
   selectedFlows: any[] = [];
   displayedColumns: string[] = [
     "id",
@@ -34,15 +40,13 @@ export class FlowListComponent implements OnInit {
     "actions",
   ];
   dataSource = new MatTableDataSource<any>(this.selectedFlows);
-  totalFlows = 0;
-  pageIndex = 0;
-  pageSize = 10;
   treeControl = new NestedTreeControl<FlowNode>((node) => node.children);
   flowTreeDataSource = new MatTreeNestedDataSource<FlowNode>();
   searchQuery: string = "";
   selectedNode: FlowNode | null = null;
 
   @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator; // Added ViewChild for MatPaginator
 
   constructor(
     private flowService: FlowService,
@@ -54,6 +58,11 @@ export class FlowListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadInitialFlows();
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   loadInitialFlows(): void {
@@ -69,9 +78,6 @@ export class FlowListComponent implements OnInit {
         this.flowTreeDataSource.data = [rootNode];
         this.selectedFlows = data.items;
         this.dataSource.data = this.selectedFlows;
-        this.totalFlows = data.items.length;
-        this.dataSource.sort = this.sort;
-        this.updatePagedData();
         this.treeControl.expand(rootNode);
         this.selectedNode = rootNode;
       },
@@ -120,9 +126,6 @@ export class FlowListComponent implements OnInit {
     this.selectedNode = node;
     this.selectedFlows = node.flows || [];
     this.dataSource.data = this.selectedFlows;
-    this.totalFlows = this.selectedFlows.length;
-    this.dataSource.sort = this.sort;
-    this.updatePagedData();
     this.cdr.detectChanges();
   }
 
@@ -167,18 +170,6 @@ export class FlowListComponent implements OnInit {
     );
   }
 
-  handlePageEvent(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.updatePagedData();
-  }
-
-  updatePagedData(): void {
-    const startIndex = this.pageIndex * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.selectedFlows.slice(startIndex, endIndex);
-  }
-
   openAddFlowDialog(): void {
     const dialogRef = this.dialog.open(AddFlowDialogComponent, {
       data: {
@@ -193,7 +184,7 @@ export class FlowListComponent implements OnInit {
   openAddPrefixDialog(): void {
     const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
       data: {
-        parentPrefix: this.selectedNode ? this.selectedNode.id : 'root',
+        parentPrefix: this.selectedNode ? this.selectedNode.id : "root",
         type: "flows",
       },
     });
@@ -206,31 +197,6 @@ export class FlowListComponent implements OnInit {
   export_flow(event: Event, flowId: string): void {
     event.stopPropagation();
     window.open(`/backend/tasks/${flowId}/export_flow/`, "_blank");
-  }
-
-  sortData(sort: Sort): void {
-    const data = this.selectedFlows.slice();
-    if (!sort.active || sort.direction === "") {
-      this.dataSource.data = data;
-      return;
-    }
-
-    this.dataSource.data = data.sort((a, b) => {
-      const isAsc = sort.direction === "asc";
-      switch (sort.active) {
-        case "id":
-          return compare(a.id, b.id, isAsc);
-        case "name":
-          return compare(a.name, b.name, isAsc);
-        case "description":
-          return compare(a.description, b.description, isAsc);
-        case "environment":
-          return compare(a.environment.name, b.environment.name, isAsc);
-        default:
-          return 0;
-      }
-    });
-    this.updatePagedData();
   }
 
   filterNodes(query: string): void {
@@ -272,12 +238,4 @@ export class FlowListComponent implements OnInit {
     const regex = new RegExp(`(${query})`, "gi");
     return text.replace(regex, '<span class="highlight">$1</span>');
   }
-}
-
-function compare(
-  a: number | string,
-  b: number | string,
-  isAsc: boolean
-): number {
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
