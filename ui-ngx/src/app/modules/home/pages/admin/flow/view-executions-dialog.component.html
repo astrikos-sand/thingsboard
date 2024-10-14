@@ -1,9 +1,15 @@
 <mat-toolbar color="primary">
   <h2>Executions</h2>
   <span fxFlex></span>
+
+  <button mat-icon-button (click)="refreshExecutions()" type="button">
+    <mat-icon>refresh</mat-icon>
+  </button>
+
   <button mat-icon-button (click)="closeDialog()" type="button">
     <mat-icon>close</mat-icon>
   </button>
+
 </mat-toolbar>
 
 <div mat-dialog-content>

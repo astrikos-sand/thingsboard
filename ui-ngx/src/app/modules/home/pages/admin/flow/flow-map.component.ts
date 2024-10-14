@@ -104,9 +104,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   async saveToBackend(): Promise<void> {
     this.isLoading = true;
     try {
-      console.log(this.saveFlow)
       this.saveFlow = this.flowId;
-      console.log(this.saveFlow)
       alert("Saved to backend");
     } catch (error) {
       console.error("Error saving to backend:", error);
@@ -119,7 +117,6 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const startTime = new Date();
     try {
-      console.log(this.flowId);
       await executeFlow(this.flowId, this.flowService);
       const endTime = new Date();
       this.executionTime = (endTime.getTime() - startTime.getTime()) / 1000;

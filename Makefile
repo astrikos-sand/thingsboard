@@ -1,5 +1,5 @@
 run:
-	java -jar application/target/thingsboard-3.6.4-boot.jar
+	java -DSPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5434/thingsboard" -jar application/target/thingsboard-3.6.4-boot.jar
 
 up:
 	docker compose up timescaledb -d

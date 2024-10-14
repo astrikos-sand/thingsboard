@@ -402,7 +402,6 @@ export const handleOpenAllScopes = async (
   );
 
   if (parentScope) {
-    console.log(parentScope);
     const maxHeight = Math.max(
       ...updatedNodes.map(
         (node) =>
@@ -495,7 +494,7 @@ export const handleCollapseAllScopes = async (
 };
 
 export const executeFlow = async (flowId: string, flowService: any) => {
-  await axios.post(`/backend/v2/flow/${flowId}/execute/`, {});
+  await axios.post(`/backend/v2/flows/${flowId}/execute/`, {});
 };
 
 export const updateNodePosition = async (
@@ -503,7 +502,7 @@ export const updateNodePosition = async (
   position: { x: number; y: number }
 ) => {
   try {
-    await axios.patch(`http://127.0.0.1:8000/v2/nodes/${nodeId}/`, {
+    await axios.patch(`/backend/v2/nodes/${nodeId}/`, {
       position,
     });
   } catch (error) {
@@ -513,7 +512,7 @@ export const updateNodePosition = async (
 
 export const deleteNode = async (nodeId: string) => {
   try {
-    await axios.delete(`http://127.0.0.1:8000/v2/nodes/${nodeId}/`);
+    await axios.delete(`/backend/v2/nodes/${nodeId}/`);
   } catch (error) {
     console.error("Error deleting node:", error);
   }
@@ -521,7 +520,7 @@ export const deleteNode = async (nodeId: string) => {
 
 export const deleteEdge = async (edgeId: string) => {
   try {
-    await axios.delete(`http://127.0.0.1:8000/v2/connections/${edgeId}/`);
+    await axios.delete(`/backend/v2/connections/${edgeId}/`);
   } catch (error) {
     console.error("Error deleting connection:", error);
   }
@@ -539,9 +538,8 @@ export const createConnection = async (connectionData: any) => {
       ?.replace(`node-${connectionData.target}`, "")
       .replace("-input-", ""),
   };
-  console.log(convertedConnection);
   try {
-    const response = await axios.post("http://127.0.0.1:8000/v2/connections/", convertedConnection);
+    const response = await axios.post("/backend/v2/connections/", convertedConnection);
     return response.data.id;
   } catch (error) {
     console.error("Error creating connection:", error);
