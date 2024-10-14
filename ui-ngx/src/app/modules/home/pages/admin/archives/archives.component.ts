@@ -1,16 +1,12 @@
-import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
-import { MatSort, Sort } from "@angular/material/sort";
-import { PageEvent } from "@angular/material/paginator";
+import { MatSort } from "@angular/material/sort";
+import { MatPaginator } from "@angular/material/paginator";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
-import {
-  ArchivesService,
-  ArchiveFile,
-  ArchiveData,
-} from "@app/core/services/archives.service";
+import { ArchivesService, ArchiveFile, ArchiveData } from "@app/core/services/archives.service";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
 import { NotificationMessage } from "@app/core/notification/notification.models";
@@ -30,15 +26,13 @@ interface TagNode {
   templateUrl: "./archives.component.html",
   styleUrls: ["./archives.component.scss"],
 })
-export class ArchivesComponent implements OnInit {
+export class ArchivesComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<ArchiveFile>();
   displayedColumns: string[] = ["name", "actions"];
-  totalFiles = 0;
-  pageIndex = 0;
-  pageSize = 10;
-
+  
   @ViewChild(MatSort) sort: MatSort;
-
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  
   treeControl = new NestedTreeControl<TagNode>((node) => node.children);
   tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
   selectedFiles: ArchiveFile[] = [];
@@ -57,10 +51,14 @@ export class ArchivesComponent implements OnInit {
     this.loadInitialFiles();
   }
 
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
   loadInitialFiles(): void {
     this.archivesService.getFileArchives().subscribe(
       (data: ArchiveData) => {
-        console.log(data)
         const rootNode: TagNode = {
           id: "root",
           name: "Archives",
@@ -71,9 +69,6 @@ export class ArchivesComponent implements OnInit {
         this.tagTreeDataSource.data = [rootNode];
         this.selectedFiles = data.items;
         this.dataSource.data = this.selectedFiles;
-        this.totalFiles = data.items.length;
-        this.dataSource.sort = this.sort;
-        this.updatePagedData();
         this.treeControl.expand(rootNode);
         this.selectedNode = rootNode;
       },
@@ -121,9 +116,6 @@ export class ArchivesComponent implements OnInit {
     this.selectedNode = node;
     this.selectedFiles = node.files || [];
     this.dataSource.data = this.selectedFiles;
-    this.totalFiles = this.selectedFiles.length;
-    this.dataSource.sort = this.sort;
-    this.updatePagedData();
     this.cdr.detectChanges();
   }
 
@@ -213,18 +205,6 @@ export class ArchivesComponent implements OnInit {
     });
   }
 
-  handlePageEvent(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.updatePagedData();
-  }
-
-  updatePagedData(): void {
-    const startIndex = this.pageIndex * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.selectedFiles.slice(startIndex, endIndex);
-  }
-
   openAddFileDialog(): void {
     const dialogRef = this.dialog.open(UploadFileDialogComponent, {
       width: "400px",
@@ -236,25 +216,6 @@ export class ArchivesComponent implements OnInit {
     dialogRef.afterClosed().subscribe(() => {
       this.loadInitialFiles();
     });
-  }
-
-  sortData(sort: Sort): void {
-    const data = this.selectedFiles.slice();
-    if (!sort.active || sort.direction === "") {
-      this.dataSource.data = data;
-      return;
-    }
-
-    this.dataSource.data = data.sort((a, b) => {
-      const isAsc = sort.direction === "asc";
-      switch (sort.active) {
-        case "name":
-          return compare(a.name, b.name, isAsc);
-        default:
-          return 0;
-      }
-    });
-    this.updatePagedData();
   }
 
   filterNodes(query: string): void {
@@ -300,8 +261,4 @@ export class ArchivesComponent implements OnInit {
   private showNotification(notification: NotificationMessage): void {
     this.toastNotificationService.dispatchNotification(notification);
   }
-}
-
-function compare(a: string, b: string, isAsc: boolean): number {
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
