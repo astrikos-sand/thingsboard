@@ -17,9 +17,9 @@ export class ViewExecutionsDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<ViewExecutionsDialogComponent>
   ) {}
 
-  ngOnInit(): void {
+  loadExecutions(): void {
     const flowId = this.data.flowId;
-    
+
     this.flowService.getExecutions(flowId).subscribe(
       (executions) => {
         const temp = [];
@@ -50,6 +50,15 @@ export class ViewExecutionsDialogComponent implements OnInit {
         this.isLoading = false;
       }
     );
+  }
+
+  ngOnInit(): void {
+    this.loadExecutions();    
+  }
+
+  refreshExecutions(): void {
+    this.isLoading = true;
+    this.loadExecutions();
   }
 
   closeDialog(): void {
