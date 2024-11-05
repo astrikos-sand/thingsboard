@@ -69,20 +69,10 @@ export class EditFunctionDialogComponent implements OnInit {
   }
 
   splitCodeIntoParts(code: string): void {
-    const functionRegex = /(def\s+\w+\([^\)]*\)\s*:\s*)/;
-    const returnRegex = /(\s*return\s+[^\n]+)/;
-
-    const signatureMatch = code.match(functionRegex);
-    const returnMatch = code.match(returnRegex);
-
-    if (signatureMatch && returnMatch) {
       this.functionSignature = '';
       this.functionReturn = '';
 
-      // const bodyStart = code.indexOf(this.functionSignature) + this.functionSignature.length;
-      // const bodyEnd = code.indexOf(this.functionReturn);
       this.functionBody = code;
-    }
   }
 
   cancel(): void {

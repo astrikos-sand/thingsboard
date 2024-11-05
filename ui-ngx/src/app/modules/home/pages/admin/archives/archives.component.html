@@ -31,13 +31,6 @@
                   class="mat-tree-node-label"
                   [innerHTML]="highlightText(node.name, searchQuery)"
                 ></span>
-                <button
-                  mat-icon-button
-                  class="mat-tree-node-actions"
-                  (click)="copyId(node.id)"
-                >
-                  <mat-icon>content_copy</mat-icon>
-                </button>
               </div>
               <div
                 class="mat-tree-node-children"
