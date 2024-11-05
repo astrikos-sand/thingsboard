@@ -15,6 +15,8 @@ export class AddFlowDialogComponent implements OnInit {
   isLoading = false;
   environments: any[] = [];
   selectedPrefix: string = "";
+  flowId: string = "";
+  isEdit: boolean = false;
 
   constructor(
     public dialogRef: MatDialogRef<AddFlowDialogComponent>,
@@ -22,6 +24,10 @@ export class AddFlowDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.selectedPrefix = data.selectedPrefix;
+    if (data.flowId) {
+      this.flowId = data.flowId;
+      this.isEdit = true;
+    }
   }
 
   ngOnInit(): void {
@@ -56,6 +62,25 @@ export class AddFlowDialogComponent implements OnInit {
       this.flowService.addFlow(flowData).subscribe(
         (newFlow) => {
           this.dialogRef.close(newFlow);
+        },
+        (error) => {
+          console.error("Error adding flow:", error);
+          this.isLoading = false;
+        }
+      );
+    }
+  }
+
+  edit(): void {
+    this.submitted = true;
+    if (this.selectedEnv) {
+      this.isLoading = true;
+      const flowData = {
+        lib: this.selectedEnv,
+      };
+      this.flowService.editFlow(this.flowId, flowData).subscribe(
+        (newFlow) => {
+          this.dialogRef.close();
         },
         (error) => {
           console.error("Error adding flow:", error);

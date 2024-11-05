@@ -159,6 +159,18 @@ export class FlowListComponent implements OnInit, AfterViewInit {
     this.router.navigate([`flows/library/${flowId}`]);
   }
 
+  openEditFlowDialog(flowId: string): void {
+    const dialogRef = this.dialog.open(AddFlowDialogComponent, {
+      data: {
+        isEdit: true,
+        flowId: flowId,
+      },
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadInitialFlows();
+    });
+  }
+
   duplicate_flow(flowId: string): void {
     this.flowService.duplicateFlow(flowId).subscribe(
       () => {

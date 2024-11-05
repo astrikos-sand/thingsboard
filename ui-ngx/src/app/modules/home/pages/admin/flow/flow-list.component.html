@@ -120,10 +120,10 @@
                 </button>
                 <button
                   mat-icon-button
-                  (click)="copyId(flow?.id)"
-                  matTooltip="Copy Flow ID"
+                  (click)="openEditFlowDialog(flow?.id)"
+                  matTooltip="Edit Flow"
                 >
-                  <mat-icon>content_copy</mat-icon>
+                  <mat-icon>edit</mat-icon>
                 </button>
               </mat-cell>
             </ng-container>

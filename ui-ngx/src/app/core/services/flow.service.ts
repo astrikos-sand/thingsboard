@@ -47,6 +47,12 @@ export class FlowService {
     return this.http.post<any>(`${this.baseUrl}/flows/`, flow);
   }
 
+  editFlow(flowId: string, flow: {
+    lib: string;
+  }): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}/flows/${flowId}/`, flow);
+  }
+
   addNode(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/nodes/`, data);
   }
