@@ -27,6 +27,8 @@ export class AddFlowDialogComponent implements OnInit {
     if (data.flowId) {
       this.flowId = data.flowId;
       this.isEdit = true;
+      this.flowName = data.flowName;
+      this.selectedEnv = data.selectedEnv;
     }
   }
 
@@ -77,6 +79,7 @@ export class AddFlowDialogComponent implements OnInit {
       this.isLoading = true;
       const flowData = {
         lib: this.selectedEnv,
+        name: this.flowName,
       };
       this.flowService.editFlow(this.flowId, flowData).subscribe(
         (newFlow) => {

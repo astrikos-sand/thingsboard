@@ -15,7 +15,7 @@ export class CreateEnvPopoverComponent implements OnInit {
   createEnvForm: FormGroup;
   popoverComponent: TbPopoverComponent<CreateEnvPopoverComponent>;
 
-  constructor(private fb: FormBuilder, private flowService: FlowService) {}
+  constructor(private fb: FormBuilder, private flowService: FlowService) { }
 
   ngOnInit(): void {
     this.envs$ = this.flowService.getEnv();
@@ -60,10 +60,14 @@ export class CreateEnvPopoverComponent implements OnInit {
     window.open(filePath, "_blank");
   }
 
-  deleteEnv(envId: number): void {
-    // this.flowService.deleteENV(envId).subscribe((response) => {
-    //   // Refresh the list after deletion
-    //   this.envs$ = this.envService.getEnv();
-    // });
+  deleteEnv(envId: string): void {
+    this.flowService.deleteEnv(envId).subscribe(
+      () => {
+        this.envCreated.emit();
+      },
+      (error) => {
+        console.error("Error deleting environment:", error);
+      }
+    )
   }
 }

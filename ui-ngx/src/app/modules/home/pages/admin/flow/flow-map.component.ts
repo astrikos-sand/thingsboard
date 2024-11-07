@@ -4,7 +4,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { AddNewNodeDialog } from "./add-node-dialog.component";
 import { Node, Edge, addEdge } from "reactflow";
 import { Subscription } from "rxjs";
-import { convertData, executeFlow } from "./nodeUtils";
+import { convertData, executeFlow, notebook_start } from "./nodeUtils";
 import { EditNodeDialogComponent } from "./edit-node-dialog.component";
 import { FlowService } from "@app/core/services/flow.service";
 import { AddFunctionDialog } from "../functions/function-dialog.component";
@@ -126,6 +126,19 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       console.error("Error executing flow:", error);
       this.executionStatus = "Error executing flow";
       alert("Error executing flow");
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async start_notebook(): Promise<void> {
+    this.isLoading = true;
+    try {
+      await notebook_start(this.flowId);
+      alert("Notebook started successfully");
+    }
+    catch (error) {
+      console.error("Error starting notebook:", error);
     } finally {
       this.isLoading = false;
     }

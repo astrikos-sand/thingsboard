@@ -29,33 +29,25 @@
       <tr *ngFor="let execution of executions">
         <td>{{ execution.timestamp }}</td>
         <td>
-          <span [style.color]="getStatusColor(execution.status)">{{
-            execution.status
-          }}</span>
+          <span [style.color]="getStatusColor(execution.status)">{{ execution.status }}</span>
         </td>
         <td>
-          <a
-            *ngIf="execution.container_logs"
-            [href]="execution.container_logs"
-            target="_blank"
-            >View</a
-          >
+          <ng-container *ngIf="execution.container_logs != '/backend#'; else noContainerLogs">
+            <a [href]="execution.container_logs" target="_blank">View</a>
+          </ng-container>
+          <ng-template #noContainerLogs>N/A</ng-template>
         </td>
         <td>
-          <a
-            *ngIf="execution.json_logs"
-            [href]="execution.json_logs"
-            target="_blank"
-            >View</a
-          >
+          <ng-container *ngIf="execution.json_logs != '/backend#'; else noJsonLogs">
+            <a [href]="execution.json_logs" target="_blank">View</a>
+          </ng-container>
+          <ng-template #noJsonLogs>N/A</ng-template>
         </td>
         <td>
-          <a
-            *ngIf="execution.html_logs"
-            [href]="execution.html_logs"
-            target="_blank"
-            >View</a
-          >
+          <ng-container *ngIf="execution.html_logs != '/backend#'; else noHtmlLogs">
+            <a [href]="execution.html_logs" target="_blank">View</a>
+          </ng-container>
+          <ng-template #noHtmlLogs>N/A</ng-template>
         </td>
       </tr>
     </tbody>

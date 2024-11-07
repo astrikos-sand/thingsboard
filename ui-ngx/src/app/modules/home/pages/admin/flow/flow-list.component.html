@@ -98,7 +98,7 @@
                 Environment
               </mat-header-cell>
               <mat-cell *matCellDef="let flow">
-                {{ flow?.lib | slice: 0:7 }}
+                {{ flow?.lib_name }}
               </mat-cell>
             </ng-container>
             <ng-container matColumnDef="actions">
@@ -120,7 +120,7 @@
                 </button>
                 <button
                   mat-icon-button
-                  (click)="openEditFlowDialog(flow?.id)"
+                  (click)="openEditFlowDialog(flow)"
                   matTooltip="Edit Flow"
                 >
                   <mat-icon>edit</mat-icon>

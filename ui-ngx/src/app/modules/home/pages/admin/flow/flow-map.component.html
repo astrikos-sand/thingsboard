@@ -1,20 +1,35 @@
 <div class="mat-padding tb-entity-table tb-absolute-fill">
   <div class="button-container">
-    <button (click)="openAddNewNodeDialog()">Add New Node</button>
-    <button (click)="openAddFunctionDialog()">Add Function</button>
-    <button (click)="execute_flow()">Execute Flow</button>
-    <button (click)="openViewExecutionsDialog()">View Executions</button>
-    <div *ngIf="isLoading">Loading...</div>
+    <button mat-icon-button (click)="openAddNewNodeDialog()" aria-label="Add New Node">
+      <mat-icon>add_circle</mat-icon>
+    </button>
+    <button mat-icon-button (click)="openAddFunctionDialog()" aria-label="Add Function">
+      <mat-icon>functions</mat-icon>
+    </button>
+    <button mat-icon-button (click)="execute_flow()" aria-label="Execute Flow">
+      <mat-icon>play_arrow</mat-icon>
+    </button>
+    <button mat-icon-button (click)="openViewExecutionsDialog()" aria-label="View Executions">
+      <mat-icon>visibility</mat-icon>
+    </button>
+    <button mat-icon-button [matMenuTriggerFor]="notebookMenu" aria-label="Notebook Actions">
+      <mat-icon>book</mat-icon>
+    </button>
+    <mat-menu #notebookMenu="matMenu">
+      <button mat-menu-item (click)="start_notebook()">
+        Start
+      </button>
+      <a mat-menu-item href="/notebooks" target="_blank">
+        Open
+      </a>
+    </mat-menu>
+    <div *ngIf="isLoading">
+      <mat-icon>hourglass_empty</mat-icon>
+    </div>
   </div>
-  <reactflow-wrapper
-    [nodes]="nodes"
-    [edges]="edges"
-    [saveFlow]="saveFlow"
-    [openEditingDialogBox]="openEditingDialogBox"
-    (nodesChange)="onNodesChange($event)"
-    (edgesChange)="onEdgesChange($event)"
-    (connectionsChange)="onConnect($event)"
+
+  <reactflow-wrapper [nodes]="nodes" [edges]="edges" [saveFlow]="saveFlow" [openEditingDialogBox]="openEditingDialogBox"
+    (nodesChange)="onNodesChange($event)" (edgesChange)="onEdgesChange($event)" (connectionsChange)="onConnect($event)"
     (positionChange)="onPositionChange($event)"
-    (onOpenEditingDialogBox)="onOpenEditingDialogBox($event)"
-  ></reactflow-wrapper>
+    (onOpenEditingDialogBox)="onOpenEditingDialogBox($event)"></reactflow-wrapper>
 </div>

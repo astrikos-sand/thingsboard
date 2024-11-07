@@ -497,6 +497,14 @@ export const executeFlow = async (flowId: string, flowService: any) => {
   await axios.post(`/backend/v2/flows/${flowId}/execute/`, {});
 };
 
+export const notebook_start = async (flowId: string) => {
+  try {
+    await axios.post(`/backend/v2/flows/${flowId}/notebook/start/`, {});
+  } catch (error) {
+    console.error("Error starting notebook:", error);
+  }
+}
+
 export const updateNodePosition = async (
   nodeId: string,
   position: { x: number; y: number }

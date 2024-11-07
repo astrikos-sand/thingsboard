@@ -85,6 +85,10 @@ export class FlowService {
     return this.http.post<any>(`${this.baseUrl}/env/`, formData);
   }
 
+  deleteEnv(envId: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/env/${envId}/`);
+  }
+
   getEnv(id?: string): Observable<any> {
     if (id) return this.http.get<any>(`${this.baseUrl}/env/${id}/`);
     return this.http.get<any>(`${this.baseUrl}/env/`);
