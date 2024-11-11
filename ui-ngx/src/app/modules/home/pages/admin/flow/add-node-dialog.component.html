@@ -28,41 +28,92 @@
         [formGroupName]="i"
         class="form-field"
       >
-        <mat-form-field *ngIf="field.get('type')?.value !== 'array'">
-          <mat-label>{{ field.get("label")?.value }}</mat-label>
-          <ng-container [ngSwitch]="field.get('type')?.value">
-            <input
-              *ngSwitchCase="'input'"
-              matInput
-              formControlName="value"
-              [placeholder]="field.get('placeholder')?.value"
-              [required]="field.get('required')?.value"
-              [readonly]="field.get('label')?.value === 'flow'"
-            />
-            <textarea
-              *ngSwitchCase="'textarea'"
-              matInput
-              formControlName="value"
-              [placeholder]="field.get('placeholder')?.value"
-              [required]="field.get('required')?.value"
-            ></textarea>
-            <mat-select
-              *ngSwitchCase="'select'"
-              formControlName="value"
-              [required]="field.get('required')?.value"
-            >
-              <mat-option [value]="" disabled selected>{{
-                field.get("placeholder")?.value
-              }}</mat-option>
-              <mat-option
-                *ngFor="let option of field.get('choices')?.value"
-                [value]="option.value"
+        <div *ngIf="field.get('type')?.value !== 'array'" class="array-fields">
+          <div [ngSwitch]="field.get('type')?.value" class="form-field">
+            <ng-container *ngSwitchCase="'input'">
+              <mat-form-field>
+                <mat-label>{{ field.get("label")?.value }}</mat-label>
+                <input
+                  matInput
+                  formControlName="value"
+                  [placeholder]="field.get('placeholder')?.value"
+                  [required]="field.get('required')?.value"
+                  [readonly]="field.get('label')?.value === 'flow'"
+                />
+              </mat-form-field>
+            </ng-container>
+            <ng-container *ngSwitchCase="'textarea'">
+              <mat-form-field>
+                <mat-label>{{ field.get("label")?.value }}</mat-label>
+                <textarea
+                  matInput
+                  formControlName="value"
+                  [placeholder]="field.get('placeholder')?.value"
+                  [required]="field.get('required')?.value"
+                ></textarea>
+              </mat-form-field>
+            </ng-container>
+            <ng-container *ngSwitchCase="'select'">
+              <div
+                *ngIf="
+                  field.get('label')?.value !== 'value_type';
+                  else simpleDropdown
+                "
               >
-                {{ option.label }}
-              </mat-option>
-            </mat-select>
-          </ng-container>
-        </mat-form-field>
+                <div class="search-container" appearance="outline">
+                  <mat-label>{{ field.get("label")?.value }}</mat-label>
+                  <div fxLayout="row" fxLayoutGap="8px">
+                    <mat-form-field class="dropdown-small">
+                      <mat-select
+                        [(value)]="searchType"
+                        (selectionChange)="onSearchTypeChange($event)"
+                      >
+                        <mat-option value="name">Name</mat-option>
+                        <mat-option value="prefix">Prefix</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field class="search-input">
+                      <input
+                        matInput
+                        placeholder="Search..."
+                        formControlName="value"
+                        [matAutocomplete]="auto"
+                        (input)="onDropdownSearch($event.target.value, i)"
+                      />
+                      <mat-autocomplete
+                        #auto="matAutocomplete"
+                      >
+                        <mat-option
+                          *ngFor="let option of filteredOptions"
+                          [value]="option.value"
+                        >
+                          {{ option.label }}
+                        </mat-option>
+                      </mat-autocomplete>
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+
+              <ng-template #simpleDropdown>
+                <mat-form-field appearance="outline">
+                  <mat-label>{{ field.get("label")?.value }}</mat-label>
+                  <mat-select
+                    formControlName="value"
+                    [required]="field.get('required')?.value"
+                  >
+                    <mat-option
+                      *ngFor="let option of field.get('choices')?.value"
+                      [value]="option.value"
+                    >
+                      {{ option.label }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </ng-template>
+            </ng-container>
+          </div>
+        </div>
         <div
           *ngIf="field.get('type')?.value === 'array'"
           class="array-fields"

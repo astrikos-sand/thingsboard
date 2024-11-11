@@ -519,6 +519,13 @@ export class MenuService {
             icon: 'folder'
           },
           {
+            id: 'env',
+            name: 'Environments',
+            type: 'link',
+            path: '/flows/env',
+            icon: 'mdi:layers'
+          },
+          {
             id: 'archive',
             name: 'Archives',
             type: 'link',

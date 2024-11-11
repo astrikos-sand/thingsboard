@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Create Environment</h2>
+<form [formGroup]="createEnvForm" (ngSubmit)="submit()">
+  <mat-form-field>
+    <input matInput formControlName="name" placeholder="Environment Name" required />
+  </mat-form-field>
+  <input type="file" (change)="onFileChange($event)" required />
+  <div mat-dialog-actions>
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="primary" type="submit">Create</button>
+  </div>
+</form>

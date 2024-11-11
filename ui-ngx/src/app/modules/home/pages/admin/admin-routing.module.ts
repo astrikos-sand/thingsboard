@@ -31,6 +31,7 @@ import { ArchivesComponent } from './archives/archives.component';
 import { FunctionListComponent } from './functions/function-list.component';
 import { WebhookComponent } from './webhook/webhook.component';
 import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
+import { EnvComponent } from './env/env.component';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -110,6 +111,25 @@ const routes: Routes = [
             data: {
               auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
               title: 'Archives'
+            }
+          }
+        ]
+      },
+      {
+        path: 'env',
+        data: {
+          breadcrumb: {
+            label: 'Environments',
+            icon: 'mdi:layers'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: EnvComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Environments'
             }
           }
         ]

@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  ChangeDetectorRef,
+} from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSort } from "@angular/material/sort";
@@ -7,6 +13,7 @@ import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
 import { ArchivesService, ArchiveFile, ArchiveData } from "@app/core/services/archives.service";
+import { SearchService } from "@app/core/services/search.service";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
 import { NotificationMessage } from "@app/core/notification/notification.models";
@@ -29,6 +36,8 @@ interface TagNode {
 export class ArchivesComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<ArchiveFile>();
   displayedColumns: string[] = ["name", "actions"];
+  searchFilter: string = "name";
+  searchQuery: string = "";
   
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -36,11 +45,11 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
   treeControl = new NestedTreeControl<TagNode>((node) => node.children);
   tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
   selectedFiles: ArchiveFile[] = [];
-  searchQuery: string = "";
   selectedNode: TagNode | null = null;
 
   constructor(
     private archivesService: ArchivesService,
+    private searchService: SearchService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
     private clipboard: Clipboard,
@@ -136,6 +145,47 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     }));
   }
 
+  filterNodes(): void {
+    if (!this.searchQuery) {
+      this.loadInitialFiles();
+      return;
+    }
+
+    const query = this.searchFilter === "prefix" ? `prefix:${this.searchQuery}` : this.searchQuery;
+
+    this.searchService.searchItems(query, "archives").subscribe(
+      (results: ArchiveFile[]) => {
+        const items = results.map((item) => ({
+          ...item,
+          file: item.file.startsWith("/media") ? `http://localhost:8000${item.file}` : item.file,
+        }));
+
+        const rootNode: TagNode = {
+          id: "search-root",
+          name: "Search Results",
+          children: [],
+          files: items,
+          isLoaded: true,
+        };
+
+        this.tagTreeDataSource.data = [rootNode];
+        this.selectedFiles = items;
+        this.dataSource.data = this.selectedFiles;
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode;
+      },
+      (error) => {
+        console.error("Error searching archives:", error);
+      }
+    );
+  }
+
+  clearSearch(): void {
+    this.searchQuery = "";
+    this.tagTreeDataSource.data = [];
+    this.loadInitialFiles();
+  }
+
   onNodeSelect(node: TagNode): void {
     this.fetchChildFiles(node);
   }
@@ -216,38 +266,6 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     dialogRef.afterClosed().subscribe(() => {
       this.loadInitialFiles();
     });
-  }
-
-  filterNodes(query: string): void {
-    this.searchQuery = query;
-    if (!query) {
-      this.tagTreeDataSource.data = this.tagTreeDataSource.data;
-      this.treeControl.expandDescendants(this.tagTreeDataSource.data[0]);
-    } else {
-      const filteredNodes = this.filterTree(
-        this.tagTreeDataSource.data,
-        query.toLowerCase()
-      );
-      this.tagTreeDataSource.data = filteredNodes;
-      if (filteredNodes.length > 0) {
-        this.treeControl.expandDescendants(filteredNodes[0]);
-      }
-    }
-  }
-
-  filterTree(nodes: TagNode[], query: string): TagNode[] {
-    return nodes
-      .map((node) => ({ ...node }))
-      .filter((node) => {
-        if (node.name.toLowerCase().includes(query)) {
-          return true;
-        }
-        if (node.children) {
-          node.children = this.filterTree(node.children, query);
-          return node.children.length > 0;
-        }
-        return false;
-      });
   }
 
   highlightText(text: string, query: string): string {

@@ -4,13 +4,22 @@
       <div fxLayout="row" class="tb-entity-table-content tb-outlined-border">
         <div fxFlex="30" class="tree-container scrollable-container">
           <mat-form-field appearance="outline">
-            <mat-label>Search Folders</mat-label>
+            <mat-label>Search Type</mat-label>
+            <mat-select [(value)]="searchFilter">
+              <mat-option value="name">Name</mat-option>
+              <mat-option value="prefix">Prefix</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Search Archives</mat-label>
             <input
               matInput
-              (input)="filterNodes($event.target.value)"
-              placeholder="Search folders..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="filterNodes()"
+              placeholder="Search archives..."
             />
           </mat-form-field>
+          <button mat-button (click)="clearSearch()">Clear Search</button>
           <mat-tree
             [dataSource]="tagTreeDataSource"
             [treeControl]="treeControl"
@@ -22,9 +31,7 @@
               >
                 <button mat-icon-button matTreeNodeToggle>
                   <mat-icon>{{
-                    treeControl.isExpanded(node)
-                      ? "expand_more"
-                      : "chevron_right"
+                    treeControl.isExpanded(node) ? "expand_more" : "chevron_right"
                   }}</mat-icon>
                 </button>
                 <span
@@ -41,6 +48,7 @@
             </mat-nested-tree-node>
           </mat-tree>
         </div>
+
         <div fxFlex="70" class="table-container">
           <mat-toolbar>
             <span>Files</span>
@@ -80,9 +88,7 @@
               </mat-cell>
             </ng-container>
 
-            <mat-header-row
-              *matHeaderRowDef="displayedColumns"
-            ></mat-header-row>
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
             <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
           </mat-table>
           <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>

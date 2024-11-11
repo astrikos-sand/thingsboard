@@ -63,7 +63,7 @@ export class FlowService {
 
   getPrefixes(type: string) {
     return this.http.get(`${this.baseUrl}/prefix/by-type/?type=${type}`);
-  }  
+  }
 
   createPrefix(data: any, type: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/prefix/?type=${type}`, data);
