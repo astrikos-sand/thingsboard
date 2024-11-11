@@ -56,6 +56,11 @@
     <div style="height: 4px;" *ngIf="!isLoading"></div>
     <div mat-dialog-content>
       <mat-form-field>
+        <mat-label>Flow Name</mat-label>
+        <input matInput placeholder="Enter Flow Name" [(ngModel)]="flowName" name="flowName" required />
+        <mat-error *ngIf="submitted && !flowName">Flow Name is required.</mat-error>
+      </mat-form-field>
+      <mat-form-field>
         <mat-label>Environment</mat-label>
         <mat-select [(ngModel)]="selectedEnv" name="environment" required>
           <mat-option *ngFor="let env of environments" [value]="env.id">
