@@ -1,6 +1,6 @@
-import { Component } from "@angular/core";
-import { FormBuilder, FormGroup } from "@angular/forms";
-import { MatDialogRef } from "@angular/material/dialog";
+import { Component, Inject } from "@angular/core";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { EnvService } from "@app/core/services/env.service";
 
 @Component({
@@ -9,32 +9,50 @@ import { EnvService } from "@app/core/services/env.service";
 })
 export class CreateEnvDialogComponent {
   createEnvForm: FormGroup;
+  isLoading = false;
+  selectedPrefix: string;
 
   constructor(
     private fb: FormBuilder,
     private envService: EnvService,
-    public dialogRef: MatDialogRef<CreateEnvDialogComponent>
+    public dialogRef: MatDialogRef<CreateEnvDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) {
+    this.selectedPrefix = data.selectedPrefix;
     this.createEnvForm = this.fb.group({
       name: [""],
       requirements: [null],
+      prefix: [{ value: this.selectedPrefix, disabled: true }, [Validators.required]],
     });
   }
 
-  onFileChange(event): void {
-    if (event.target.files.length > 0) {
-      const file = event.target.files[0];
+  onFileChange(event: Event): void {
+    if ((event.target as HTMLInputElement).files.length > 0) {
+      const file = (event.target as HTMLInputElement).files[0];
       this.createEnvForm.patchValue({ requirements: file });
     }
   }
-
+  
   submit(): void {
-    const formData = new FormData();
-    formData.append("name", this.createEnvForm.get("name").value);
-    formData.append("requirements", this.createEnvForm.get("requirements").value);
+    if (this.createEnvForm.valid) {
+      this.isLoading = true;
+      const formData = new FormData();
+      formData.append("name", this.createEnvForm.get("name").value);
+      formData.append("requirements", this.createEnvForm.get("requirements").value);
+      if (this.selectedPrefix !== 'root')
+        formData.append("prefix", this.selectedPrefix);
 
-    this.envService.createEnv(formData).subscribe(() => {
-      this.dialogRef.close();
-    });
+      this.envService.createEnv(formData).subscribe(
+        () => {
+          this.dialogRef.close();
+        },
+        (error) => {
+          console.error("Error creating environment: ", error);
+        },
+        () => {
+          this.isLoading = false;
+        }
+      );
+    }
   }
 }

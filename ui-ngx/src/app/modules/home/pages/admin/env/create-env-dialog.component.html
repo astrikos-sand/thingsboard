@@ -1,11 +1,55 @@
-<h2 mat-dialog-title>Create Environment</h2>
 <form [formGroup]="createEnvForm" (ngSubmit)="submit()">
-  <mat-form-field>
-    <input matInput formControlName="name" placeholder="Environment Name" required />
-  </mat-form-field>
-  <input type="file" (change)="onFileChange($event)" required />
+  <mat-toolbar color="primary">
+    <h2>Create Environment</h2>
+    <span fxFlex></span>
+    <button mat-icon-button (click)="dialogRef.close()" type="button">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+  </mat-toolbar>
+  <mat-progress-bar
+    color="warn"
+    mode="indeterminate"
+    *ngIf="isLoading"
+  ></mat-progress-bar>
+  <div style="height: 4px" *ngIf="!isLoading"></div>
+  <div mat-dialog-content>
+    <fieldset [disabled]="isLoading">
+      <mat-form-field>
+        <mat-label>Environment Name</mat-label>
+        <input matInput formControlName="name" required />
+      </mat-form-field>
+      <div>
+        <input
+          type="file"
+          (change)="onFileChange($event)"
+          style="display: none"
+          #fileInput
+        />
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="fileInput.click()"
+        >
+          Choose File
+        </button>
+        <span *ngIf="createEnvForm.get('requirements').value">
+          {{ createEnvForm.get("requirements").value.name }}
+        </span>
+      </div>
+    </fieldset>
+  </div>
   <div mat-dialog-actions>
-    <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-raised-button color="primary" type="submit">Create</button>
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="isLoading"
+      type="submit"
+    >
+      Create
+    </button>
+    <button mat-raised-button (click)="dialogRef.close()" type="button">
+      Cancel
+    </button>
   </div>
 </form>

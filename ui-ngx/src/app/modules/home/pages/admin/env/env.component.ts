@@ -13,7 +13,7 @@ import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
 import { EnvService, EnvFile, EnvData } from "@app/core/services/env.service";
-import { SearchService } from "@app/core/services/search.service"; // New service
+import { SearchService } from "@app/core/services/search.service";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
 import { NotificationMessage } from "@app/core/notification/notification.models";
@@ -37,7 +37,6 @@ export class EnvComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<EnvFile>();
   displayedColumns: string[] = ["name", "actions"];
   searchFilter: string = "name";
-  searchType: string = "environments"; // Default item type
   searchQuery: string = "";
 
   treeControl = new NestedTreeControl<EnvNode>((node) => node.children);
@@ -79,23 +78,108 @@ export class EnvComponent implements OnInit, AfterViewInit {
         this.envTreeDataSource.data = [rootNode];
         this.selectedFiles = data.items;
         this.dataSource.data = this.selectedFiles;
-        this.treeControl.expand(rootNode);
-        this.selectedNode = rootNode;
+        if (this.selectedNode) {
+          const matchingNode = this.findNodeById(rootNode, this.selectedNode.id);
+          if (matchingNode) {
+            this.updateSelectedNode(matchingNode);
+            this.treeControl.expand(matchingNode);
+          }
+        } else {
+          this.treeControl.expand(rootNode);
+          this.selectedNode = rootNode;
+        }
+
       },
       (error) => {
-        console.error("Error loading initial environments:", error);
+        console.error("Error loading environments:", error);
       }
     );
   }
 
-  searchEnvs(query: string): void {
-    if (!query) {
+  findNodeById(node: EnvNode, id: string): EnvNode | null {
+    if (node.id === id) {
+      return node;
+    }
+    for (const child of node.children) {
+      const found = this.findNodeById(child, id);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  fetchChildNodes(node: EnvNode): void {
+    if (node.isLoaded) {
+      this.updateSelectedNode(node);
+      return;
+    }
+
+    this.envService.fetchEnvsByParent(node.id).subscribe(
+      (data: EnvData) => {
+        node.children = this.buildTree(data.tree);
+        node.files = data.items;
+        node.isLoaded = true;
+
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error fetching child nodes:", error);
+      }
+    );
+  }
+
+  toggleNode(node: EnvNode): void {
+    if (this.treeControl.isExpanded(node)) {
+      this.treeControl.collapse(node);
+    } else {
+      this.treeControl.expand(node);
+    }
+
+    if (!node.isLoaded && this.treeControl.isExpanded(node)) {
+      this.fetchChildNodes(node);
+    }
+
+    this.updateSelectedNode(node);
+  }
+
+  updateSelectedNode(node: EnvNode): void {
+    this.selectedNode = node;
+    this.selectedFiles = node.files || [];
+    this.dataSource.data = this.selectedFiles;
+    this.cdr.detectChanges();
+  }
+
+  refreshTreeData(): void {
+    const data = this.envTreeDataSource.data;
+    this.envTreeDataSource.data = null;
+    this.envTreeDataSource.data = data;
+    this.cdr.detectChanges();
+  }
+
+  buildTree(nodes: any[]): EnvNode[] {
+    return nodes.map((node) => ({
+      name: node.name,
+      id: node.id,
+      children: [],
+      files: [],
+      isLoaded: false,
+    }));
+  }
+
+  searchNodes(): void {
+    if (!this.searchQuery) {
       this.loadInitialEnvs();
       return;
     }
-    const searchParam = this.searchFilter === "prefix" ? `prefix:${query}` : query;
 
-    this.searchService.searchItems(searchParam, this.searchType).subscribe(
+    const query =
+      this.searchFilter === "prefix"
+        ? `prefix:${this.searchQuery}`
+        : this.searchQuery;
+
+    this.searchService.searchItems(query, "environments").subscribe(
       (results: EnvFile[]) => {
         const items = results.map((item) => ({
           ...item,
@@ -124,49 +208,10 @@ export class EnvComponent implements OnInit, AfterViewInit {
     );
   }
 
-  clearSearchResults(): void {
+  clearSearch(): void {
     this.searchQuery = "";
     this.envTreeDataSource.data = [];
     this.loadInitialEnvs();
-  }
-
-  buildTree(nodes: any[]): EnvNode[] {
-    return nodes.map((node) => ({
-      name: node.name,
-      id: node.id,
-      children: [],
-      files: [],
-      isLoaded: false,
-    }));
-  }
-
-  filterEnvs(query: string): void {
-    this.searchQuery = query.toLowerCase();
-    if (!query) {
-      this.envTreeDataSource.data = this.envTreeDataSource.data;
-      this.treeControl.expandDescendants(this.envTreeDataSource.data[0]);
-    } else {
-      const filteredNodes = this.filterTree(this.envTreeDataSource.data, query);
-      this.envTreeDataSource.data = filteredNodes;
-      if (filteredNodes.length > 0) {
-        this.treeControl.expandDescendants(filteredNodes[0]);
-      }
-    }
-  }
-
-  filterTree(nodes: EnvNode[], query: string): EnvNode[] {
-    return nodes
-      .map((node) => ({ ...node }))
-      .filter((node) => {
-        if (node.name.toLowerCase().includes(query)) {
-          return true;
-        }
-        if (node.children) {
-          node.children = this.filterTree(node.children, query);
-          return node.children.length > 0;
-        }
-        return false;
-      });
   }
 
   openAddPrefixDialog(): void {
@@ -178,17 +223,20 @@ export class EnvComponent implements OnInit, AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadInitialEnvs();
+      this.refreshEnvs(this.selectedNode);
     });
   }
 
   openCreateEnvDialog(): void {
     const dialogRef = this.dialog.open(CreateEnvDialogComponent, {
       width: "400px",
+      data: {
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
+      },
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadInitialEnvs();
+      this.refreshEnvs(this.selectedNode);
     });
   }
 
@@ -223,7 +271,7 @@ export class EnvComponent implements OnInit, AfterViewInit {
               type: "success",
               duration: 3000,
             });
-            this.loadInitialEnvs();
+            this.refreshEnvs(this.selectedNode);
           },
           (error) => {
             console.error("Error deleting environment: ", error);
@@ -236,6 +284,26 @@ export class EnvComponent implements OnInit, AfterViewInit {
         );
       }
     });
+  }
+
+  refreshEnvs(node: EnvNode): void {
+    if (!node) {
+      return;
+    }
+  
+    this.envService.fetchEnvsByParent(node.id).subscribe(
+      (data) => {
+        node.children = this.buildTree(data.tree);
+        node.files = data.items;
+        node.isLoaded = true;
+  
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error refreshing flows:", error);
+      }
+    );
   }
 
   private showNotification(notification: NotificationMessage): void {
