@@ -12,7 +12,11 @@ import { MatPaginator } from "@angular/material/paginator";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
-import { ArchivesService, ArchiveFile, ArchiveData } from "@app/core/services/archives.service";
+import {
+  ArchivesService,
+  ArchiveFile,
+  ArchiveData,
+} from "@app/core/services/archives.service";
 import { SearchService } from "@app/core/services/search.service";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
@@ -38,10 +42,10 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ["name", "actions"];
   searchFilter: string = "name";
   searchQuery: string = "";
-  
+
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
-  
+
   treeControl = new NestedTreeControl<TagNode>((node) => node.children);
   tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
   selectedFiles: ArchiveFile[] = [];
@@ -78,13 +82,35 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
         this.tagTreeDataSource.data = [rootNode];
         this.selectedFiles = data.items;
         this.dataSource.data = this.selectedFiles;
-        this.treeControl.expand(rootNode);
-        this.selectedNode = rootNode;
+
+        if (this.selectedNode) {
+          const matchingNode = this.findNodeById(rootNode, this.selectedNode.id);
+          if (matchingNode) {
+            this.updateSelectedNode(matchingNode);
+            this.treeControl.expand(matchingNode);
+          }
+        } else {
+          this.treeControl.expand(rootNode);
+          this.selectedNode = rootNode;
+        }
       },
       (error) => {
         console.error("Error loading initial files:", error);
       }
     );
+  }
+
+  findNodeById(node: TagNode, id: string): TagNode | null {
+    if (node.id === id) {
+      return node;
+    }
+    for (const child of node.children) {
+      const found = this.findNodeById(child, id);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
   }
 
   fetchChildFiles(node: TagNode): void {
@@ -151,13 +177,18 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const query = this.searchFilter === "prefix" ? `prefix:${this.searchQuery}` : this.searchQuery;
+    const query =
+      this.searchFilter === "prefix"
+        ? `prefix:${this.searchQuery}`
+        : this.searchQuery;
 
     this.searchService.searchItems(query, "archives").subscribe(
       (results: ArchiveFile[]) => {
         const items = results.map((item) => ({
           ...item,
-          file: item.file.startsWith("/media") ? `http://localhost:8000${item.file}` : item.file,
+          file: item.file.startsWith("/media")
+            ? `http://localhost:8000${item.file}`
+            : item.file,
         }));
 
         const rootNode: TagNode = {
@@ -204,8 +235,8 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
   }
 
   copy_url(url: string) {
-    const endpoint = url.split('media')[1]
-    const new_url = 'http://host.docker.internal:8000/media' + endpoint
+    const endpoint = url.split("media")[1];
+    const new_url = "http://host.docker.internal:8000/media" + endpoint;
     this.clipboard.copy(new_url);
   }
 
@@ -227,7 +258,7 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
               type: "success",
               duration: 3000,
             });
-            this.loadInitialFiles();
+            this.refreshFiles(this.selectedNode);
           },
           (error) => {
             console.error("Error deleting file: ", error);
@@ -245,13 +276,13 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
   openAddPrefixDialog(): void {
     const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
       data: {
-        parentPrefix: this.selectedNode ? this.selectedNode.id : 'root',
+        parentPrefix: this.selectedNode ? this.selectedNode.id : "root",
         type: "archives",
       },
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadInitialFiles();
+      this.refreshFiles(this.selectedNode);
     });
   }
 
@@ -264,8 +295,28 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadInitialFiles();
+      this.refreshFiles(this.selectedNode);
     });
+  }
+
+  refreshFiles(node: TagNode): void {
+    if (!node) {
+      return;
+    }
+  
+    this.archivesService.fetchFilesByParent(node.id).subscribe(
+      (data) => {
+        node.children = this.buildTree(data.tree);
+        node.files = data.items;
+        node.isLoaded = true;
+  
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error refreshing flows:", error);
+      }
+    );
   }
 
   highlightText(text: string, query: string): string {

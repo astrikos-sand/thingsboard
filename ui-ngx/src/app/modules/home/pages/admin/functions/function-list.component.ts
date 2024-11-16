@@ -13,6 +13,7 @@ import { AddFunctionDialog } from "@home/pages/admin/functions/function-dialog.c
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { EditFunctionDialogComponent } from "./edit-function-dialog.component";
 import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
+import { SearchService } from "@app/core/services/search.service";
 
 interface FunctionNode {
   name: string;
@@ -37,11 +38,13 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
 
   treeControl = new NestedTreeControl<FunctionNode>((node) => node.children);
   functionTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
+  searchFilter: string = "name";
   searchQuery: string = "";
   selectedNode: FunctionNode | null = null;
 
   constructor(
     private nodeClassService: NodeClassService,
+    private searchService: SearchService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
     private clipboard: Clipboard,
@@ -70,13 +73,35 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
         this.functionTreeDataSource.data = [rootNode];
         this.selectedFunctions = data.items;
         this.dataSource.data = this.selectedFunctions;
-        this.treeControl.expand(rootNode);
-        this.selectedNode = rootNode;
+        if (this.selectedNode) {
+          const matchingNode = this.findNodeById(rootNode, this.selectedNode.id);
+          if (matchingNode) {
+            this.updateSelectedNode(matchingNode);
+            this.treeControl.expand(matchingNode);
+          }
+        } else {
+          this.treeControl.expand(rootNode);
+          this.selectedNode = rootNode;
+        }
+
       },
       (error) => {
         console.error("Error loading initial functions:", error);
       }
     );
+  }
+
+  findNodeById(node: FunctionNode, id: string): FunctionNode | null {
+    if (node.id === id) {
+      return node;
+    }
+    for (const child of node.children) {
+      const found = this.findNodeById(child, id);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
   }
 
   fetchChildFunctions(parentNode: FunctionNode): void {
@@ -183,7 +208,7 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
               type: "success",
               duration: 3000,
             });
-            this.loadInitialFunctions();
+            this.refreshFunctions(this.selectedNode);
           },
           () => {
             this.showNotification({
@@ -205,10 +230,9 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (!result) {
-        return;
+      if (result) {
+        this.refreshFunctions(this.selectedNode);
       }
-      this.dataSource.data = [result, ...this.dataSource.data];
     });
   }
 
@@ -230,21 +254,50 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  filterNodes(query: string): void {
-    this.searchQuery = query;
-    if (!query) {
-      this.functionTreeDataSource.data = this.functionTreeDataSource.data;
-      this.treeControl.expandDescendants(this.functionTreeDataSource.data[0]);
-    } else {
-      const filteredNodes = this.filterTree(
-        this.functionTreeDataSource.data,
-        query.toLowerCase()
-      );
-      this.functionTreeDataSource.data = filteredNodes;
-      if (filteredNodes.length > 0) {
-        this.treeControl.expandDescendants(filteredNodes[0]);
-      }
+  filterNodes(): void {
+    if (!this.searchQuery) {
+      this.loadInitialFunctions();
+      return;
     }
+
+    const query =
+      this.searchFilter === "prefix"
+        ? `prefix:${this.searchQuery}`
+        : this.searchQuery;
+
+    this.searchService.searchItems(query, "functions").subscribe(
+      (results: any[]) => {
+        const items = results.map((item) => ({
+          ...item,
+          id: item.id,
+          name: item.name,
+          description: item.description,
+        }));
+
+        const rootNode: FunctionNode = {
+          id: "search-root",
+          name: "Search Results",
+          children: [],
+          functions: items,
+          isLoaded: true,
+        };
+
+        this.functionTreeDataSource.data = [rootNode];
+        this.selectedFunctions = items;
+        this.dataSource.data = this.selectedFunctions;
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode;
+      },
+      (error) => {
+        console.error("Error searching flows:", error);
+      }
+    );
+  }
+
+  clearSearch(): void {
+    this.searchQuery = "";
+    this.functionTreeDataSource.data = [];
+    this.loadInitialFunctions();
   }
 
   filterTree(nodes: FunctionNode[], query: string): FunctionNode[] {
@@ -279,7 +332,7 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
   
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.loadInitialFunctions();
+        this.refreshFunctions(this.selectedNode);
       }
     });
   }
@@ -293,9 +346,30 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadInitialFunctions();
+      this.refreshFunctions(this.selectedNode);
     });
   }
+
+  refreshFunctions(node: FunctionNode): void {
+    if (!node) {
+      return;
+    }
+  
+    this.nodeClassService.fetchFunctionsByParent(node.id).subscribe(
+      (data) => {
+        node.children = this.buildTree(data.tree);
+        node.functions = data.items;
+        node.isLoaded = true;
+  
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error refreshing flows:", error);
+      }
+    );
+  }
+
 
   private showNotification(notification: NotificationMessage): void {
     this.toastNotificationService.dispatchNotification(notification);

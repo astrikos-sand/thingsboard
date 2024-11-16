@@ -16,6 +16,7 @@ import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
 import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
+import { SearchService } from "@app/core/services/search.service";
 
 interface FlowNode {
   name: string;
@@ -42,14 +43,16 @@ export class FlowListComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<any>(this.selectedFlows);
   treeControl = new NestedTreeControl<FlowNode>((node) => node.children);
   flowTreeDataSource = new MatTreeNestedDataSource<FlowNode>();
+  searchFilter: string = "name";
   searchQuery: string = "";
   selectedNode: FlowNode | null = null;
 
   @ViewChild(MatSort) sort: MatSort;
-  @ViewChild(MatPaginator) paginator: MatPaginator; // Added ViewChild for MatPaginator
+  @ViewChild(MatPaginator) paginator: MatPaginator;
 
   constructor(
     private flowService: FlowService,
+    private searchService: SearchService,
     private router: Router,
     public dialog: MatDialog,
     private clipboard: Clipboard,
@@ -78,15 +81,37 @@ export class FlowListComponent implements OnInit, AfterViewInit {
         this.flowTreeDataSource.data = [rootNode];
         this.selectedFlows = data.items;
         this.dataSource.data = this.selectedFlows;
-        this.treeControl.expand(rootNode);
-        this.selectedNode = rootNode;
+  
+        if (this.selectedNode) {
+          const matchingNode = this.findNodeById(rootNode, this.selectedNode.id);
+          if (matchingNode) {
+            this.updateSelectedNode(matchingNode);
+            this.treeControl.expand(matchingNode);
+          }
+        } else {
+          this.treeControl.expand(rootNode);
+          this.selectedNode = rootNode;
+        }
       },
       (error) => {
         console.error("Error loading initial flows:", error);
       }
     );
-  }
+  }  
 
+  findNodeById(node: FlowNode, id: string): FlowNode | null {
+    if (node.id === id) {
+      return node;
+    }
+    for (const child of node.children) {
+      const found = this.findNodeById(child, id);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }
+  
   fetchChildFlows(node: FlowNode): void {
     if (node.isLoaded) {
       this.updateSelectedNode(node);
@@ -159,20 +184,6 @@ export class FlowListComponent implements OnInit, AfterViewInit {
     this.router.navigate([`flows/library/${flowId}`]);
   }
 
-  openEditFlowDialog(flow): void {
-    const dialogRef = this.dialog.open(AddFlowDialogComponent, {
-      data: {
-        isEdit: true,
-        flowId: flow.id,
-        flowName: flow.name,
-        selectedEnv: flow.lib
-      },
-    });
-    dialogRef.afterClosed().subscribe(() => {
-      this.loadInitialFlows();
-    });
-  }
-
   duplicate_flow(flowId: string): void {
     this.flowService.duplicateFlow(flowId).subscribe(
       () => {
@@ -190,11 +201,27 @@ export class FlowListComponent implements OnInit, AfterViewInit {
         selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
       },
     });
-    dialogRef.afterClosed().subscribe(() => {
-      this.loadInitialFlows();
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.refreshFlows(this.selectedNode);
+      }
     });
   }
-
+  
+  openEditFlowDialog(flowId: string): void {
+    const dialogRef = this.dialog.open(AddFlowDialogComponent, {
+      data: {
+        isEdit: true,
+        flowId: flowId,
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.refreshFlows(this.selectedNode);
+      }
+    });
+  }
+  
   openAddPrefixDialog(): void {
     const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
       data: {
@@ -202,10 +229,31 @@ export class FlowListComponent implements OnInit, AfterViewInit {
         type: "flows",
       },
     });
-
-    dialogRef.afterClosed().subscribe(() => {
-      this.loadInitialFlows();
+  
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.refreshFlows(this.selectedNode);
+      }
     });
+  }
+  refreshFlows(node: FlowNode): void {
+    if (!node) {
+      return;
+    }
+  
+    this.flowService.fetchFlowsByParent(node.id).subscribe(
+      (data) => {
+        node.children = this.buildTree(data.tree);
+        node.flows = data.items;
+        node.isLoaded = true;
+  
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error refreshing flows:", error);
+      }
+    );
   }
 
   export_flow(event: Event, flowId: string): void {
@@ -213,21 +261,51 @@ export class FlowListComponent implements OnInit, AfterViewInit {
     window.open(`/backend/tasks/${flowId}/export_flow/`, "_blank");
   }
 
-  filterNodes(query: string): void {
-    this.searchQuery = query;
-    if (!query) {
-      this.flowTreeDataSource.data = this.flowTreeDataSource.data;
-      this.treeControl.expandDescendants(this.flowTreeDataSource.data[0]);
-    } else {
-      const filteredNodes = this.filterTree(
-        this.flowTreeDataSource.data,
-        query.toLowerCase()
-      );
-      this.flowTreeDataSource.data = filteredNodes;
-      if (filteredNodes.length > 0) {
-        this.treeControl.expandDescendants(filteredNodes[0]);
-      }
+  filterNodes(): void {
+    if (!this.searchQuery) {
+      this.loadInitialFlows();
+      return;
     }
+
+    const query =
+      this.searchFilter === "prefix"
+        ? `prefix:${this.searchQuery}`
+        : this.searchQuery;
+
+    this.searchService.searchItems(query, "flows").subscribe(
+      (results: any[]) => {
+        const items = results.map((item) => ({
+          ...item,
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          environment: item.environment,
+        }));
+
+        const rootNode: FlowNode = {
+          id: "search-root",
+          name: "Search Results",
+          children: [],
+          flows: items,
+          isLoaded: true,
+        };
+
+        this.flowTreeDataSource.data = [rootNode];
+        this.selectedFlows = items;
+        this.dataSource.data = this.selectedFlows;
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode;
+      },
+      (error) => {
+        console.error("Error searching flows:", error);
+      }
+    );
+  }
+
+  clearSearch(): void {
+    this.searchQuery = "";
+    this.flowTreeDataSource.data = [];
+    this.loadInitialFlows();
   }
 
   filterTree(nodes: FlowNode[], query: string): FlowNode[] {

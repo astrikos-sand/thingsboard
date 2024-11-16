@@ -4,13 +4,22 @@
       <div fxLayout="row" class="tb-entity-table-content tb-outlined-border">
         <div fxFlex="30" class="tree-container scrollable-container">
           <mat-form-field appearance="outline">
-            <mat-label>Search Folders</mat-label>
+            <mat-label>Search Type</mat-label>
+            <mat-select [(value)]="searchFilter">
+              <mat-option value="name">Name</mat-option>
+              <mat-option value="prefix">Prefix</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Search Functions</mat-label>
             <input
               matInput
-              (input)="filterNodes($event.target.value)"
-              placeholder="Search folders..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="filterNodes()"
+              placeholder="Search functions..."
             />
           </mat-form-field>
+          <button mat-button (click)="clearSearch()">Clear Search</button>
           <mat-tree
             [dataSource]="functionTreeDataSource"
             [treeControl]="treeControl"
