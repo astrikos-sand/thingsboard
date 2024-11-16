@@ -25,6 +25,7 @@ function CustomNode({
     setEdges,
   } = useContext(FlowContext) as FlowContextType;
   const [openScopes, setOpenScopes] = useState<boolean>(false);
+  const [showDescription, setShowDescription] = useState<boolean>(false); // Hover state
   const { setOpenEditingDialogBox } = useContext(FlowContext) as FlowContextType;
   data.styles = data.styles || {};
 
@@ -133,7 +134,7 @@ function CustomNode({
   };
 
   const handleEditClick = () => {
-    console.log(data)
+    console.log(data);
     setOpenEditingDialogBox(data);
   };
 
@@ -144,10 +145,23 @@ function CustomNode({
         backgroundColor: color,
         opacity: data.styles.opacity ? data.styles.opacity : 1,
       }}
+      onMouseEnter={() => {
+        if (data.node_type === "FunctionNode") {
+          setShowDescription(true);
+        }
+      }}
+      onMouseLeave={() => setShowDescription(false)}
     >
       <div className="custom-node__header">
-        <strong>{data.node_type}: {nodeName}</strong>
+        <strong>
+          {data.node_type}: {nodeName}
+        </strong>
       </div>
+      {showDescription && (
+        <div className="custom-node__description">
+          <em>{data.definition.description || "No description available"}</em>
+        </div>
+      )}
       <div className="custom-node__body">
         {data.input_slots?.map((input: any) => (
           <div
