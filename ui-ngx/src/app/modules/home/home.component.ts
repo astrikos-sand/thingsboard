@@ -32,7 +32,7 @@ import { instanceOfSearchableComponent, ISearchableComponent } from '@home/model
 import { ActiveComponentService } from '@core/services/active-component.service';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { FormBuilder } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { isDefined, isDefinedAndNotNull } from '@core/utils';
 
 @Component({
@@ -73,7 +73,8 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
               @Inject(WINDOW) private window: Window,
               private activeComponentService: ActiveComponentService,
               private fb: FormBuilder,
-              public breakpointObserver: BreakpointObserver) {
+              public breakpointObserver: BreakpointObserver,
+              private router: Router) {
     super(store);
   }
 
@@ -96,8 +97,38 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
           }
         }
       );
-  }
+      this.router.events.pipe(takeUntil(this.destroy$)).subscribe(() => {
+        this.updateSidenavBasedOnRoute();
+      });
+    
+      this.updateSidenavBasedOnRoute();    
 
+  }private updateSidenavMode(isGtSm: boolean) {
+    this.sidenavMode = isGtSm ? 'side' : 'over';
+    this.sidenavOpened = isGtSm;
+  }
+  
+  private updateSidenavBasedOnRoute() {
+    const currentUrl = this.router.url;
+    const isFlowMapRoute = this.isFlowMapRoute();
+  
+    if (isFlowMapRoute) {
+      // Collapse sidebar for specific route
+      this.sidenavMode = 'over';
+      this.sidenavOpened = false;
+    } else {
+      // Use breakpoint observer for other routes
+      const isGtSm = this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm']);
+      this.updateSidenavMode(isGtSm);
+    }
+  }
+  
+  private isFlowMapRoute(): boolean {
+    const currentUrl = this.router.url;
+    const flowMapRegex = /^\/flows\/library\/[^/]+$/;
+    return flowMapRegex.test(currentUrl);
+  }
+  
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
