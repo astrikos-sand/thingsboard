@@ -208,11 +208,13 @@ export class FlowListComponent implements OnInit, AfterViewInit {
     });
   }
   
-  openEditFlowDialog(flowId: string): void {
+  openEditFlowDialog(flow): void {
     const dialogRef = this.dialog.open(AddFlowDialogComponent, {
       data: {
         isEdit: true,
-        flowId: flowId,
+        flowId: flow.id,
+        flowName: flow.name,
+        selectedEnv: flow.lib
       },
     });
     dialogRef.afterClosed().subscribe((result) => {

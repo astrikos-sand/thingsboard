@@ -183,9 +183,6 @@ export class EnvComponent implements OnInit, AfterViewInit {
       (results: EnvFile[]) => {
         const items = results.map((item) => ({
           ...item,
-          requirements: item.requirements.startsWith("/media")
-            ? `http://localhost:8000${item.requirements}`
-            : item.requirements,
         }));
 
         const rootNode: EnvNode = {

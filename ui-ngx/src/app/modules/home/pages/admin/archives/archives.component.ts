@@ -186,9 +186,6 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
       (results: ArchiveFile[]) => {
         const items = results.map((item) => ({
           ...item,
-          file: item.file.startsWith("/media")
-            ? `http://localhost:8000${item.file}`
-            : item.file,
         }));
 
         const rootNode: TagNode = {

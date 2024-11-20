@@ -138,8 +138,15 @@ export class AddNewNodeDialog implements OnInit {
     }
 
     const fieldType = this.determineFieldType(field.get("label")?.value);
-    console.log(field.get("label")?.value)
-    if (searchTerm.length < 2) return;
+
+    if (searchTerm.length == 0) {
+
+      return
+    }
+
+    if (searchTerm == "*") {
+      searchTerm = "";
+    }
 
     const formattedSearchTerm =
       this.searchType === "prefix" ? `prefix:${searchTerm}` : searchTerm;
