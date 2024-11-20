@@ -181,6 +181,7 @@ import { PeriodicTriggerDialogComponent } from '../pages/admin/periodic-trigger/
 import { EditFunctionDialogComponent } from '../pages/admin/functions/edit-function-dialog.component';
 import { AddPrefixDialogComponent } from '../pages/admin/prefix/add-prefix-dialog.component';
 import { ViewExecutionsDialogComponent } from '../pages/admin/flow/view-executions-dialog.component';
+import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.component';
 
 @NgModule({
   declarations:
@@ -194,6 +195,7 @@ import { ViewExecutionsDialogComponent } from '../pages/admin/flow/view-executio
       EditFunctionDialogComponent,
       EditNodeDialogComponent,
       UploadFileDialogComponent,
+      CreateEnvDialogComponent,
       WebhookDialogComponent,
       PeriodicTriggerDialogComponent,
       AddPrefixDialogComponent,
@@ -354,6 +356,7 @@ import { ViewExecutionsDialogComponent } from '../pages/admin/flow/view-executio
     PeriodicTriggerDialogComponent,
     EditNodeDialogComponent,
     UploadFileDialogComponent,
+    CreateEnvDialogComponent,
     AddPrefixDialogComponent,
     ViewExecutionsDialogComponent,
     DetailsPanelComponent,

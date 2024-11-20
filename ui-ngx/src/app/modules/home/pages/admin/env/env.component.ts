@@ -12,47 +12,43 @@ import { MatPaginator } from "@angular/material/paginator";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
-import {
-  ArchivesService,
-  ArchiveFile,
-  ArchiveData,
-} from "@app/core/services/archives.service";
+import { EnvService, EnvFile, EnvData } from "@app/core/services/env.service";
 import { SearchService } from "@app/core/services/search.service";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
 import { NotificationMessage } from "@app/core/notification/notification.models";
-import { UploadFileDialogComponent } from "./upload-file-dialog.component";
+import { CreateEnvDialogComponent } from "./create-env-dialog.component";
 import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
 
-interface TagNode {
+interface EnvNode {
   name: string;
   id: string;
-  children?: TagNode[];
-  files?: ArchiveFile[];
+  children?: EnvNode[];
+  files?: EnvFile[];
   isLoaded?: boolean;
 }
 
 @Component({
-  selector: "app-archives",
-  templateUrl: "./archives.component.html",
-  styleUrls: ["./archives.component.scss"],
+  selector: "app-env",
+  templateUrl: "./env.component.html",
+  styleUrls: ["./env.component.scss"],
 })
-export class ArchivesComponent implements OnInit, AfterViewInit {
-  dataSource = new MatTableDataSource<ArchiveFile>();
+export class EnvComponent implements OnInit, AfterViewInit {
+  dataSource = new MatTableDataSource<EnvFile>();
   displayedColumns: string[] = ["name", "actions"];
   searchFilter: string = "name";
   searchQuery: string = "";
 
+  treeControl = new NestedTreeControl<EnvNode>((node) => node.children);
+  envTreeDataSource = new MatTreeNestedDataSource<EnvNode>();
+  selectedFiles: EnvFile[] = [];
+  selectedNode: EnvNode | null = null;
+
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  treeControl = new NestedTreeControl<TagNode>((node) => node.children);
-  tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
-  selectedFiles: ArchiveFile[] = [];
-  selectedNode: TagNode | null = null;
-
   constructor(
-    private archivesService: ArchivesService,
+    private envService: EnvService,
     private searchService: SearchService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
@@ -61,7 +57,7 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadInitialFiles();
+    this.loadInitialEnvs();
   }
 
   ngAfterViewInit(): void {
@@ -69,20 +65,19 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     this.dataSource.sort = this.sort;
   }
 
-  loadInitialFiles(): void {
-    this.archivesService.getFileArchives().subscribe(
-      (data: ArchiveData) => {
-        const rootNode: TagNode = {
+  loadInitialEnvs(): void {
+    this.envService.getEnvs().subscribe(
+      (data: EnvData) => {
+        const rootNode: EnvNode = {
           id: "root",
-          name: "Archives",
+          name: "Environments",
           children: this.buildTree(data.tree),
           files: data.items,
           isLoaded: true,
         };
-        this.tagTreeDataSource.data = [rootNode];
+        this.envTreeDataSource.data = [rootNode];
         this.selectedFiles = data.items;
         this.dataSource.data = this.selectedFiles;
-
         if (this.selectedNode) {
           const matchingNode = this.findNodeById(rootNode, this.selectedNode.id);
           if (matchingNode) {
@@ -93,14 +88,15 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
           this.treeControl.expand(rootNode);
           this.selectedNode = rootNode;
         }
+
       },
       (error) => {
-        console.error("Error loading initial files:", error);
+        console.error("Error loading environments:", error);
       }
     );
   }
 
-  findNodeById(node: TagNode, id: string): TagNode | null {
+  findNodeById(node: EnvNode, id: string): EnvNode | null {
     if (node.id === id) {
       return node;
     }
@@ -113,13 +109,14 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     return null;
   }
 
-  fetchChildFiles(node: TagNode): void {
+  fetchChildNodes(node: EnvNode): void {
     if (node.isLoaded) {
       this.updateSelectedNode(node);
       return;
     }
-    this.archivesService.fetchFilesByParent(node.id).subscribe(
-      (data: ArchiveData) => {
+
+    this.envService.fetchEnvsByParent(node.id).subscribe(
+      (data: EnvData) => {
         node.children = this.buildTree(data.tree);
         node.files = data.items;
         node.isLoaded = true;
@@ -128,12 +125,12 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
         this.refreshTreeData();
       },
       (error) => {
-        console.error("Error fetching child files:", error);
+        console.error("Error fetching child nodes:", error);
       }
     );
   }
 
-  toggleNode(node: TagNode): void {
+  toggleNode(node: EnvNode): void {
     if (this.treeControl.isExpanded(node)) {
       this.treeControl.collapse(node);
     } else {
@@ -141,13 +138,13 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     }
 
     if (!node.isLoaded && this.treeControl.isExpanded(node)) {
-      this.fetchChildFiles(node);
+      this.fetchChildNodes(node);
     }
 
     this.updateSelectedNode(node);
   }
 
-  updateSelectedNode(node: TagNode): void {
+  updateSelectedNode(node: EnvNode): void {
     this.selectedNode = node;
     this.selectedFiles = node.files || [];
     this.dataSource.data = this.selectedFiles;
@@ -155,13 +152,13 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
   }
 
   refreshTreeData(): void {
-    const data = this.tagTreeDataSource.data;
-    this.tagTreeDataSource.data = null;
-    this.tagTreeDataSource.data = data;
+    const data = this.envTreeDataSource.data;
+    this.envTreeDataSource.data = null;
+    this.envTreeDataSource.data = data;
     this.cdr.detectChanges();
   }
 
-  buildTree(nodes: any[]): TagNode[] {
+  buildTree(nodes: any[]): EnvNode[] {
     return nodes.map((node) => ({
       name: node.name,
       id: node.id,
@@ -171,9 +168,9 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     }));
   }
 
-  filterNodes(): void {
+  searchNodes(): void {
     if (!this.searchQuery) {
-      this.loadInitialFiles();
+      this.loadInitialEnvs();
       return;
     }
 
@@ -182,13 +179,13 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
         ? `prefix:${this.searchQuery}`
         : this.searchQuery;
 
-    this.searchService.searchItems(query, "archives").subscribe(
-      (results: ArchiveFile[]) => {
+    this.searchService.searchItems(query, "environments").subscribe(
+      (results: EnvFile[]) => {
         const items = results.map((item) => ({
           ...item,
         }));
 
-        const rootNode: TagNode = {
+        const rootNode: EnvNode = {
           id: "search-root",
           name: "Search Results",
           children: [],
@@ -196,31 +193,48 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
           isLoaded: true,
         };
 
-        this.tagTreeDataSource.data = [rootNode];
+        this.envTreeDataSource.data = [rootNode];
         this.selectedFiles = items;
         this.dataSource.data = this.selectedFiles;
         this.treeControl.expand(rootNode);
         this.selectedNode = rootNode;
       },
       (error) => {
-        console.error("Error searching archives:", error);
+        console.error("Error searching environments:", error);
       }
     );
   }
 
   clearSearch(): void {
     this.searchQuery = "";
-    this.tagTreeDataSource.data = [];
-    this.loadInitialFiles();
+    this.envTreeDataSource.data = [];
+    this.loadInitialEnvs();
   }
 
-  onNodeSelect(node: TagNode): void {
-    this.fetchChildFiles(node);
+  openAddPrefixDialog(): void {
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        parentPrefix: this.selectedNode ? this.selectedNode.id : "root",
+        type: "environments",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.refreshEnvs(this.selectedNode);
+    });
   }
 
-  copyId(id: string) {
-    this.clipboard.copy(id);
-    alert("Copied ID: " + id);
+  openCreateEnvDialog(): void {
+    const dialogRef = this.dialog.open(CreateEnvDialogComponent, {
+      width: "400px",
+      data: {
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.refreshEnvs(this.selectedNode);
+    });
   }
 
   openFile(filepath: string): void {
@@ -231,36 +245,35 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     window.open(url, "_blank");
   }
 
-  copy_url(url: string) {
-    const endpoint = url.split("media")[1];
-    const new_url = "http://host.docker.internal:8000/media" + endpoint;
-    this.clipboard.copy(new_url);
+  copyId(id: string) {
+    this.clipboard.copy(id);
+    alert("Copied ID: " + id);
   }
 
-  deleteFile(fileId: string): void {
+  deleteEnv(envId: string): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: "Confirm Deletion",
-        message: "Are you sure you want to delete this file?",
+        message: "Are you sure you want to delete this environment?",
         ok: "Delete",
       },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.archivesService.deleteFile(fileId).subscribe(
+        this.envService.deleteEnv(envId).subscribe(
           () => {
             this.showNotification({
-              message: "File deleted successfully",
+              message: "Environment deleted successfully",
               type: "success",
               duration: 3000,
             });
-            this.refreshFiles(this.selectedNode);
+            this.refreshEnvs(this.selectedNode);
           },
           (error) => {
-            console.error("Error deleting file: ", error);
+            console.error("Error deleting environment: ", error);
             this.showNotification({
-              message: "Error deleting file",
+              message: "Error deleting environment",
               type: "error",
               duration: 3000,
             });
@@ -270,38 +283,12 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     });
   }
 
-  openAddPrefixDialog(): void {
-    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
-      data: {
-        parentPrefix: this.selectedNode ? this.selectedNode.id : "root",
-        type: "archives",
-      },
-    });
-
-    dialogRef.afterClosed().subscribe(() => {
-      this.refreshFiles(this.selectedNode);
-    });
-  }
-
-  openAddFileDialog(): void {
-    const dialogRef = this.dialog.open(UploadFileDialogComponent, {
-      width: "400px",
-      data: {
-        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
-      },
-    });
-
-    dialogRef.afterClosed().subscribe(() => {
-      this.refreshFiles(this.selectedNode);
-    });
-  }
-
-  refreshFiles(node: TagNode): void {
+  refreshEnvs(node: EnvNode): void {
     if (!node) {
       return;
     }
   
-    this.archivesService.fetchFilesByParent(node.id).subscribe(
+    this.envService.fetchEnvsByParent(node.id).subscribe(
       (data) => {
         node.children = this.buildTree(data.tree);
         node.files = data.items;
@@ -314,14 +301,6 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
         console.error("Error refreshing flows:", error);
       }
     );
-  }
-
-  highlightText(text: string, query: string): string {
-    if (!query) {
-      return text;
-    }
-    const regex = new RegExp(`(${query})`, "gi");
-    return text.replace(regex, '<span class="highlight">$1</span>');
   }
 
   private showNotification(notification: NotificationMessage): void {

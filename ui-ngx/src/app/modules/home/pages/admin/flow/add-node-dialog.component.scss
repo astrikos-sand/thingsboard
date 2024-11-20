@@ -4,6 +4,13 @@ form {
   display: flex;
   flex-direction: column;
 
+  .search-container .dropdown-small {
+    width: 25%; /* Adjust as needed */
+  }
+
+  .search-container .search-input {
+    width: 75%; /* Adjust as needed */
+  }
   mat-toolbar {
     display: flex;
     justify-content: space-between;

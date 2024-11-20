@@ -1,4 +1,10 @@
-import { Component, Inject, OnInit, ChangeDetectorRef } from "@angular/core";
+import {
+  Component,
+  Inject,
+  OnInit,
+  ChangeDetectorRef,
+  ViewChild,
+} from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import {
   FormGroup,
@@ -8,13 +14,15 @@ import {
   AbstractControl,
 } from "@angular/forms";
 import { FlowService } from "@app/core/services/flow.service";
+import { SearchService } from "@app/core/services/search.service";
+import { MatSelect } from "@angular/material/select";
 
 interface FieldConfig {
   type: string;
   placeholder: string;
   required: boolean;
   label: string;
-  choices?: Array<[string, string]>;
+  choices?: Array<{ value: string; label: string }>;
   fields?: FieldConfig[];
 }
 
@@ -28,12 +36,16 @@ export class AddNewNodeDialog implements OnInit {
   nodeTypes: string[] = [];
   formFields: FieldConfig[] = [];
   isLoading: boolean = false;
+  dropdownOptionsCache: { [key: string]: any[] } = {};
+  searchType: string = "name";
+  filteredOptions: any[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<AddNewNodeDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder,
     private flowService: FlowService,
+    private searchService: SearchService,
     private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
@@ -111,6 +123,56 @@ export class AddNewNodeDialog implements OnInit {
       }
     });
     this.cdr.detectChanges();
+  }
+
+  onSearchTypeChange(event: any): void {
+    this.searchType = event.value;
+  }
+
+  onDropdownSearch(searchTerm: string, fieldIndex: number): void {
+    const field = this.fields.at(fieldIndex);
+
+    if (field.get("label")?.value === "value_type") {
+      this.filteredOptions = field.get("choices")?.value || [];
+      return;
+    }
+
+    const fieldType = this.determineFieldType(field.get("label")?.value);
+
+    if (searchTerm.length == 0) {
+
+      return
+    }
+
+    if (searchTerm == "*") {
+      searchTerm = "";
+    }
+
+    const formattedSearchTerm =
+      this.searchType === "prefix" ? `prefix:${searchTerm}` : searchTerm;
+    this.searchService.searchItems(formattedSearchTerm, fieldType).subscribe(
+      (results: any[]) => {
+        this.filteredOptions = results.map((item) => ({
+          value: item.id,
+          label: item.name,
+        }));
+        this.cdr.detectChanges();
+      },
+      (error) => {
+        console.error("Error fetching search results:", error);
+      }
+    );
+  }
+
+  determineFieldType(label: string): string {
+    switch (label) {
+      case "represent":
+        return "flows";
+      case "definition":
+        return "functions";
+      default:
+        return "general";
+    }
   }
 
   addSlot(fieldIndex: number): void {
@@ -197,7 +259,6 @@ export class AddNewNodeDialog implements OnInit {
               ...rest,
             },
           };
-          console.log(newDataNode);
           this.data.addNode(newDataNode);
           this.isLoading = false;
           this.dialogRef.close();

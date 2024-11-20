@@ -4,21 +4,27 @@
       <div fxLayout="row" class="tb-entity-table-content tb-outlined-border">
         <div fxFlex="30" class="tree-container scrollable-container">
           <mat-form-field appearance="outline">
-            <mat-label>Search Folders</mat-label>
+            <mat-label>Search Type</mat-label>
+            <mat-select [(value)]="searchFilter">
+              <mat-option value="name">Name</mat-option>
+              <mat-option value="prefix">Prefix</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Search Flows</mat-label>
             <input
               matInput
-              (input)="filterNodes($event.target.value)"
-              placeholder="Search folders..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="filterNodes()"
+              placeholder="Search flows..."
             />
           </mat-form-field>
+          <button mat-button (click)="clearSearch()">Clear Search</button>
           <mat-tree
             [dataSource]="flowTreeDataSource"
             [treeControl]="treeControl"
           >
-            <mat-nested-tree-node
-              *matTreeNodeDef="let node"
-              matTreeNodePadding
-            >
+            <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
               <div
                 class="mat-tree-node-content hover-pointer"
                 (click)="toggleNode(node)"
@@ -64,17 +70,13 @@
               Add Flow
             </button>
           </mat-toolbar>
-          <mat-table
-            [dataSource]="dataSource"
-            matSort
-            class="mat-elevation-z8"
-          >
+          <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
             <ng-container matColumnDef="id">
               <mat-header-cell *matHeaderCellDef mat-sort-header>
                 Flow ID
               </mat-header-cell>
               <mat-cell *matCellDef="let flow">
-                {{ flow?.id | slice: 0:7 }}
+                {{ flow?.id | slice : 0 : 7 }}
               </mat-cell>
             </ng-container>
             <ng-container matColumnDef="name">

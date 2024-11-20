@@ -40,6 +40,7 @@ import { ArchivesComponent } from './archives/archives.component';
 import { FunctionListComponent } from './functions/function-list.component';
 import { WebhookComponent } from './webhook/webhook.component';
 import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
+import { EnvComponent } from './env/env.component';
 
 @NgModule({
   declarations:
@@ -60,6 +61,7 @@ import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.co
       FlowMapComponent,
       FlowListComponent,
       ArchivesComponent,
+      EnvComponent,
       FunctionListComponent,
       WebhookComponent,
       PeriodicTriggerComponent,
