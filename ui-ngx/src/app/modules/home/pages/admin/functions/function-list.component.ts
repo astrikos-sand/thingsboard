@@ -195,7 +195,8 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: "Confirm Deletion",
-        message: "Are you sure you want to delete this file?",
+        message: "Are you sure you want to delete this function?",
+        ok: "Delete",
       },
     });
 

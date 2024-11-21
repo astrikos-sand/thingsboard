@@ -1,9 +1,10 @@
 import { Component, Inject, ViewChild, OnInit } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { FormBuilder, FormGroup } from "@angular/forms";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { MonacoEditorConstructionOptions, MonacoEditorComponent } from "@materia-ui/ngx-monaco-editor";
 import { NodeClassService } from "@app/core/services/node-classes.service";
 import { HttpClient } from "@angular/common/http";
+import { FlowService } from "@app/core/services/flow.service";
 
 @Component({
   selector: "app-edit-function-dialog",
@@ -16,6 +17,7 @@ export class EditFunctionDialogComponent implements OnInit {
   functionSignature: string = "";
   functionBody: string = "";
   functionReturn: string = "";
+  prefixes: string[] = [];
 
   @ViewChild(MonacoEditorComponent, { static: false }) monacoComponent: MonacoEditorComponent | undefined;
 
@@ -25,7 +27,7 @@ export class EditFunctionDialogComponent implements OnInit {
     automaticLayout: true,
     scrollBeyondLastLine: true,
     smoothScrolling: true,
-    minimap: { enabled: true },
+    minimap: { enabled: false },
     scrollbar: {
       vertical: "visible",
       horizontal: "visible",
@@ -39,15 +41,21 @@ export class EditFunctionDialogComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<EditFunctionDialogComponent>,
     private fb: FormBuilder,
+    private flowService: FlowService,
     private nodeClassService: NodeClassService,
     private http: HttpClient,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
-    this.form = this.fb.group({});
+    this.form = this.fb.group({
+      name: [this.data.functionData.name, Validators.required],
+      description: [this.data.functionData.description, Validators.required],
+      selectedPrefix: [this.data.functionData.prefix, Validators.required],
+    });
   }
 
   ngOnInit(): void {
     this.loadFunctionCode();
+    this.loadPrefixes();
   }
 
   loadFunctionCode(): void {
@@ -79,6 +87,12 @@ export class EditFunctionDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
+  loadPrefixes() {
+    this.flowService.getPrefixes("functions").subscribe((response: any) => {
+      this.prefixes = response.tree.map((prefix: any) => prefix);
+    });
+  }
+
   save(): void {
     if (this.isLoading) return;
 
@@ -94,6 +108,9 @@ export class EditFunctionDialogComponent implements OnInit {
     const blob = new Blob([updatedCode], { type: 'text/plain' });
     const formData = new FormData();
     formData.append("code", blob, `${this.data.functionData.name}--updatecode.py`);
+    formData.append("name", this.form.value.name);
+    formData.append("description", this.form.value.description);
+    formData.append("prefix", this.form.value.selectedPrefix == 'root' ? null : this.form.value.selectedPrefix);
 
     this.nodeClassService.updateFunction(updatedFunction, formData).subscribe(
       () => {

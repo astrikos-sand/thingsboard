@@ -17,6 +17,7 @@ export class AddFlowDialogComponent implements OnInit {
   selectedPrefix: string = "";
   flowId: string = "";
   isEdit: boolean = false;
+  prefixes: string[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<AddFlowDialogComponent>,
@@ -29,11 +30,16 @@ export class AddFlowDialogComponent implements OnInit {
       this.isEdit = true;
       this.flowName = data.flowName;
       this.selectedEnv = data.selectedEnv;
+      this.description = data.description;
     }
   }
 
   ngOnInit(): void {
     this.loadEnvironments();
+
+    if (this.isEdit) {
+      this.loadPrefixes();
+    }
   }
 
   loadEnvironments(): void {
@@ -45,6 +51,12 @@ export class AddFlowDialogComponent implements OnInit {
         console.error("Error loading environments:", error);
       }
     );
+  }
+
+  loadPrefixes() {
+    this.flowService.getPrefixes("flows").subscribe((response: any) => {
+      this.prefixes = response.tree.map((prefix: any) => prefix);
+    });
   }
 
   cancel(): void {
@@ -80,6 +92,8 @@ export class AddFlowDialogComponent implements OnInit {
       const flowData = {
         lib: this.selectedEnv,
         name: this.flowName,
+        description: this.description,
+        prefix: this.selectedPrefix == 'root' ? null : this.selectedPrefix,
       };
       this.flowService.editFlow(this.flowId, flowData).subscribe(
         (newFlow) => {

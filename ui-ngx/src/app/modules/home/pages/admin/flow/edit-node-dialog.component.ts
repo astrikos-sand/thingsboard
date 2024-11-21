@@ -39,6 +39,7 @@ export class EditNodeDialogComponent implements OnInit {
   constructField(field: any, node_data: any) {
     switch (field["type"]) {
       case "span":
+      case "markdown":
       case "p": {
         const keys = field["key"];
         const label = field["label"];

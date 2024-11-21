@@ -17,6 +17,9 @@ import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
 import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
 import { SearchService } from "@app/core/services/search.service";
+import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
+import { ToastNotificationService } from "@core/services/toast-notification.service";
+import { NotificationMessage } from "@app/core/notification/notification.models";
 
 interface FlowNode {
   name: string;
@@ -53,6 +56,7 @@ export class FlowListComponent implements OnInit, AfterViewInit {
   constructor(
     private flowService: FlowService,
     private searchService: SearchService,
+    private toastNotificationService: ToastNotificationService,
     private router: Router,
     public dialog: MatDialog,
     private clipboard: Clipboard,
@@ -161,6 +165,38 @@ export class FlowListComponent implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
+  deleteFlow(flowId: string): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: "Are you sure you want to delete this flow?",
+        ok: "Delete",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.flowService.deleteFlow(flowId).subscribe(
+          () => {
+            this.showNotification({
+              message: "File deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            this.refreshFlows(this.selectedNode);
+          },
+          () => {
+            this.showNotification({
+              message: "Error deleting file",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
+    });
+  }
+
   buildTree(nodes: any[]): FlowNode[] {
     return nodes.map((node) => ({
       name: node.name,
@@ -214,7 +250,9 @@ export class FlowListComponent implements OnInit, AfterViewInit {
         isEdit: true,
         flowId: flow.id,
         flowName: flow.name,
-        selectedEnv: flow.lib
+        selectedEnv: flow.lib,
+        description: flow.description,
+        selectedPrefix: flow.prefix,
       },
     });
     dialogRef.afterClosed().subscribe((result) => {
@@ -238,6 +276,7 @@ export class FlowListComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
   refreshFlows(node: FlowNode): void {
     if (!node) {
       return;
@@ -310,6 +349,12 @@ export class FlowListComponent implements OnInit, AfterViewInit {
     this.loadInitialFlows();
   }
 
+  deletePrefix() {
+  }
+
+  openEditPrefixDialog() {
+  }
+
   filterTree(nodes: FlowNode[], query: string): FlowNode[] {
     return nodes
       .map((node) => ({ ...node }))
@@ -331,5 +376,9 @@ export class FlowListComponent implements OnInit, AfterViewInit {
     }
     const regex = new RegExp(`(${query})`, "gi");
     return text.replace(regex, '<span class="highlight">$1</span>');
+  }
+
+  private showNotification(notification: NotificationMessage): void {
+    this.toastNotificationService.dispatchNotification(notification);
   }
 }

@@ -61,6 +61,12 @@
         <mat-error *ngIf="submitted && !flowName">Flow Name is required.</mat-error>
       </mat-form-field>
       <mat-form-field>
+        <mat-label>Description</mat-label>
+        <textarea matInput placeholder="Enter Description" [(ngModel)]="description" name="description"
+          required></textarea>
+        <mat-error *ngIf="submitted && !description">Description is required.</mat-error>
+      </mat-form-field>
+      <mat-form-field>
         <mat-label>Environment</mat-label>
         <mat-select [(ngModel)]="selectedEnv" name="environment" required>
           <mat-option *ngFor="let env of environments" [value]="env.id">
@@ -68,6 +74,13 @@
           </mat-option>
         </mat-select>
         <mat-error *ngIf="submitted && !selectedEnv">Environment is required.</mat-error>
+      </mat-form-field>
+    
+      <mat-form-field>
+        <mat-label>Prefix</mat-label>
+          <mat-select [(ngModel)]="selectedPrefix" name="prefix" required>
+            <mat-option *ngFor="let prefix of prefixes" [value]="prefix.id">{{ prefix.full_name }}</mat-option>
+          </mat-select>
       </mat-form-field>
     </div>
     <div mat-dialog-actions fxLayoutAlign="end center">

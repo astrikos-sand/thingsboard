@@ -54,6 +54,10 @@ export class TriggerService {
     return this.http.post<any>(`${this.apiUrl}webhook/`, data);
   }
 
+  deleteWebhook(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}webhook/${id}/`);
+  }
+
   getPeriodicTriggers(): Observable<PeriodicTrigger[]> {
     return this.http.get<PeriodicTrigger[]>(`${this.apiUrl}periodic/`);
   }
@@ -62,7 +66,7 @@ export class TriggerService {
     return this.http.post<any>(`${this.apiUrl}periodic/`, data);
   }
 
-  getTasks(): Observable<Task[]> {
-    return this.http.get<Task[]>(`${this.apiUrl}tasks/`);
+  deletePeriodicTrigger(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}periodic/${id}/`);
   }
 }
