@@ -41,6 +41,7 @@ import { FunctionListComponent } from './functions/function-list.component';
 import { WebhookComponent } from './webhook/webhook.component';
 import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
 import { EnvComponent } from './env/env.component';
+import { MarkdownModule } from 'ngx-markdown';
 
 @NgModule({
   declarations:
@@ -72,6 +73,7 @@ import { EnvComponent } from './env/env.component';
     HomeComponentsModule,
     AdminRoutingModule,
     ReactFlowWrapper,
+    MarkdownModule.forRoot()
   ]
 })
 export class AdminModule { }

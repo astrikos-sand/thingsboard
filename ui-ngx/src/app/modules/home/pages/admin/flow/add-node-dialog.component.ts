@@ -140,7 +140,6 @@ export class AddNewNodeDialog implements OnInit {
     const fieldType = this.determineFieldType(field.get("label")?.value);
 
     if (searchTerm.length == 0) {
-
       return
     }
 
@@ -154,7 +153,7 @@ export class AddNewNodeDialog implements OnInit {
       (results: any[]) => {
         this.filteredOptions = results.map((item) => ({
           value: item.id,
-          label: item.name,
+          label: item.full_name,
         }));
         this.cdr.detectChanges();
       },

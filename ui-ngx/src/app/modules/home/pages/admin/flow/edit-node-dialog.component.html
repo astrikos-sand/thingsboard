@@ -11,6 +11,7 @@
   <div mat-dialog-content class="dialog-content">
     <div *ngFor="let field of additionalData">
       <ng-container [ngSwitch]="field.type">
+        <div *ngSwitchCase="'markdown'"><strong>{{ field.label }}:</strong> <div markdown>{{ field.value }}</div></div>
         <span *ngSwitchCase="'span'"><strong>{{ field.label }}:</strong> {{ field.value }}</span>
         <p *ngSwitchCase="'p'"><strong>{{ field.label }}:</strong> {{ field.value }}</p>
         <small *ngSwitchCase="'id'">ID: {{ field.value }}</small>

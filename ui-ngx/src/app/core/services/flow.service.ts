@@ -53,6 +53,10 @@ export class FlowService {
     return this.http.patch<any>(`${this.baseUrl}/flows/${flowId}/`, flow);
   }
 
+  deleteFlow(flowId: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/flows/${flowId}/`);
+  }
+
   addNode(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/nodes/`, data);
   }
