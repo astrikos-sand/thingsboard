@@ -23,11 +23,13 @@ import { ToastNotificationService } from "@core/services/toast-notification.serv
 import { NotificationMessage } from "@app/core/notification/notification.models";
 import { UploadFileDialogComponent } from "./upload-file-dialog.component";
 import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
+import { FlowService } from "@app/core/services/flow.service";
 
-interface TagNode {
+interface ArchiveNode {
   name: string;
   id: string;
-  children?: TagNode[];
+  parent: string | null;
+  children?: ArchiveNode[];
   files?: ArchiveFile[];
   isLoaded?: boolean;
 }
@@ -46,13 +48,14 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  treeControl = new NestedTreeControl<TagNode>((node) => node.children);
-  tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
+  treeControl = new NestedTreeControl<ArchiveNode>((node) => node.children);
+  tagTreeDataSource = new MatTreeNestedDataSource<ArchiveNode>();
   selectedFiles: ArchiveFile[] = [];
-  selectedNode: TagNode | null = null;
+  selectedNode: ArchiveNode | null = null;
 
   constructor(
     private archivesService: ArchivesService,
+    private flowService: FlowService,
     private searchService: SearchService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
@@ -72,10 +75,11 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
   loadInitialFiles(): void {
     this.archivesService.getFileArchives().subscribe(
       (data: ArchiveData) => {
-        const rootNode: TagNode = {
+        const rootNode: ArchiveNode = {
           id: "root",
           name: "Archives",
-          children: this.buildTree(data.tree),
+          parent: null,
+          children: this.buildTree(data.tree, "root"),
           files: data.items,
           isLoaded: true,
         };
@@ -84,7 +88,10 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
         this.dataSource.data = this.selectedFiles;
 
         if (this.selectedNode) {
-          const matchingNode = this.findNodeById(rootNode, this.selectedNode.id);
+          const matchingNode = this.findNodeById(
+            rootNode,
+            this.selectedNode.id
+          );
           if (matchingNode) {
             this.updateSelectedNode(matchingNode);
             this.treeControl.expand(matchingNode);
@@ -100,7 +107,7 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     );
   }
 
-  findNodeById(node: TagNode, id: string): TagNode | null {
+  findNodeById(node: ArchiveNode, id: string): ArchiveNode | null {
     if (node.id === id) {
       return node;
     }
@@ -113,14 +120,14 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     return null;
   }
 
-  fetchChildFiles(node: TagNode): void {
+  fetchChildFiles(node: ArchiveNode): void {
     if (node.isLoaded) {
       this.updateSelectedNode(node);
       return;
     }
     this.archivesService.fetchFilesByParent(node.id).subscribe(
       (data: ArchiveData) => {
-        node.children = this.buildTree(data.tree);
+        node.children = this.buildTree(data.tree, node.id);
         node.files = data.items;
         node.isLoaded = true;
 
@@ -133,7 +140,7 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     );
   }
 
-  toggleNode(node: TagNode): void {
+  toggleNode(node: ArchiveNode): void {
     if (this.treeControl.isExpanded(node)) {
       this.treeControl.collapse(node);
     } else {
@@ -147,7 +154,7 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     this.updateSelectedNode(node);
   }
 
-  updateSelectedNode(node: TagNode): void {
+  updateSelectedNode(node: ArchiveNode): void {
     this.selectedNode = node;
     this.selectedFiles = node.files || [];
     this.dataSource.data = this.selectedFiles;
@@ -161,10 +168,11 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  buildTree(nodes: any[]): TagNode[] {
+  buildTree(nodes: any[], parentId: string | null): ArchiveNode[] {
     return nodes.map((node) => ({
       name: node.name,
       id: node.id,
+      parent: parentId,
       children: [],
       files: [],
       isLoaded: false,
@@ -188,9 +196,10 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
           ...item,
         }));
 
-        const rootNode: TagNode = {
+        const rootNode: ArchiveNode = {
           id: "search-root",
           name: "Search Results",
+          parent: null,
           children: [],
           files: items,
           isLoaded: true,
@@ -214,10 +223,6 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     this.loadInitialFiles();
   }
 
-  onNodeSelect(node: TagNode): void {
-    this.fetchChildFiles(node);
-  }
-
   copyId(id: string) {
     this.clipboard.copy(id);
     alert("Copied ID: " + id);
@@ -233,8 +238,9 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
 
   copy_url(url: string) {
     const endpoint = url.split("media")[1];
-    const new_url = "http://host.docker.internal:8000/media" + endpoint;
+    const new_url = `${window.location.origin}/backend/media${endpoint}`;
     this.clipboard.copy(new_url);
+    alert("Copied URL: " + new_url);
   }
 
   deleteFile(fileId: string): void {
@@ -273,13 +279,100 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
   openAddPrefixDialog(): void {
     const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
       data: {
-        parentPrefix: this.selectedNode ? this.selectedNode.id : "root",
+        prefix: {
+          parent: this.selectedNode ? this.selectedNode.id : "root",
+        },
         type: "archives",
+        isEdit: false,
       },
     });
 
-    dialogRef.afterClosed().subscribe(() => {
-      this.refreshFiles(this.selectedNode);
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.tagTreeDataSource.data[0],
+          result.parent
+        );
+        this.refreshFiles(parentNode);
+      }
+    });
+  }
+
+  openEditPrefixDialog(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for editing",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        prefix: {
+          id: this.selectedNode.id,
+          name: this.selectedNode.name,
+          parent: this.selectedNode.parent,
+        },
+        type: "archives",
+        isEdit: true,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.tagTreeDataSource.data[0],
+          result.parent
+        );
+        this.refreshFiles(parentNode);
+      }
+    });
+  }
+
+  deletePrefix(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for deletion",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: `Are you sure you want to delete the prefix "${this.selectedNode.name}"?`,
+        ok: "Delete",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.flowService.deletePrefix(this.selectedNode.id).subscribe(
+          () => {
+            this.showNotification({
+              message: "Prefix deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            const parentNode = this.findNodeById(
+              this.tagTreeDataSource.data[0],
+              this.selectedNode.parent
+            );
+            this.refreshFiles(parentNode);
+          },
+          (error) => {
+            this.showNotification({
+              message: error.error?.error || "Error deleting prefix",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
     });
   }
 
@@ -296,22 +389,28 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
     });
   }
 
-  refreshFiles(node: TagNode): void {
+  refreshFiles(node: ArchiveNode): void {
     if (!node) {
       return;
     }
-  
-    this.archivesService.fetchFilesByParent(node.id).subscribe(
-      (data) => {
-        node.children = this.buildTree(data.tree);
+
+    const isRoot = node.id === "root";
+
+    const fetchFilesObservable = isRoot
+      ? this.archivesService.getFileArchives()
+      : this.archivesService.fetchFilesByParent(node.id);
+
+    fetchFilesObservable.subscribe(
+      (data: ArchiveData) => {
+        node.children = this.buildTree(data.tree, node.id);
         node.files = data.items;
         node.isLoaded = true;
-  
+
         this.updateSelectedNode(node);
         this.refreshTreeData();
       },
       (error) => {
-        console.error("Error refreshing flows:", error);
+        console.error("Error refreshing files:", error);
       }
     );
   }
