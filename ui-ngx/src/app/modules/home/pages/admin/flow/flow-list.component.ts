@@ -24,6 +24,7 @@ import { NotificationMessage } from "@app/core/notification/notification.models"
 interface FlowNode {
   name: string;
   id: string;
+  parent: string | null;
   children: FlowNode[];
   flows?: any[];
   isLoaded?: boolean;
@@ -78,7 +79,8 @@ export class FlowListComponent implements OnInit, AfterViewInit {
         const rootNode: FlowNode = {
           id: "root",
           name: "Flows",
-          children: this.buildTree(data.tree),
+          parent: null,
+          children: this.buildTree(data.tree, "root"),
           flows: data.items,
           isLoaded: true,
         };
@@ -101,7 +103,8 @@ export class FlowListComponent implements OnInit, AfterViewInit {
         console.error("Error loading initial flows:", error);
       }
     );
-  }  
+  }
+  
 
   findNodeById(node: FlowNode, id: string): FlowNode | null {
     if (node.id === id) {
@@ -121,13 +124,13 @@ export class FlowListComponent implements OnInit, AfterViewInit {
       this.updateSelectedNode(node);
       return;
     }
-
+  
     this.flowService.fetchFlowsByParent(node.id).subscribe(
       (data) => {
-        node.children = this.buildTree(data.tree);
+        node.children = this.buildTree(data.tree, node.id);
         node.flows = data.items;
         node.isLoaded = true;
-
+  
         this.updateSelectedNode(node);
         this.refreshTreeData();
       },
@@ -136,6 +139,7 @@ export class FlowListComponent implements OnInit, AfterViewInit {
       }
     );
   }
+  
 
   toggleNode(node: FlowNode): void {
     if (this.treeControl.isExpanded(node)) {
@@ -197,15 +201,16 @@ export class FlowListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  buildTree(nodes: any[]): FlowNode[] {
+  buildTree(nodes: any[], parentId: string | null = null): FlowNode[] {
     return nodes.map((node) => ({
       name: node.name,
       id: node.id,
+      parent: parentId,
       children: [],
       flows: [],
       isLoaded: false,
     }));
-  }
+  }  
 
   onNodeSelect(node: FlowNode): void {
     this.fetchChildFlows(node);
@@ -261,30 +266,21 @@ export class FlowListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
-  openAddPrefixDialog(): void {
-    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
-      data: {
-        parentPrefix: this.selectedNode ? this.selectedNode.id : "root",
-        type: "flows",
-      },
-    });
-  
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.refreshFlows(this.selectedNode);
-      }
-    });
-  }
 
   refreshFlows(node: FlowNode): void {
     if (!node) {
       return;
     }
   
-    this.flowService.fetchFlowsByParent(node.id).subscribe(
+    const isRoot = node.id === "root";
+  
+    const fetchFlowsObservable = isRoot
+      ? this.flowService.fetchFlows()
+      : this.flowService.fetchFlowsByParent(node.id);
+  
+    fetchFlowsObservable.subscribe(
       (data) => {
-        node.children = this.buildTree(data.tree);
+        node.children = this.buildTree(data.tree, isRoot ? "root" : node.id);
         node.flows = data.items;
         node.isLoaded = true;
   
@@ -295,7 +291,7 @@ export class FlowListComponent implements OnInit, AfterViewInit {
         console.error("Error refreshing flows:", error);
       }
     );
-  }
+  }  
 
   export_flow(event: Event, flowId: string): void {
     event.stopPropagation();
@@ -326,6 +322,7 @@ export class FlowListComponent implements OnInit, AfterViewInit {
         const rootNode: FlowNode = {
           id: "search-root",
           name: "Search Results",
+          parent: null,
           children: [],
           flows: items,
           isLoaded: true,
@@ -349,12 +346,107 @@ export class FlowListComponent implements OnInit, AfterViewInit {
     this.loadInitialFlows();
   }
 
-  deletePrefix() {
+  deletePrefix(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for deletion",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+  
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: `Are you sure you want to delete the prefix "${this.selectedNode.name}"?`,
+        ok: "Delete",
+      },
+    });
+  
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.flowService.deletePrefix(this.selectedNode.id).subscribe(
+          () => {
+            this.showNotification({
+              message: "Prefix deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            const parentNode = this.findNodeById(
+              this.flowTreeDataSource.data[0],
+              this.selectedNode.parent
+            );  
+            this.refreshFlows(parentNode);    
+          },
+          (error) => {
+            this.showNotification({
+              message: error.error?.error || "Error deleting prefix",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
+    });
   }
-
-  openEditPrefixDialog() {
+  
+  openAddPrefixDialog(): void {
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        prefix: {
+          parent: this.selectedNode.id,
+        },
+        type: "flows",
+        isEdit: false,
+      },
+    });
+  
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.flowTreeDataSource.data[0],
+          result.parent
+        );  
+        this.refreshFlows(parentNode);
+      }
+    });
   }
-
+    
+  
+  openEditPrefixDialog(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for editing",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+  
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        prefix: {
+          id: this.selectedNode.id,
+          name: this.selectedNode.name,
+          parent: this.selectedNode.parent,
+        },
+        type: "flows",
+        isEdit: true,
+      },
+    });
+  
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.flowTreeDataSource.data[0],
+          result.parent
+        );  
+        this.refreshFlows(parentNode);
+      }
+    });
+  }
+  
   filterTree(nodes: FlowNode[], query: string): FlowNode[] {
     return nodes
       .map((node) => ({ ...node }))

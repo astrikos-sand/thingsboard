@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  ChangeDetectorRef,
+} from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
 import { MatPaginator } from "@angular/material/paginator";
@@ -14,10 +20,12 @@ import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-di
 import { EditFunctionDialogComponent } from "./edit-function-dialog.component";
 import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
 import { SearchService } from "@app/core/services/search.service";
+import { FlowService } from "@app/core/services/flow.service";
 
 interface FunctionNode {
   name: string;
   id: string;
+  parent: string | null;
   children?: FunctionNode[];
   functions?: any[];
   isLoaded?: boolean;
@@ -44,6 +52,7 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
 
   constructor(
     private nodeClassService: NodeClassService,
+    private flowService: FlowService,
     private searchService: SearchService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
@@ -66,7 +75,8 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
         const rootNode: FunctionNode = {
           id: "root",
           name: "Functions",
-          children: this.buildTree(data.tree),
+          parent: null,
+          children: this.buildTree(data.tree, "root"),
           functions: data.items,
           isLoaded: true,
         };
@@ -74,7 +84,10 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
         this.selectedFunctions = data.items;
         this.dataSource.data = this.selectedFunctions;
         if (this.selectedNode) {
-          const matchingNode = this.findNodeById(rootNode, this.selectedNode.id);
+          const matchingNode = this.findNodeById(
+            rootNode,
+            this.selectedNode.id
+          );
           if (matchingNode) {
             this.updateSelectedNode(matchingNode);
             this.treeControl.expand(matchingNode);
@@ -83,7 +96,6 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
           this.treeControl.expand(rootNode);
           this.selectedNode = rootNode;
         }
-
       },
       (error) => {
         console.error("Error loading initial functions:", error);
@@ -112,7 +124,7 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
 
     this.nodeClassService.fetchFunctionsByParent(parentNode.id).subscribe(
       (data) => {
-        parentNode.children = this.buildTree(data.tree);
+        parentNode.children = this.buildTree(data.tree, parentNode.id);
         parentNode.functions = data.items;
         parentNode.isLoaded = true;
 
@@ -153,10 +165,11 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  buildTree(nodes: any[]): FunctionNode[] {
+  buildTree(nodes: any[], parentId: string | null): FunctionNode[] {
     return nodes.map((node) => ({
       name: node.name,
       id: node.id,
+      parent: parentId,
       children: [],
       functions: [],
       isLoaded: false,
@@ -280,6 +293,7 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
           name: "Search Results",
           children: [],
           functions: items,
+          parent: null,
           isLoaded: true,
         };
 
@@ -330,47 +344,135 @@ export class FunctionListComponent implements OnInit, AfterViewInit {
         functionData: file,
       },
     });
-  
+
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.refreshFunctions(this.selectedNode);
+        this.refreshFunctions(this.functionTreeDataSource.data[0]);
       }
     });
   }
-  
+
   openAddPrefixDialog(): void {
     const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
       data: {
-        parentPrefix: this.selectedNode ? this.selectedNode.id : 'root',
+        prefix: {
+          parent: this.selectedNode.id,
+        },
         type: "functions",
+        isEdit: false,
       },
     });
 
-    dialogRef.afterClosed().subscribe(() => {
-      this.refreshFunctions(this.selectedNode);
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.functionTreeDataSource.data[0],
+          result.parent
+        );
+        this.refreshFunctions(parentNode);
+      }
+    });
+  }
+
+  openEditPrefixDialog(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for editing",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        prefix: {
+          id: this.selectedNode.id,
+          name: this.selectedNode.name,
+          parent: this.selectedNode.parent,
+        },
+        type: "functions",
+        isEdit: true,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.functionTreeDataSource.data[0],
+          result.parent
+        );
+        this.refreshFunctions(parentNode);
+      }
+    });
+  }
+
+  deletePrefix(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for deletion",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: `Are you sure you want to delete the prefix "${this.selectedNode.name}"?`,
+        ok: "Delete",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.flowService.deletePrefix(this.selectedNode.id).subscribe(
+          () => {
+            this.showNotification({
+              message: "Prefix deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            const parentNode = this.findNodeById(
+              this.functionTreeDataSource.data[0],
+              this.selectedNode.parent
+            );
+            this.refreshFunctions(parentNode);
+          },
+          (error) => {
+            this.showNotification({
+              message: error.error?.error || "Error deleting prefix",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
     });
   }
 
   refreshFunctions(node: FunctionNode): void {
-    if (!node) {
-      return;
-    }
-  
-    this.nodeClassService.fetchFunctionsByParent(node.id).subscribe(
+    const isRoot = node.id === "root";
+
+    const fetchFunctionsObservable = isRoot
+      ? this.nodeClassService.fetchFunctions()
+      : this.nodeClassService.fetchFunctionsByParent(node.id);
+
+    fetchFunctionsObservable.subscribe(
       (data) => {
-        node.children = this.buildTree(data.tree);
+        node.children = this.buildTree(data.tree, node.id);
         node.functions = data.items;
         node.isLoaded = true;
-  
+
         this.updateSelectedNode(node);
         this.refreshTreeData();
       },
       (error) => {
-        console.error("Error refreshing flows:", error);
+        console.error("Error refreshing functions:", error);
       }
     );
   }
-
 
   private showNotification(notification: NotificationMessage): void {
     this.toastNotificationService.dispatchNotification(notification);
