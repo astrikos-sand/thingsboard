@@ -57,11 +57,19 @@
             <button
               mat-raised-button
               color="primary"
-              (click)="openAddPrefixDialog()"
-              style="margin: 10px"
+              [matMenuTriggerFor]="PrefixMenu"
+              aria-label="Actions"
+              style="margin-left: 10px"
             >
-              Add Prefix
+              Prefix Actions
             </button>
+            <mat-menu #PrefixMenu="matMenu">
+              <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
+              <button mat-menu-item (click)="openEditPrefixDialog()">
+                Edit
+              </button>
+              <button mat-menu-item (click)="deletePrefix()">Delete</button>
+            </mat-menu>
             <button
               mat-raised-button
               color="primary"

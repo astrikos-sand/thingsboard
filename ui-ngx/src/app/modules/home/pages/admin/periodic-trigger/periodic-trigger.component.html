@@ -4,66 +4,41 @@
       <div fxLayout="row" class="tb-entity-table-content tb-outlined-border">
         <div fxFlex="30" class="tree-container scrollable-container">
           <mat-form-field appearance="outline">
-            <mat-label>Search Folders</mat-label>
+            <mat-label>Search Type</mat-label>
+            <mat-select [(value)]="searchFilter">
+              <mat-option value="name">Name</mat-option>
+              <mat-option value="prefix">Prefix</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Search Triggers</mat-label>
             <input
               matInput
-              (input)="filterNodes($event.target.value)"
-              placeholder="Search folders..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="filterNodes()"
+              placeholder="Search triggers..."
             />
           </mat-form-field>
+          <button mat-button (click)="clearSearch()">Clear Search</button>
           <mat-tree
-            [dataSource]="filteredTreeDataSource"
+            [dataSource]="triggerTreeDataSource"
             [treeControl]="treeControl"
-            class="example-tree"
           >
-            <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+            <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
               <div
                 class="mat-tree-node-content hover-pointer"
-                (click)="onNodeSelect(node)"
+                (click)="toggleNode(node)"
               >
-                <button mat-icon-button disabled></button>
-                <span
+              <button mat-icon-button matTreeNodeToggle>
+                <mat-icon>{{
+                  treeControl.isExpanded(node)
+                    ? "expand_more"
+                    : "chevron_right"
+                }}</mat-icon>
+              </button>                <span
                   class="mat-tree-node-label"
                   [innerHTML]="highlightText(node.name, searchQuery)"
                 ></span>
-                <button
-                  mat-icon-button
-                  class="mat-tree-node-actions"
-                  (click)="copyId(node.id)"
-                >
-                  <mat-icon>content_copy</mat-icon>
-                </button>
-              </div>
-            </mat-tree-node>
-            <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
-              <div
-                class="mat-tree-node-content hover-pointer"
-                (click)="onNodeSelect(node)"
-              >
-                <button
-                  mat-icon-button
-                  matTreeNodeToggle
-                  [attr.aria-label]="'toggle ' + node.name"
-                >
-                  <mat-icon>
-                    {{
-                      treeControl.isExpanded(node)
-                        ? "expand_more"
-                        : "chevron_right"
-                    }}
-                  </mat-icon>
-                </button>
-                <span
-                  class="mat-tree-node-label"
-                  [innerHTML]="highlightText(node.name, searchQuery)"
-                ></span>
-                <button
-                  mat-icon-button
-                  class="mat-tree-node-actions"
-                  (click)="copyId(node.id)"
-                >
-                  <mat-icon>content_copy</mat-icon>
-                </button>
               </div>
               <div
                 class="mat-tree-node-children"
@@ -79,6 +54,22 @@
             <span>Periodic Triggers</span>
             <span fxFlex></span>
             <button
+            mat-raised-button
+            color="primary"
+            [matMenuTriggerFor]="PrefixMenu"
+            aria-label="Actions"
+            style="margin-left: 10px"
+          >
+            Prefix Actions
+          </button>
+          <mat-menu #PrefixMenu="matMenu">
+            <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
+            <button mat-menu-item (click)="openEditPrefixDialog()">
+              Edit
+            </button>
+            <button mat-menu-item (click)="deletePrefix()">Delete</button>
+          </mat-menu>
+            <button
               mat-raised-button
               color="primary"
               (click)="openAddPeriodicTriggerDialog()"
@@ -87,11 +78,8 @@
               Add Periodic Trigger
             </button>
           </mat-toolbar>
-          <mat-table
-            [dataSource]="selectedTriggers"
-            matSort
-            class="mat-elevation-z8"
-          >
+          <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+            <!-- Table columns definitions -->
             <ng-container matColumnDef="id">
               <mat-header-cell *matHeaderCellDef mat-sort-header>
                 Id
@@ -106,7 +94,7 @@
               </mat-header-cell>
               <mat-cell *matCellDef="let trigger">
                 <a [routerLink]="['/flows/library', trigger.target]">{{
-                  trigger.target | slice : 0 : 7
+                  trigger.target_name
                 }}</a>
               </mat-cell>
             </ng-container>
@@ -137,11 +125,12 @@
               <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
               <mat-cell *matCellDef="let trigger">
                 <button
-                  mat-icon-button
-                  (click)="copyPeriodicTriggerEndpoint(trigger.id)"
-                >
-                  <mat-icon class="material-icons">content_copy</mat-icon>
-                </button>
+                mat-icon-button
+                (click)="deleteTrigger(trigger.id)"
+                matTooltip="Delete Trigger"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
               </mat-cell>
             </ng-container>
             <mat-header-row

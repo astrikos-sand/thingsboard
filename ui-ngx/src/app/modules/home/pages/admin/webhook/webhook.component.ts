@@ -1,22 +1,37 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  ChangeDetectorRef,
+} from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
-import { MatSort, Sort } from "@angular/material/sort";
-import { PageEvent } from "@angular/material/paginator";
-import { MatTreeNestedDataSource } from '@angular/material/tree';
-import { NestedTreeControl } from '@angular/cdk/tree';
-import { Clipboard } from '@angular/cdk/clipboard';
-import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
+import { MatSort } from "@angular/material/sort";
+import { MatPaginator } from "@angular/material/paginator";
+import { MatTreeNestedDataSource } from "@angular/material/tree";
+import { NestedTreeControl } from "@angular/cdk/tree";
+import { Clipboard } from "@angular/cdk/clipboard";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
 import { NotificationMessage } from "@app/core/notification/notification.models";
 import { WebhookDialogComponent } from "./dialog.component";
-import { Webhook, TriggerService } from "@app/core/services/trigger.service";
+import {
+  Webhook,
+  TriggerService,
+  WebhookData,
+} from "@app/core/services/trigger.service";
+import { SearchService } from "@app/core/services/search.service";
+import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
+import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
+import { FlowService } from "@app/core/services/flow.service";
 
-interface TagNode {
+interface WebhookNode {
   name: string;
   id: string;
-  children?: TagNode[];
+  parent: string | null;
+  children?: WebhookNode[];
   webhooks?: Webhook[];
+  isLoaded?: boolean;
 }
 
 @Component({
@@ -24,217 +39,374 @@ interface TagNode {
   templateUrl: "./webhook.component.html",
   styleUrls: ["./webhook.component.scss"],
 })
-export class WebhookComponent implements OnInit {
+export class WebhookComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<Webhook>();
   displayedColumns: string[] = ["id", "target", "tags", "actions"];
-  totalWebhooks = 0;
-  pageIndex = 0;
-  pageSize = 10;
+  searchFilter: string = "name";
+  searchQuery: string = "";
 
   @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  treeControl = new NestedTreeControl<TagNode>(node => node.children);
-  tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
-  filteredTreeDataSource = new MatTreeNestedDataSource<TagNode>();
+  treeControl = new NestedTreeControl<WebhookNode>((node) => node.children);
+  tagTreeDataSource = new MatTreeNestedDataSource<WebhookNode>();
   selectedWebhooks: Webhook[] = [];
-  originalTreeData: TagNode[] = [];
-  searchQuery: string = '';
-  selectedNode: TagNode;
+  selectedNode: WebhookNode | null = null;
 
   constructor(
     private webhookservice: TriggerService,
+    private flowService: FlowService,
+    private searchService: SearchService,
     private dialog: MatDialog,
     private toastNotificationService: ToastNotificationService,
-    private clipboard: Clipboard
+    private clipboard: Clipboard,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.loadWebhooks();
+    this.loadInitialWebhooks();
   }
 
-  loadWebhooks(): void {
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator;
+  }
+
+  loadInitialWebhooks(): void {
     this.webhookservice.getWebhooks().subscribe(
-      (data) => {
-        const rootNodes = this.buildTree(data);
-        this.tagTreeDataSource.data = rootNodes;
-        this.filteredTreeDataSource.data = rootNodes;
-        this.originalTreeData = rootNodes;
-        this.dataSource.data = data;
-        this.treeControl.expandDescendants(rootNodes[0]);
-        this.totalWebhooks = data.length;
-        this.dataSource.sort = this.sort;
+      (data: WebhookData) => {
+        const rootNode: WebhookNode = {
+          id: "root",
+          name: "Webhooks",
+          parent: null,
+          children: this.buildTree(data.tree, "root"),
+          webhooks: data.items,
+          isLoaded: true,
+        };
+        this.tagTreeDataSource.data = [rootNode];
+        this.selectedWebhooks = data.items;
+        this.dataSource.data = this.selectedWebhooks;
 
         if (this.selectedNode) {
-          console.log(this.selectedNode)
-          const node = this.findNodeById(rootNodes, this.selectedNode.id);
-          console.log(node)
-          if (node) {
-            this.onNodeSelect(node);
+          const matchingNode = this.findNodeById(
+            rootNode,
+            this.selectedNode.id
+          );
+          if (matchingNode) {
+            this.updateSelectedNode(matchingNode);
+            this.treeControl.expand(matchingNode);
           }
+        } else {
+          this.treeControl.expand(rootNode);
+          this.selectedNode = rootNode;
         }
       },
       (error) => {
-        console.error("Error fetching file archives: ", error);
+        console.error("Error loading initial webhooks:", error);
       }
     );
   }
 
-  buildTree(webhooks: Webhook[]): TagNode[] {
-    const root: TagNode = { name: 'Webhooks', id: 'root', children: [] };
-    const nodeMap: { [key: string]: TagNode } = { 'Webhooks': root };
-
-    webhooks.forEach(webhook => {
-      if (webhook.tags.length === 0) {
-        webhook.tags = [{ id: 'untagged', full_name: 'Webhooks/Untagged' }];
-      }
-      webhook.tags.forEach(tag => {
-        const path = tag.full_name.split('/');
-        let currentNode = root;
-        path.forEach((part, index) => {
-          if (!nodeMap[part]) {
-            const newNode: TagNode = { name: part, id: tag.id, children: [] };
-            nodeMap[part] = newNode;
-            if (index === path.length - 1) {
-              newNode.webhooks = [];
-            }
-            currentNode.children.push(newNode);
-          }
-          currentNode = nodeMap[part];
-        });
-        currentNode.webhooks?.push(webhook);
-      });
-    });
-
-    return [root];
-  }
-
-  hasChild = (_: number, node: TagNode) => !!node.children && node.children.length > 0;
-
-  copyId(id: string) {
-    this.clipboard.copy(id);
-    alert('Copied ID: ' + id);
-  }
-
-  copyWebhookEndpoint(id: string) {
-    const endpoint = `${window.location.origin}/backend/triggers/webhook/${id}/execute/`;
-    this.clipboard.copy(endpoint);
-    alert('Endpoint ' + endpoint);
-  }
-
-  onNodeSelect(node: TagNode): void {
-    this.selectedNode = node;
-    this.selectedWebhooks = this.collectWebhooks(node);
-  }
-
-  collectWebhooks(node: TagNode): Webhook[] {
-    let files: Webhook[] = [];
-    if (node.webhooks) {
-      files = files.concat(node.webhooks);
+  findNodeById(node: WebhookNode, id: string): WebhookNode | null {
+    if (node.id === id) {
+      return node;
     }
     if (node.children) {
       for (const child of node.children) {
-        files = files.concat(this.collectWebhooks(child));
-      }
-    }
-    return files;
-  }
-
-  handlePageEvent(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.updatePagedData();
-  }
-
-  updatePagedData(): void {
-    const startIndex = this.pageIndex * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.dataSource.data.slice(startIndex, endIndex);
-  }
-
-  openAddWebhookDialog(): void {
-    const dialogRef = this.dialog.open(WebhookDialogComponent, {
-      width: "800px",
-      data: {},
-    });
-
-    dialogRef.afterClosed().subscribe(() => {
-      this.loadWebhooks();
-    });
-  }
-
-  sortData(sort: Sort): void {
-    const data = this.dataSource.data.slice();
-    if (!sort.active || sort.direction === "") {
-      this.dataSource.data = data;
-      return;
-    }
-
-    this.dataSource.data = data.sort((a, b) => {
-      const isAsc = sort.direction === "asc";
-      switch (sort.active) {
-        case "":
-          return this.compare(a.target, b.target, isAsc);
-        default:
-          return 0;
-      }
-    });
-    this.updatePagedData();
-  }
-
-  private compare(a: string, b: string, isAsc: boolean): number {
-    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
-  }
-
-  private showNotification(notification: NotificationMessage): void {
-    this.toastNotificationService.dispatchNotification(notification);
-  }
-
-  filterNodes(query: string): void {
-    this.searchQuery = query;
-    if (!query) {
-      this.filteredTreeDataSource.data = this.originalTreeData;
-      this.treeControl.expandDescendants(this.originalTreeData[0]);
-    } else {
-      const filteredNodes = this.filterTree(this.originalTreeData, query.toLowerCase());
-      this.filteredTreeDataSource.data = filteredNodes;
-      this.treeControl.expandDescendants(filteredNodes[0]);
-    }
-  }
-
-  filterTree(nodes: TagNode[], query: string): TagNode[] {
-    return nodes
-      .map(node => ({ ...node }))
-      .filter(node => {
-        if (node.name.toLowerCase().includes(query)) {
-          return true;
-        }
-        if (node.children) {
-          node.children = this.filterTree(node.children, query);
-          return node.children.length > 0;
-        }
-        return false;
-      });
-  }
-
-  highlightText(text: string, query: string): string {
-    if (!query) {
-      return text;
-    }
-    const regex = new RegExp(`(${query})`, 'gi');
-    return text.replace(regex, '<span class="highlight">$1</span>');
-  }
-  findNodeById(nodes: TagNode[], id: string): TagNode | null {
-    for (const node of nodes) {
-      if (node.id === id) {
-        return node;
-      }
-      if (node.children) {
-        const found = this.findNodeById(node.children, id);
+        const found = this.findNodeById(child, id);
         if (found) {
           return found;
         }
       }
     }
     return null;
+  }
+
+  fetchChildWebhooks(node: WebhookNode): void {
+    if (node.isLoaded) {
+      this.updateSelectedNode(node);
+      return;
+    }
+    this.webhookservice.fetchWebhooksByParent(node.id).subscribe(
+      (data: WebhookData) => {
+        node.children = this.buildTree(data.tree, node.id);
+        node.webhooks = data.items;
+        node.isLoaded = true;
+
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error fetching child webhooks:", error);
+      }
+    );
+  }
+
+  toggleNode(node: WebhookNode): void {
+    if (this.treeControl.isExpanded(node)) {
+      this.treeControl.collapse(node);
+    } else {
+      this.treeControl.expand(node);
+    }
+
+    if (!node.isLoaded && this.treeControl.isExpanded(node)) {
+      this.fetchChildWebhooks(node);
+    }
+
+    this.updateSelectedNode(node);
+  }
+
+  updateSelectedNode(node: WebhookNode): void {
+    this.selectedNode = node;
+    this.selectedWebhooks = node.webhooks || [];
+    this.dataSource.data = this.selectedWebhooks;
+    this.cdr.detectChanges();
+  }
+
+  refreshTreeData(): void {
+    const data = this.tagTreeDataSource.data;
+    this.tagTreeDataSource.data = null;
+    this.tagTreeDataSource.data = data;
+    this.cdr.detectChanges();
+  }
+
+  buildTree(nodes: any[], parentId: string | null): WebhookNode[] {
+    return nodes.map((node) => ({
+      name: node.name,
+      id: node.id,
+      parent: parentId,
+      children: [],
+      webhooks: [],
+      isLoaded: false,
+    }));
+  }
+
+  filterNodes(): void {
+    if (!this.searchQuery) {
+      this.loadInitialWebhooks();
+      return;
+    }
+
+    const query =
+      this.searchFilter === "prefix"
+        ? `prefix:${this.searchQuery}`
+        : this.searchQuery;
+
+    this.searchService.searchItems(query, "webhooks").subscribe(
+      (results: Webhook[]) => {
+        const rootNode: WebhookNode = {
+          id: "search-root",
+          name: "Search Results",
+          parent: null,
+          children: [],
+          webhooks: results,
+          isLoaded: true,
+        };
+        this.tagTreeDataSource.data = [rootNode];
+        this.selectedWebhooks = results;
+        this.dataSource.data = this.selectedWebhooks;
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode;
+      },
+      (error) => {
+        console.error("Error searching webhooks:", error);
+      }
+    );
+  }
+
+  deleteWebhook(webhookId: string): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: "Are you sure you want to delete this webhook?",
+        ok: "Delete",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.webhookservice.deleteWebhook(webhookId).subscribe(
+          () => {
+            this.showNotification({
+              message: "webhook deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            this.refreshWebhooks(this.selectedNode);
+          },
+          () => {
+            this.showNotification({
+              message: "Error deleting webhook",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
+    });
+  }
+
+
+  clearSearch(): void {
+    this.searchQuery = "";
+    this.tagTreeDataSource.data = [];
+    this.loadInitialWebhooks();
+  }
+
+  copyId(id: string) {
+    this.clipboard.copy(id);
+    alert("Copied ID: " + id);
+  }
+
+  copyWebhookEndpoint(webhook): void {
+    const endpoint = webhook.copy_command;
+    this.clipboard.copy(endpoint);
+  }
+
+  openAddWebhookDialog(): void {
+    const dialogRef = this.dialog.open(WebhookDialogComponent, {
+      width: "800px",
+      data: {
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.refreshWebhooks(this.selectedNode);
+    });
+  }
+
+  openAddPrefixDialog(): void {
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        prefix: {
+          parent: this.selectedNode ? this.selectedNode.id : "root",
+        },
+        type: "webhooks",
+        isEdit: false,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.tagTreeDataSource.data[0],
+          result.parent
+        );
+        this.refreshWebhooks(parentNode);
+      }
+    });
+  }
+
+  openEditPrefixDialog(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for editing",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        prefix: {
+          id: this.selectedNode.id,
+          name: this.selectedNode.name,
+          parent: this.selectedNode.parent,
+        },
+        type: "webhooks",
+        isEdit: true,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.tagTreeDataSource.data[0],
+          result.parent
+        );
+        this.refreshWebhooks(parentNode);
+      }
+    });
+  }
+
+  deletePrefix(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for deletion",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: `Are you sure you want to delete the prefix "${this.selectedNode.name}"?`,
+        ok: "Delete",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.flowService.deletePrefix(this.selectedNode.id).subscribe(
+          () => {
+            this.showNotification({
+              message: "Prefix deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            const parentNode = this.findNodeById(
+              this.tagTreeDataSource.data[0],
+              this.selectedNode.parent
+            );
+            this.refreshWebhooks(parentNode);
+          },
+          (error) => {
+            this.showNotification({
+              message: error.error?.error || "Error deleting prefix",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
+    });
+  }
+
+  refreshWebhooks(node: WebhookNode): void {
+    const isRoot = node.id === "root";
+
+    const fetchWebhooksObservable = isRoot
+      ? this.webhookservice.getWebhooks()
+      : this.webhookservice.fetchWebhooksByParent(node.id);
+
+    fetchWebhooksObservable.subscribe(
+      (data: WebhookData) => {
+        node.children = this.buildTree(data.tree, node.id);
+        node.webhooks = data.items;
+        node.isLoaded = true;
+
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error refreshing webhooks:", error);
+      }
+    );
+  }
+
+  highlightText(text: string, query: string): string {
+    if (!query) {
+      return text;
+    }
+    const regex = new RegExp(`(${query})`, "gi");
+    return text.replace(regex, '<span class="highlight">$1</span>');
+  }
+
+  private showNotification(notification: NotificationMessage): void {
+    this.toastNotificationService.dispatchNotification(notification);
   }
 }

@@ -35,8 +35,8 @@ export class PeriodicTriggerDialogComponent implements OnInit {
   }
 
   loadTargets(): void {
-    this.flowService.fetchFlows().subscribe(
-      (data: any[]) => {
+    this.flowService.fetchAllFlows().subscribe(
+      (data: any) => {
         this.targets = data;
       },
       (error) => {

@@ -4,73 +4,48 @@
       <div fxLayout="row" class="tb-entity-table-content tb-outlined-border">
         <div fxFlex="30" class="tree-container scrollable-container">
           <mat-form-field appearance="outline">
-            <mat-label>Search Folders</mat-label>
+            <mat-label>Search Type</mat-label>
+            <mat-select [(value)]="searchFilter">
+              <mat-option value="name">Name</mat-option>
+              <mat-option value="prefix">Prefix</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Search Webhooks</mat-label>
             <input
               matInput
-              (input)="filterNodes($event.target.value)"
-              placeholder="Search folders..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="filterNodes()"
+              placeholder="Search webhooks..."
             />
           </mat-form-field>
+          <button mat-button (click)="clearSearch()">Clear Search</button>
           <mat-tree
-            [dataSource]="filteredTreeDataSource"
+            [dataSource]="tagTreeDataSource"
             [treeControl]="treeControl"
-            class="example-tree"
           >
-            <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+            <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
               <div
                 class="mat-tree-node-content hover-pointer"
-                (click)="onNodeSelect(node)"
+                (click)="toggleNode(node)"
               >
-                <button mat-icon-button disabled></button>
-                <span
+              <button mat-icon-button matTreeNodeToggle>
+                <mat-icon>{{
+                  treeControl.isExpanded(node)
+                    ? "expand_more"
+                    : "chevron_right"
+                }}</mat-icon>
+              </button>                <span
                   class="mat-tree-node-label"
                   [innerHTML]="highlightText(node.name, searchQuery)"
                 ></span>
-                <button
-                  mat-icon-button
-                  class="mat-tree-node-actions"
-                  (click)="copyId(node.id)"
-                >
-                  <mat-icon>content_copy</mat-icon>
-                </button>
-              </div>
-            </mat-tree-node>
-            <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
-              <div
-                class="mat-tree-node-content hover-pointer"
-                (click)="onNodeSelect(node)"
-              >
-                <button
-                  mat-icon-button
-                  matTreeNodeToggle
-                  [attr.aria-label]="'toggle ' + node.name"
-                >
-                  <mat-icon>
-                    {{
-                      treeControl.isExpanded(node)
-                        ? "expand_more"
-                        : "chevron_right"
-                    }}
-                  </mat-icon>
-                </button>
-                <span
-                  class="mat-tree-node-label"
-                  [innerHTML]="highlightText(node.name, searchQuery)"
-                ></span>
-                <button
-                  mat-icon-button
-                  class="mat-tree-node-actions"
-                  (click)="copyId(node.id)"
-                >
-                  <mat-icon>content_copy</mat-icon>
-                </button>
               </div>
               <div
-                class="mat-tree-node-children"
-                [class.example-tree-invisible]="!treeControl.isExpanded(node)"
-              >
-                <ng-container matTreeNodeOutlet></ng-container>
-              </div>
+              class="mat-tree-node-children"
+              [class.example-tree-invisible]="!treeControl.isExpanded(node)"
+            >
+              <ng-container matTreeNodeOutlet></ng-container>
+            </div>
             </mat-nested-tree-node>
           </mat-tree>
         </div>
@@ -81,17 +56,29 @@
             <button
               mat-raised-button
               color="primary"
+              [matMenuTriggerFor]="PrefixMenu"
+              aria-label="Actions"
+              style="margin-left: 10px"
+            >
+              Prefix Actions
+            </button>
+            <mat-menu #PrefixMenu="matMenu">
+              <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
+              <button mat-menu-item (click)="openEditPrefixDialog()">
+                Edit
+              </button>
+              <button mat-menu-item (click)="deletePrefix()">Delete</button>
+            </mat-menu>
+            <button
+              mat-raised-button
+              color="primary"
               (click)="openAddWebhookDialog()"
               style="margin: 10px"
             >
               Add Webhook
             </button>
           </mat-toolbar>
-          <mat-table
-            [dataSource]="selectedWebhooks"
-            matSort
-            class="mat-elevation-z8"
-          >
+          <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
             <ng-container matColumnDef="id">
               <mat-header-cell *matHeaderCellDef mat-sort-header>
                 Id
@@ -102,21 +89,27 @@
             </ng-container>
             <ng-container matColumnDef="target">
               <mat-header-cell *matHeaderCellDef mat-sort-header>
-                target
+                Target
               </mat-header-cell>
               <mat-cell *matCellDef="let webhook">
                 <a [routerLink]="['/flows/library', webhook.target]">{{
-                  webhook.target | slice : 0 : 7
+                  webhook.target_name
                 }}</a>
               </mat-cell>
             </ng-container>
             <ng-container matColumnDef="tags">
               <mat-header-cell *matHeaderCellDef> Tags </mat-header-cell>
-              <mat-cell *matCellDef="let file">
-                <ng-container *ngIf="file.tags && file.tags.length > 0">
-                  <span *ngFor="let tag of file.tags">{{ tag.full_name }}</span>
+              <mat-cell *matCellDef="let webhook">
+                <ng-container
+                  *ngIf="webhook.tags && webhook.tags.length > 0"
+                >
+                  <span *ngFor="let tag of webhook.tags">{{
+                    tag.full_name
+                  }}</span>
                 </ng-container>
-                <ng-container *ngIf="!file.tags || file.tags.length === 0">
+                <ng-container
+                  *ngIf="!webhook.tags || webhook.tags.length === 0"
+                >
                   No tags
                 </ng-container>
               </mat-cell>
@@ -127,17 +120,26 @@
               <mat-cell *matCellDef="let webhook">
                 <button
                   mat-icon-button
-                  (click)="copyWebhookEndpoint(webhook.id)"
+                  (click)="copyWebhookEndpoint(webhook)"
                 >
                   <mat-icon>content_copy</mat-icon>
                 </button>
+                <button
+                mat-icon-button
+                (click)="deleteWebhook(webhook.id)"
+                matTooltip="Delete Webhook"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
               </mat-cell>
             </ng-container>
 
             <mat-header-row
               *matHeaderRowDef="displayedColumns"
             ></mat-header-row>
-            <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+            <mat-row
+              *matRowDef="let row; columns: displayedColumns"
+            ></mat-row>
           </mat-table>
         </div>
       </div>

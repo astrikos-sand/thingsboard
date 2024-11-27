@@ -1,22 +1,37 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  ChangeDetectorRef,
+} from "@angular/core";
 import { MatTableDataSource } from "@angular/material/table";
 import { MatDialog } from "@angular/material/dialog";
-import { MatSort, Sort } from "@angular/material/sort";
-import { PageEvent } from "@angular/material/paginator";
+import { MatSort } from "@angular/material/sort";
+import { MatPaginator } from "@angular/material/paginator";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { Clipboard } from "@angular/cdk/clipboard";
+import { ToastNotificationService } from "@core/services/toast-notification.service";
+import { NotificationMessage } from "@app/core/notification/notification.models";
 import { PeriodicTriggerDialogComponent } from "./dialog.component";
 import {
   PeriodicTrigger,
   TriggerService,
+  PeriodicTriggerData,
 } from "@app/core/services/trigger.service";
+import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
+import { SearchService } from "@app/core/services/search.service";
+import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
+import { FlowService } from "@app/core/services/flow.service";
 
-interface TagNode {
+interface PeriodicTriggerNode {
   name: string;
   id: string;
-  children?: TagNode[];
+  parent: string | null;
+  children?: PeriodicTriggerNode[];
   triggers?: PeriodicTrigger[];
+  isLoaded?: boolean;
 }
 
 @Component({
@@ -24,93 +39,220 @@ interface TagNode {
   templateUrl: "./periodic-trigger.component.html",
   styleUrls: ["./periodic-trigger.component.scss"],
 })
-export class PeriodicTriggerComponent implements OnInit {
+export class PeriodicTriggerComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<PeriodicTrigger>();
   displayedColumns: string[] = ["id", "target", "task", "tags", "actions"];
-  totalTriggers = 0;
-  pageIndex = 0;
-  pageSize = 10;
+  searchFilter: string = "name";
+  searchQuery: string = "";
 
   @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatPaginator) paginator: MatPaginator;
 
-  treeControl = new NestedTreeControl<TagNode>((node) => node.children);
-  tagTreeDataSource = new MatTreeNestedDataSource<TagNode>();
-  filteredTreeDataSource = new MatTreeNestedDataSource<TagNode>();
+  treeControl = new NestedTreeControl<PeriodicTriggerNode>((node) => node.children);
+  triggerTreeDataSource = new MatTreeNestedDataSource<PeriodicTriggerNode>();
   selectedTriggers: PeriodicTrigger[] = [];
-  originalTreeData: TagNode[] = [];
-  searchQuery: string = "";
-  selectedNode: TagNode;
+  selectedNode: PeriodicTriggerNode | null = null;
 
   constructor(
     private triggerService: TriggerService,
+    private flowService: FlowService,
+    private searchService: SearchService,
     private dialog: MatDialog,
-    private clipboard: Clipboard
-  ) { }
+    private toastNotificationService: ToastNotificationService,
+    private clipboard: Clipboard,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    this.loadTriggers();
+    this.loadInitialTriggers();
   }
 
-  loadTriggers(): void {
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator;
+  }
+
+  loadInitialTriggers(): void {
     this.triggerService.getPeriodicTriggers().subscribe(
-      (data) => {
-        const rootNodes = this.buildTree(data);
-        this.tagTreeDataSource.data = rootNodes;
-        this.filteredTreeDataSource.data = rootNodes;
-        this.originalTreeData = rootNodes;
-        this.dataSource.data = data;
-        this.treeControl.expandDescendants(rootNodes[0]);
-        this.totalTriggers = data.length;
-        this.dataSource.sort = this.sort;
+      (data: PeriodicTriggerData) => {
+        const rootNode: PeriodicTriggerNode = {
+          id: "root",
+          name: "Periodic Triggers",
+          parent: null,
+          children: this.buildTree(data.tree, "root"),
+          triggers: data.items,
+          isLoaded: true,
+        };
+        this.triggerTreeDataSource.data = [rootNode];
+        this.selectedTriggers = data.items;
+        this.dataSource.data = this.selectedTriggers;
 
         if (this.selectedNode) {
-          const node = this.findNodeById(rootNodes, this.selectedNode.id);
-          if (node) {
-            this.onNodeSelect(node);
+          const matchingNode = this.findNodeById(
+            rootNode,
+            this.selectedNode.id
+          );
+          if (matchingNode) {
+            this.updateSelectedNode(matchingNode);
+            this.treeControl.expand(matchingNode);
           }
+        } else {
+          this.treeControl.expand(rootNode);
+          this.selectedNode = rootNode;
         }
       },
       (error) => {
-        console.error("Error fetching periodic triggers: ", error);
+        console.error("Error loading initial triggers:", error);
       }
     );
   }
 
-  buildTree(triggers: PeriodicTrigger[]): TagNode[] {
-    const root: TagNode = {
-      name: "Periodic Triggers",
-      id: "root",
-      children: [],
-    };
-    const nodeMap: { [key: string]: TagNode } = { "Periodic Triggers": root };
-
-    triggers.forEach((trigger) => {
-      if (trigger.tags.length === 0) {
-        trigger.tags = [{ id: "untagged", full_name: "Periodic Triggers/Untagged", name: "untagged", parent: null }];
-      }
-      trigger.tags.forEach((tag) => {
-        const path = tag.full_name.split("/");
-        let currentNode = root;
-        path.forEach((part, index) => {
-          if (!nodeMap[part]) {
-            const newNode: TagNode = { name: part, id: tag.id, children: [] };
-            nodeMap[part] = newNode;
-            if (index === path.length - 1) {
-              newNode.triggers = [];
-            }
-            currentNode.children.push(newNode);
-          }
-          currentNode = nodeMap[part];
-        });
-        currentNode.triggers?.push(trigger);
-      });
+  deleteTrigger(triggerId: string): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: "Are you sure you want to delete this trigger?",
+        ok: "Delete",
+      },
     });
 
-    return [root];
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.triggerService.deletePeriodicTrigger(triggerId).subscribe(
+          () => {
+            this.showNotification({
+              message: "Trigger deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            this.refreshTriggers(this.selectedNode);
+          },
+          () => {
+            this.showNotification({
+              message: "Error deleting trigger",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
+    });
   }
 
-  hasChild = (_: number, node: TagNode) =>
-    !!node.children && node.children.length > 0;
+
+  findNodeById(node: PeriodicTriggerNode, id: string): PeriodicTriggerNode | null {
+    if (node.id === id) {
+      return node;
+    }
+    if (node.children) {
+      for (const child of node.children) {
+        const found = this.findNodeById(child, id);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+
+  fetchChildTriggers(node: PeriodicTriggerNode): void {
+    if (node.isLoaded) {
+      this.updateSelectedNode(node);
+      return;
+    }
+    this.triggerService.fetchTriggersByParent(node.id).subscribe(
+      (data: PeriodicTriggerData) => {
+        node.children = this.buildTree(data.tree, node.id);
+        node.triggers = data.items;
+        node.isLoaded = true;
+
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error fetching child triggers:", error);
+      }
+    );
+  }
+
+  toggleNode(node: PeriodicTriggerNode): void {
+    if (this.treeControl.isExpanded(node)) {
+      this.treeControl.collapse(node);
+    } else {
+      this.treeControl.expand(node);
+    }
+
+    if (!node.isLoaded && this.treeControl.isExpanded(node)) {
+      this.fetchChildTriggers(node);
+    }
+
+    this.updateSelectedNode(node);
+  }
+
+  updateSelectedNode(node: PeriodicTriggerNode): void {
+    this.selectedNode = node;
+    this.selectedTriggers = node.triggers || [];
+    this.dataSource.data = this.selectedTriggers;
+    this.cdr.detectChanges();
+  }
+
+  refreshTreeData(): void {
+    const data = this.triggerTreeDataSource.data;
+    this.triggerTreeDataSource.data = null;
+    this.triggerTreeDataSource.data = data;
+    this.cdr.detectChanges();
+  }
+
+  buildTree(nodes: any[], parentId: string | null): PeriodicTriggerNode[] {
+    return nodes.map((node) => ({
+      name: node.name,
+      id: node.id,
+      parent: parentId,
+      children: [],
+      triggers: [],
+      isLoaded: false,
+    }));
+  }
+
+  filterNodes(): void {
+    if (!this.searchQuery) {
+      this.loadInitialTriggers();
+      return;
+    }
+
+    const query =
+      this.searchFilter === "prefix"
+        ? `prefix:${this.searchQuery}`
+        : this.searchQuery;
+
+      this.searchService.searchItems(query, "periodic").subscribe(
+        (results: any[]) => {
+          
+        const rootNode: PeriodicTriggerNode = {
+          id: "search-root",
+          name: "Search Results",
+          children: [],
+          triggers: results,
+          parent: null,
+          isLoaded: true,
+        };
+        this.triggerTreeDataSource.data = [rootNode];
+        this.selectedTriggers = results;
+        this.dataSource.data = this.selectedTriggers;
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode;
+      },
+      (error) => {
+        console.error("Error searching periodic triggers:", error);
+      }
+    );
+  }
+
+  clearSearch(): void {
+    this.searchQuery = "";
+    this.triggerTreeDataSource.data = [];
+    this.loadInitialTriggers();
+  }
 
   copyId(id: string) {
     this.clipboard.copy(id);
@@ -123,98 +265,140 @@ export class PeriodicTriggerComponent implements OnInit {
     alert("Endpoint " + endpoint);
   }
 
-  onNodeSelect(node: TagNode): void {
-    this.selectedNode = node;
-    this.selectedTriggers = this.collectTriggers(node);
-  }
-
-  collectTriggers(node: TagNode): PeriodicTrigger[] {
-    let triggers: PeriodicTrigger[] = [];
-    if (node.triggers) {
-      triggers = triggers.concat(node.triggers);
-    }
-    if (node.children) {
-      for (const child of node.children) {
-        triggers = triggers.concat(this.collectTriggers(child));
-      }
-    }
-    return triggers;
-  }
-
-  handlePageEvent(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.updatePagedData();
-  }
-
-  updatePagedData(): void {
-    const startIndex = this.pageIndex * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.dataSource.data = this.dataSource.data.slice(startIndex, endIndex);
-  }
-
   openAddPeriodicTriggerDialog(): void {
     const dialogRef = this.dialog.open(PeriodicTriggerDialogComponent, {
       width: "800px",
-      data: {},
+      data: {
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
+      },
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      this.loadTriggers();
+      this.refreshTriggers(this.selectedNode);
     });
   }
 
-  sortData(sort: Sort): void {
-    const data = this.dataSource.data.slice();
-    if (!sort.active || sort.direction === "") {
-      this.dataSource.data = data;
+
+  openAddPrefixDialog(): void {
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        prefix: {
+          parent: this.selectedNode.id,
+        },
+        type: "periodic",
+        isEdit: false,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.triggerTreeDataSource.data[0],
+          result.parent
+        );
+        this.refreshTriggers(parentNode);
+      }
+    });
+  }
+
+  openEditPrefixDialog(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for editing",
+        type: "error",
+        duration: 3000,
+      });
       return;
     }
 
-    this.dataSource.data = data.sort((a, b) => {
-      const isAsc = sort.direction === "asc";
-      switch (sort.active) {
-        case "":
-          return this.compare(a.target, b.target, isAsc);
-        default:
-          return 0;
+    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+      data: {
+        prefix: {
+          id: this.selectedNode.id,
+          name: this.selectedNode.name,
+          parent: this.selectedNode.parent,
+        },
+        type: "periodic",
+        isEdit: true,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const parentNode = this.findNodeById(
+          this.triggerTreeDataSource.data[0],
+          result.parent
+        );
+        this.refreshTriggers(parentNode);
       }
     });
-    this.updatePagedData();
   }
 
-  private compare(a: string, b: string, isAsc: boolean): number {
-    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
-  }
-
-  filterNodes(query: string): void {
-    this.searchQuery = query;
-    if (!query) {
-      this.filteredTreeDataSource.data = this.originalTreeData;
-      this.treeControl.expandDescendants(this.originalTreeData[0]);
-    } else {
-      const filteredNodes = this.filterTree(
-        this.originalTreeData,
-        query.toLowerCase()
-      );
-      this.filteredTreeDataSource.data = filteredNodes;
-      this.treeControl.expandDescendants(filteredNodes[0]);
-    }
-  }
-
-  filterTree(nodes: TagNode[], query: string): TagNode[] {
-    return nodes
-      .map((node) => ({ ...node }))
-      .filter((node) => {
-        if (node.name.toLowerCase().includes(query)) {
-          return true;
-        }
-        if (node.children) {
-          node.children = this.filterTree(node.children, query);
-          return node.children.length > 0;
-        }
-        return false;
+  deletePrefix(): void {
+    if (!this.selectedNode) {
+      this.showNotification({
+        message: "No prefix selected for deletion",
+        type: "error",
+        duration: 3000,
       });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: `Are you sure you want to delete the prefix "${this.selectedNode.name}"?`,
+        ok: "Delete",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.flowService.deletePrefix(this.selectedNode.id).subscribe(
+          () => {
+            this.showNotification({
+              message: "Prefix deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            const parentNode = this.findNodeById(
+              this.triggerTreeDataSource.data[0],
+              this.selectedNode.parent
+            );
+            this.refreshTriggers(parentNode);
+          },
+          (error) => {
+            this.showNotification({
+              message: error.error?.error || "Error deleting prefix",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
+    });
+  }
+  
+  refreshTriggers(node: PeriodicTriggerNode): void {
+    const isRoot = node.id === "root";
+
+    const fetchFunctionsObservable = isRoot
+      ? this.triggerService.getPeriodicTriggers()
+      : this.triggerService.fetchTriggersByParent(node.id);
+
+    fetchFunctionsObservable.subscribe(
+      (data: PeriodicTriggerData) => {
+        node.children = this.buildTree(data.tree, node.id);
+        node.triggers = data.items;
+        node.isLoaded = true;
+
+        this.updateSelectedNode(node);
+        this.refreshTreeData();
+      },
+      (error) => {
+        console.error("Error refreshing triggers:", error);
+      }
+    );
   }
 
   highlightText(text: string, query: string): string {
@@ -224,19 +408,7 @@ export class PeriodicTriggerComponent implements OnInit {
     const regex = new RegExp(`(${query})`, "gi");
     return text.replace(regex, '<span class="highlight">$1</span>');
   }
-
-  findNodeById(nodes: TagNode[], id: string): TagNode | null {
-    for (const node of nodes) {
-      if (node.id === id) {
-        return node;
-      }
-      if (node.children) {
-        const found = this.findNodeById(node.children, id);
-        if (found) {
-          return found;
-        }
-      }
-    }
-    return null;
+  private showNotification(notification: NotificationMessage): void {
+    this.toastNotificationService.dispatchNotification(notification);
   }
 }

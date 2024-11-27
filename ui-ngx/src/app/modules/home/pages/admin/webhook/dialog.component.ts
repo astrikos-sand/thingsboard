@@ -25,7 +25,7 @@ export class WebhookDialogComponent implements OnInit {
   }
 
   loadTargets(): void {
-    this.flowService.fetchFlows().subscribe(
+    this.flowService.fetchAllFlows().subscribe(
       (data: any[]) => {
         this.targets = data;
       },

@@ -30,9 +30,13 @@
                 (click)="toggleNode(node)"
               >
                 <button mat-icon-button matTreeNodeToggle>
-                  <mat-icon>{{
-                    treeControl.isExpanded(node) ? "expand_more" : "chevron_right"
-                  }}</mat-icon>
+                  <mat-icon>
+                    {{
+                      treeControl.isExpanded(node)
+                        ? "expand_more"
+                        : "chevron_right"
+                    }}
+                  </mat-icon>
                 </button>
                 <span
                   class="mat-tree-node-label"
@@ -56,11 +60,19 @@
             <button
               mat-raised-button
               color="primary"
-              (click)="openAddPrefixDialog()"
-              style="margin: 10px"
+              [matMenuTriggerFor]="PrefixMenu"
+              aria-label="Actions"
+              style="margin-left: 10px"
             >
-              Add Prefix
+              Prefix Actions
             </button>
+            <mat-menu #PrefixMenu="matMenu">
+              <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
+              <button mat-menu-item (click)="openEditPrefixDialog()">
+                Edit
+              </button>
+              <button mat-menu-item (click)="deletePrefix()">Delete</button>
+            </mat-menu>
             <button
               mat-raised-button
               color="primary"
@@ -70,6 +82,7 @@
               Upload File
             </button>
           </mat-toolbar>
+          <!-- Table -->
           <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
             <ng-container matColumnDef="name">
               <mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -84,11 +97,15 @@
                   Open File
                 </button>
                 <button mat-button (click)="deleteFile(file.id)">Delete</button>
-                <button mat-button (click)="copy_url(file.file)">Copy</button>
+                <button mat-button (click)="copy_url(file.file)">
+                  Copy URL
+                </button>
               </mat-cell>
             </ng-container>
 
-            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-header-row
+              *matHeaderRowDef="displayedColumns"
+            ></mat-header-row>
             <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
           </mat-table>
           <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>

@@ -6,14 +6,18 @@
       <mat-icon>close</mat-icon>
     </button>
   </mat-toolbar>
-  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading"></mat-progress-bar>
+  <mat-progress-bar
+    color="warn"
+    mode="indeterminate"
+    *ngIf="isLoading"
+  ></mat-progress-bar>
   <div style="height: 4px" *ngIf="!isLoading"></div>
   <div mat-dialog-content>
-    <mat-form-field>
+    <mat-form-field appearance="fill">
       <mat-label>Trigger Name</mat-label>
-      <input matInput [(ngModel)]="triggerName" name="triggerName" required>
+      <input matInput [(ngModel)]="triggerName" name="triggerName" required />
     </mat-form-field>
-    <mat-form-field>
+    <mat-form-field appearance="fill">
       <mat-label>Target Flows</mat-label>
       <mat-select [(ngModel)]="selectedTarget" name="target" required>
         <mat-option *ngFor="let target of targets" [value]="target.id">
@@ -26,31 +30,66 @@
       <mat-radio-button value="crontab">Crontab</mat-radio-button>
     </mat-radio-group>
     <div *ngIf="triggerType === 'interval'">
-      <mat-form-field>
+      <mat-form-field appearance="fill">
         <mat-label>Every (seconds)</mat-label>
-        <input matInput [(ngModel)]="interval.every" name="every" type="number" required>
+        <input
+          matInput
+          [(ngModel)]="interval.every"
+          name="every"
+          type="number"
+          required
+        />
       </mat-form-field>
     </div>
     <div *ngIf="triggerType === 'crontab'">
-      <mat-form-field>
+      <mat-form-field appearance="fill">
         <mat-label>Minute</mat-label>
-        <input matInput [(ngModel)]="crontab.minute" name="minute" type="number" required>
+        <input
+          matInput
+          [(ngModel)]="crontab.minute"
+          name="minute"
+          type="text"
+          required
+        />
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="fill">
         <mat-label>Hour</mat-label>
-        <input matInput [(ngModel)]="crontab.hour" name="hour" type="number" required>
+        <input
+          matInput
+          [(ngModel)]="crontab.hour"
+          name="hour"
+          type="text"
+          required
+        />
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="fill">
         <mat-label>Day of Month</mat-label>
-        <input matInput [(ngModel)]="crontab.day_of_month" name="day_of_month" type="number" required>
+        <input
+          matInput
+          [(ngModel)]="crontab.day_of_month"
+          name="day_of_month"
+          type="text"
+          required
+        />
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="fill">
         <mat-label>Month of Year</mat-label>
-        <input matInput [(ngModel)]="crontab.month_of_year" name="month_of_year" type="number" required>
+        <input
+          matInput
+          [(ngModel)]="crontab.month_of_year"
+          name="month_of_year"
+          type="text"
+          required
+        />
       </mat-form-field>
-      <mat-form-field>
+      <mat-form-field appearance="fill">
         <mat-label>Timezone</mat-label>
-        <input matInput [(ngModel)]="crontab.timezone" name="timezone" required>
+        <input
+          matInput
+          [(ngModel)]="crontab.timezone"
+          name="timezone"
+          required
+        />
       </mat-form-field>
     </div>
   </div>
@@ -58,7 +97,12 @@
     <button mat-button color="primary" type="button" (click)="cancel()">
       Cancel
     </button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="isLoading || !selectedTarget || !triggerType || !triggerName">
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="isLoading || !selectedTarget || !triggerType || !triggerName"
+    >
       Add
     </button>
   </div>

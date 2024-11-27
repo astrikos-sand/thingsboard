@@ -28,6 +28,10 @@ export class FlowService {
     return this.http.get(`${this.baseUrl}/flows/page-data/`);
   }
 
+  fetchAllFlows(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/flows/`);
+  }
+
   fetchFlowsByParent(parentId: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/flows/page-data/`, {
       params: { parent: parentId },
@@ -72,6 +76,14 @@ export class FlowService {
   createPrefix(data: any, type: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/prefix/?type=${type}`, data);
   }
+
+  editPrefix(prefixId: string, data: any): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}/prefix/${prefixId}/`, data);
+  }  
+  
+  deletePrefix(prefixId: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/prefix/${prefixId}/`);
+  }  
 
   fetchFlowDetails(flowId: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/flows/${flowId}/nodes/`);
