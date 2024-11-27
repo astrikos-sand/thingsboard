@@ -238,9 +238,8 @@ export class ArchivesComponent implements OnInit, AfterViewInit {
 
   copy_url(url: string) {
     const endpoint = url.split("media")[1];
-    const new_url = `${window.location.origin}/backend/media${endpoint}`;
+    const new_url = "http://host.docker.internal:8000/media" + endpoint;
     this.clipboard.copy(new_url);
-    alert("Copied URL: " + new_url);
   }
 
   deleteFile(fileId: string): void {
