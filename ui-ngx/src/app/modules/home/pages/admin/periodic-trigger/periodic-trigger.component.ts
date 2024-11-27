@@ -107,6 +107,39 @@ export class PeriodicTriggerComponent implements OnInit, AfterViewInit {
     );
   }
 
+  deleteTrigger(triggerId: string): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: "Are you sure you want to delete this trigger?",
+        ok: "Delete",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.triggerService.deletePeriodicTrigger(triggerId).subscribe(
+          () => {
+            this.showNotification({
+              message: "Trigger deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            this.refreshTriggers(this.selectedNode);
+          },
+          () => {
+            this.showNotification({
+              message: "Error deleting trigger",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
+    });
+  }
+
+
   findNodeById(node: PeriodicTriggerNode, id: string): PeriodicTriggerNode | null {
     if (node.id === id) {
       return node;

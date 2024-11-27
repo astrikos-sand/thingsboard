@@ -35,9 +35,9 @@ export class PeriodicTriggerDialogComponent implements OnInit {
   }
 
   loadTargets(): void {
-    this.flowService.fetchFlows().subscribe(
+    this.flowService.fetchAllFlows().subscribe(
       (data: any) => {
-        this.targets = data.items;
+        this.targets = data;
       },
       (error) => {
         console.error("Error loading targets:", error);

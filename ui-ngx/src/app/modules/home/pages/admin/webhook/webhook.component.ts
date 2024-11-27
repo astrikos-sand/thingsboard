@@ -214,6 +214,39 @@ export class WebhookComponent implements OnInit, AfterViewInit {
     );
   }
 
+  deleteWebhook(webhookId: string): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: "Confirm Deletion",
+        message: "Are you sure you want to delete this webhook?",
+        ok: "Delete",
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.webhookservice.deleteWebhook(webhookId).subscribe(
+          () => {
+            this.showNotification({
+              message: "webhook deleted successfully",
+              type: "success",
+              duration: 3000,
+            });
+            this.refreshWebhooks(this.selectedNode);
+          },
+          () => {
+            this.showNotification({
+              message: "Error deleting webhook",
+              type: "error",
+              duration: 3000,
+            });
+          }
+        );
+      }
+    });
+  }
+
+
   clearSearch(): void {
     this.searchQuery = "";
     this.tagTreeDataSource.data = [];
@@ -225,10 +258,9 @@ export class WebhookComponent implements OnInit, AfterViewInit {
     alert("Copied ID: " + id);
   }
 
-  copyWebhookEndpoint(id: string) {
-    const endpoint = `${window.location.origin}/backend/triggers/webhook/${id}/execute/`;
+  copyWebhookEndpoint(webhook): void {
+    const endpoint = webhook.copy_command;
     this.clipboard.copy(endpoint);
-    alert("Endpoint copied: " + endpoint);
   }
 
   openAddWebhookDialog(): void {

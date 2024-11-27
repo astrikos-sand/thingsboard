@@ -21,7 +21,7 @@
       <mat-label>Target Flows</mat-label>
       <mat-select [(ngModel)]="selectedTarget" name="target" required>
         <mat-option *ngFor="let target of targets" [value]="target.id">
-          {{ target.name }}
+          {{ target.full_name }}
         </mat-option>
       </mat-select>
     </mat-form-field>

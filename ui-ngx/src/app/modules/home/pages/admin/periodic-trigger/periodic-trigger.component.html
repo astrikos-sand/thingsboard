@@ -94,7 +94,7 @@
               </mat-header-cell>
               <mat-cell *matCellDef="let trigger">
                 <a [routerLink]="['/flows/library', trigger.target]">{{
-                  trigger.target | slice : 0 : 7
+                  trigger.target_name
                 }}</a>
               </mat-cell>
             </ng-container>
@@ -125,11 +125,12 @@
               <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
               <mat-cell *matCellDef="let trigger">
                 <button
-                  mat-icon-button
-                  (click)="copyPeriodicTriggerEndpoint(trigger.id)"
-                >
-                  <mat-icon class="material-icons">content_copy</mat-icon>
-                </button>
+                mat-icon-button
+                (click)="deleteTrigger(trigger.id)"
+                matTooltip="Delete Trigger"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
               </mat-cell>
             </ng-container>
             <mat-header-row

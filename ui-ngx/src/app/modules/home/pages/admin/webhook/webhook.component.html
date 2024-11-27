@@ -93,7 +93,7 @@
               </mat-header-cell>
               <mat-cell *matCellDef="let webhook">
                 <a [routerLink]="['/flows/library', webhook.target]">{{
-                  webhook.target | slice : 0 : 7
+                  webhook.target_name
                 }}</a>
               </mat-cell>
             </ng-container>
@@ -120,10 +120,17 @@
               <mat-cell *matCellDef="let webhook">
                 <button
                   mat-icon-button
-                  (click)="copyWebhookEndpoint(webhook.id)"
+                  (click)="copyWebhookEndpoint(webhook)"
                 >
                   <mat-icon>content_copy</mat-icon>
                 </button>
+                <button
+                mat-icon-button
+                (click)="deleteWebhook(webhook.id)"
+                matTooltip="Delete Webhook"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
               </mat-cell>
             </ng-container>
 

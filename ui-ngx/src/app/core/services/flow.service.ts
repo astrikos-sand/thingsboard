@@ -28,6 +28,10 @@ export class FlowService {
     return this.http.get(`${this.baseUrl}/flows/page-data/`);
   }
 
+  fetchAllFlows(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/flows/`);
+  }
+
   fetchFlowsByParent(parentId: string): Observable<any> {
     return this.http.get(`${this.baseUrl}/flows/page-data/`, {
       params: { parent: parentId },
