@@ -45,7 +45,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
 
       if (flowDetails) {
         this.flowId = flowDetails.flow.id;
-        this.explorer_url = `http://192.168.0.218:9600/notebooks/${this.flowId.slice(0, 8)}`;
+        this.explorer_url = `http://192.168.0.218:9600/notebooks/${this.flowId.slice(0, 8)}/`;
         console.log(flowDetails, flowDetails.flow.id, this.flowId);
         const { nodes, edges } = convertData(
           flowDetails.nodes,
