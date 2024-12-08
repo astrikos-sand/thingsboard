@@ -4,7 +4,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { AddNewNodeDialog } from "./add-node-dialog.component";
 import { Node, Edge, addEdge } from "reactflow";
 import { Subscription } from "rxjs";
-import { convertData, executeFlow, notebook_start } from "./nodeUtils";
+import { convertData, executeFlow, notebook_start, uploadToAirflow } from "./nodeUtils";
 import { EditNodeDialogComponent } from "./edit-node-dialog.component";
 import { FlowService } from "@app/core/services/flow.service";
 import { AddFunctionDialog } from "../functions/function-dialog.component";
@@ -129,6 +129,21 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       this.executionStatus = "Error executing flow";
       alert("Error executing flow");
     } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async upload_to_airflow(): Promise<void> {
+    this.isLoading = true;
+    try {
+      await uploadToAirflow(this.flowId);
+      setTimeout(() => { 
+        alert("Flow uploaded to Airflow successfully");
+        this.isLoading = false;
+      }, 25000);
+     
+    } catch (error) {
+      console.error("Error uploading to Airflow:", error);
       this.isLoading = false;
     }
   }

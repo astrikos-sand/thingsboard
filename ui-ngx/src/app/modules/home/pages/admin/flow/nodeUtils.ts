@@ -354,19 +354,19 @@ export const handleOpenAllScopes = async (
     .map((node) =>
       node.position.x > data.position.x
         ? {
-            ...node,
+          ...node,
+          position: {
+            x: node.position.x + shift,
+            y: node.position.y,
+          },
+          data: {
+            ...node.data,
             position: {
               x: node.position.x + shift,
               y: node.position.y,
             },
-            data: {
-              ...node.data,
-              position: {
-                x: node.position.x + shift,
-                y: node.position.y,
-              },
-            },
-          }
+          },
+        }
         : node
     );
 
@@ -502,6 +502,14 @@ export const notebook_start = async (flowId: string) => {
     await axios.post(`/backend/v2/flows/${flowId}/notebook/start/`, {});
   } catch (error) {
     console.error("Error starting notebook:", error);
+  }
+}
+
+export const uploadToAirflow = async (flowId: string) => {
+  try {
+    await axios.post(`/backend/v2/flows/${flowId}/dag/create/`, {});
+  } catch (error) {
+    console.error("Error uploading to Airflow:", error);
   }
 }
 

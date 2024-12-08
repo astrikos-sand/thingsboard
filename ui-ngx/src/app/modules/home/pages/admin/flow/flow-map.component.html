@@ -23,6 +23,17 @@
         Open
       </a>
     </mat-menu>
+    <button mat-icon-button [matMenuTriggerFor]="airflowMenu" aria-label="Airflow Actions">
+      <mat-icon>autorenew</mat-icon>
+    </button>
+    <mat-menu #airflowMenu="matMenu">
+      <button mat-menu-item (click)="upload_to_airflow()" aria-label="Upload to Airflow">
+        <mat-icon>cloud_upload</mat-icon>
+      </button>
+      <a mat-menu-item href="http://192.168.0.218:9333/dags/{{ flowId }}/grid" aria-label="Open Airflow" target="_blank">
+        Open
+      </a>
+    </mat-menu>
     <a mat-icon-button [(href)]="explorer_url" target="_blank">
       <mat-icon>folder</mat-icon>
     </a>
