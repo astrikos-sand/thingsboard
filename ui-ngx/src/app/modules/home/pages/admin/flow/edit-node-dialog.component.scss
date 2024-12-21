@@ -24,6 +24,14 @@ form {
     margin-top: -4px;
   }
 
+  .search-container .dropdown-small {
+    width: 25%;
+  }
+
+  .search-container .search-input {
+    width: 75%;
+  }
+
   div {
     &::ng-deep {
       mat-form-field {
@@ -50,6 +58,13 @@ form {
     flex-direction: column;
     gap: 16px;
 
+    .read-only-fields {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 14px;
+    }
+
     mat-form-field {
       width: 100%;
 
@@ -61,6 +76,34 @@ form {
       textarea,
       mat-select {
         width: 100%;
+      }
+    }
+
+    .function-node-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .add-default-value-btn {
+        align-self: flex-start;
+      }
+
+      .default-value-row {
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        padding: 8px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 16px;
+
+        mat-form-field {
+          flex: 1;
+        }
+
+        .delete-default-value-btn {
+          margin-left: auto;
+        }
       }
     }
   }
@@ -105,18 +148,18 @@ form {
     padding: 16px;
     border-radius: 4px;
     margin-bottom: 16px;
-  }
 
-  .array-fields .form-field {
-    margin-bottom: 16px;
-  }
+    .form-field {
+      margin-bottom: 16px;
+    }
 
-  .array-fields mat-form-field {
-    margin-top: 16px;
-  }
+    mat-form-field {
+      margin-top: 16px;
+    }
 
-  .array-fields button {
-    margin-top: 8px;
+    button {
+      margin-top: 8px;
+    }
   }
 }
 
@@ -124,5 +167,20 @@ form {
   mat-option {
     display: flex;
     align-items: center;
+  }
+}
+
+.default-value-section {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+
+  mat-form-field {
+    flex: 1;
+  }
+
+  button {
+    margin-left: 8px;
   }
 }
