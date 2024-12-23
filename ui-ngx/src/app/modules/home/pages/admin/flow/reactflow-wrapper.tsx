@@ -29,6 +29,7 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
   @Input() edges?: Edge<any>[] | undefined;
   @Input() openEditingDialogBox?: any | undefined;
   @Input() saveFlow?: any | undefined;
+  @Input() onDropNodeToBackend?: (nodeData: any) => void;
   @Output() onOpenEditingDialogBox = new EventEmitter<Node<any>[]>();
   @Output() nodesChange = new EventEmitter<Node<any>[]>();
   @Output() edgesChange = new EventEmitter<Edge<any>[]>();
@@ -63,6 +64,7 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
           nodes: this.nodes,
           edges: this.edges,
           saveFlow: this.saveFlow,
+          onDropNodeToBackend: this.handleDropNodeToBackend.bind(this),
           openEditingDialogBox: this.openEditingDialogBox,
           onNodesChange: this.handleNodesChange.bind(this),
           onEdgesChange: this.handleEdgesChange.bind(this),
@@ -72,6 +74,11 @@ export class ReactFlowWrapper implements OnChanges, OnDestroy, AfterViewInit {
         },
       })
     );
+  }
+  private handleDropNodeToBackend(nodeData: any) {
+    if (this.onDropNodeToBackend) {
+      this.onDropNodeToBackend(nodeData);
+    }
   }
 
   private handleOpeningDialogBox(nodeData: Node[]) {

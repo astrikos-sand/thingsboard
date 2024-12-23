@@ -225,7 +225,6 @@ export class AddNewNodeDialog implements OnInit {
           return acc;
         }, {}),
       };
-
       this.flowService.addNode(nodeData).subscribe(
         (response: any) => {
           const {

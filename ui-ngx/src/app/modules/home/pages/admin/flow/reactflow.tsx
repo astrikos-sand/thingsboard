@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useRef,
   useState,
+  DragEvent,
 } from "react";
 import ReactFlow, {
   Controls,
@@ -125,13 +126,13 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
     async (connection) => {
       const tempId = `${connection.source}-${connection.target}`;
       const tempConnection = { ...connection, id: tempId };
-  
+
       let updatedEdges = addEdge(tempConnection, edges);
       setEdges(updatedEdges);
       props.onEdgesChange(updatedEdges);
-  
+
       const backendId = await createConnection(connection);
-  
+
       if (backendId) {
         updatedEdges = updatedEdges.map((edge) =>
           edge.id === tempId ? { ...edge, id: backendId } : edge
@@ -391,7 +392,7 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
         .replace("-input-", ""),
     }));
 
-    const response = await axios.post('/backend/v2/save/', {
+    const response = await axios.post("/backend/v2/save/", {
       nodes: convertedNodes,
       connections: convertedConnections,
       flow_id: props.saveFlow,
@@ -422,6 +423,36 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
     [screenToFlowPosition, props.onSetPosition]
   );
 
+  const onDragOver = useCallback((event: DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  const onDrop = useCallback(
+    async (event: DragEvent) => {
+      event.preventDefault();
+      if (!reactFlowWrapper.current) return;
+  
+      const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
+      const nodeType = event.dataTransfer.getData("application/reactflow");
+      const nodeDataStr = event.dataTransfer.getData("nodeData");
+      if (!nodeType || !nodeDataStr) return;
+  
+      const rawData = JSON.parse(nodeDataStr);
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY - reactFlowBounds.top,
+      });
+  
+      props.onDropNodeToBackend({
+        node_type: nodeType,
+        ...rawData,
+        position,
+      });
+    },
+    [reactFlowWrapper, screenToFlowPosition, props]
+  );
+  
   return (
     <div ref={reactFlowWrapper} style={{ height: 800 }}>
       <ReactFlow
@@ -432,6 +463,8 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onMouseMove={onMouseMove}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
         fitView
         fitViewOptions={fitViewOptions}
         nodeTypes={nodeTypes}
