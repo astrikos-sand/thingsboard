@@ -26,6 +26,7 @@ import { MatTableDataSource } from "@angular/material/table";
 import { MatPaginator } from "@angular/material/paginator";
 import { MatTreeNestedDataSource } from "@angular/material/tree";
 import { NestedTreeControl } from "@angular/cdk/tree";
+import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 
 interface FunctionNode {
   name: string;
@@ -92,8 +93,8 @@ export class FlowMapComponent implements OnInit, OnDestroy {
         );
         this.nodes = nodes;
         this.edges = edges;
-        this.name = flowDetails.name;
-        this.full_name = flowDetails.full_name;
+        this.name = flowDetails.flow.name;
+        this.full_name = flowDetails.flow.full_name;
       }
     });
     this.loadInitialFunctions();
@@ -434,4 +435,21 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     }
     return null;
   }
+
+  openExecutionConfirmation(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Confirm Execution',
+        message: 'Are you sure you want to execute this flow?',
+        ok: 'Execute',
+      },
+    });
+  
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.execute_flow();
+      }
+    });
+  }
+  
 }

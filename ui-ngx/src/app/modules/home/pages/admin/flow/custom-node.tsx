@@ -14,7 +14,7 @@ function CustomNode({
 
   const color = data.node_fields["color"];
   const attrs = data.node_fields["attrs"];
-  const [offset, setOffset] = useState({ x: 100, y: data.position.y });
+
   const {
     nodes,
     edges,
@@ -23,13 +23,18 @@ function CustomNode({
     setRemovedSlots,
     setNodes,
     setEdges,
+    setOpenEditingDialogBox,
   } = useContext(FlowContext) as FlowContextType;
-  const [openScopes, setOpenScopes] = useState<boolean>(false);
-  const [showDescription, setShowDescription] = useState<boolean>(false); // Hover state
-  const { setOpenEditingDialogBox } = useContext(FlowContext) as FlowContextType;
-  data.styles = data.styles || {};
 
+  data.styles = data.styles || {};
   const nodeName = data.definition?.name || data.name || "Unnamed Node";
+
+  const [hoveredNode, setHoveredNode] = useState<boolean>(false);
+  const [hoveredDesc, setHoveredDesc] = useState<boolean>(false);
+  const showDescription = hoveredNode || hoveredDesc;
+
+  const [openScopes, setOpenScopes] = useState<boolean>(false);
+  const [offset, setOffset] = useState({ x: 100, y: data.position.y });
 
   const renderExtraData = () => {
     if (data.cases) {
@@ -87,7 +92,7 @@ function CustomNode({
             {!openScopes ? (
               <button
                 className="scope-button"
-                onClick={() => {
+                onClick={() =>
                   handleOpenAllScopes(
                     [data.block],
                     data,
@@ -100,8 +105,8 @@ function CustomNode({
                     setEdges,
                     setOffset,
                     setOpenScopes
-                  );
-                }}
+                  )
+                }
               >
                 Open {data.block.name}
               </button>
@@ -134,7 +139,6 @@ function CustomNode({
   };
 
   const handleEditClick = () => {
-    console.log(data);
     setOpenEditingDialogBox(data);
   };
 
@@ -147,21 +151,28 @@ function CustomNode({
       }}
       onMouseEnter={() => {
         if (data.node_type === "FunctionNode") {
-          setShowDescription(true);
+          setHoveredNode(true);
         }
       }}
-      onMouseLeave={() => setShowDescription(false)}
+      onMouseLeave={() => setHoveredNode(false)}
     >
       <div className="custom-node__header">
         <strong>
           {data.node_type}: {nodeName}
         </strong>
       </div>
+
       {showDescription && (
-        <div className="custom-node__description">
-          <em>{data.definition.description || "No description available"}</em>
+        <div
+          className="custom-node__description"
+          onMouseEnter={() => setHoveredDesc(true)}
+          onMouseLeave={() => setHoveredDesc(false)}
+          style={{ pointerEvents: "auto" }}
+        >
+          <em>{data.definition?.description || "No description available"}</em>
         </div>
       )}
+
       <div className="custom-node__body">
         {data.input_slots?.map((input: any) => (
           <div
@@ -194,7 +205,9 @@ function CustomNode({
           </div>
         ))}
       </div>
+
       {renderExtraData()}
+
       <div>
         <button onClick={handleEditClick}>Show</button>
       </div>

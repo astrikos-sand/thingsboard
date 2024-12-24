@@ -40,11 +40,12 @@
           </mat-tree>
         </div>
 
-        <div fxFlex="84" class="right-panel-container">
+        <div fxFlex="84" class="right-panel-container">   
           <div class="button-container">
             <button
               mat-icon-button
               (click)="openAddNewNodeDialog()"
+              matTooltip="Add Node"
               aria-label="Add New Node"
             >
               <mat-icon>add_circle</mat-icon>
@@ -52,13 +53,15 @@
             <button
               mat-icon-button
               (click)="openAddFunctionDialog()"
+              matTooltip="Add Function"
               aria-label="Add Function"
             >
               <mat-icon>functions</mat-icon>
             </button>
             <button
               mat-icon-button
-              (click)="execute_flow()"
+              (click)="openExecutionConfirmation()"
+              matTooltip="Execute Flow"
               aria-label="Execute Flow"
             >
               <mat-icon>play_arrow</mat-icon>
@@ -66,6 +69,7 @@
             <button
               mat-icon-button
               (click)="openViewExecutionsDialog()"
+              matTooltip="View Executions"
               aria-label="View Executions"
             >
               <mat-icon>visibility</mat-icon>
@@ -73,6 +77,7 @@
             <button
               mat-icon-button
               [matMenuTriggerFor]="notebookMenu"
+              matTooltip="Notebook Actions"
               aria-label="Notebook Actions"
             >
               <mat-icon>book</mat-icon>
@@ -84,6 +89,7 @@
             <button
               mat-icon-button
               [matMenuTriggerFor]="airflowMenu"
+              matTooltip="Airflow Actions"
               aria-label="Airflow Actions"
             >
               <mat-icon>autorenew</mat-icon>
@@ -92,6 +98,7 @@
               <button
                 mat-menu-item
                 (click)="upload_to_airflow()"
+                matTooltip="Upload to Airflow"
                 aria-label="Upload to Airflow"
               >
                 <mat-icon>cloud_upload</mat-icon>
@@ -127,7 +134,6 @@
           >
           </reactflow-wrapper>
 
-          <!-- Translucent Function Nodes Overlay -->
           <div class="function-nodes-overlay">
             <div class="function-nodes-header">Function Nodes</div>
             <mat-form-field appearance="outline" class="mb-8">
