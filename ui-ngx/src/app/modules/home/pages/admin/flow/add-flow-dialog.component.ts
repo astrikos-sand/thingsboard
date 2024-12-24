@@ -18,6 +18,7 @@ export class AddFlowDialogComponent implements OnInit {
   flowId: string = "";
   isEdit: boolean = false;
   prefixes: string[] = [];
+  dagConfig: string = ""; // For storing JSON representing DAG config
 
   constructor(
     public dialogRef: MatDialogRef<AddFlowDialogComponent>,
@@ -31,12 +32,15 @@ export class AddFlowDialogComponent implements OnInit {
       this.flowName = data.flowName;
       this.selectedEnv = data.selectedEnv;
       this.description = data.description;
+      this.dagConfig = data.dagMetaData?.config
+        ? JSON.stringify(data.dagMetaData.config, null, 2)
+        : "{}";
     }
+    console.log(data);
   }
 
   ngOnInit(): void {
     this.loadEnvironments();
-
     if (this.isEdit) {
       this.loadPrefixes();
     }
@@ -53,7 +57,16 @@ export class AddFlowDialogComponent implements OnInit {
     );
   }
 
-  loadPrefixes() {
+  isValidJson(json: string): boolean {
+    try {
+      JSON.parse(json);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  
+  loadPrefixes(): void {
     this.flowService.getPrefixes("flows").subscribe((response: any) => {
       this.prefixes = response.tree.map((prefix: any) => prefix);
     });
@@ -71,7 +84,10 @@ export class AddFlowDialogComponent implements OnInit {
         name: this.flowName,
         description: this.description,
         lib: this.selectedEnv,
-        prefix: this.selectedPrefix == 'root' ? null : this.selectedPrefix,
+        prefix: this.selectedPrefix === "root" ? null : this.selectedPrefix,
+        dag_meta_data: {
+          config: JSON.parse(this.dagConfig || "{}"),
+        },
       };
       this.flowService.addFlow(flowData).subscribe(
         (newFlow) => {
@@ -93,14 +109,17 @@ export class AddFlowDialogComponent implements OnInit {
         lib: this.selectedEnv,
         name: this.flowName,
         description: this.description,
-        prefix: this.selectedPrefix == 'root' ? null : this.selectedPrefix,
+        prefix: this.selectedPrefix === "root" ? null : this.selectedPrefix,
+        dag_meta_data: {
+          config: JSON.parse(this.dagConfig || "{}"),
+        },
       };
       this.flowService.editFlow(this.flowId, flowData).subscribe(
-        (newFlow) => {
-          this.dialogRef.close();
+        () => {
+          this.dialogRef.close(flowData);
         },
         (error) => {
-          console.error("Error adding flow:", error);
+          console.error("Error editing flow:", error);
           this.isLoading = false;
         }
       );
