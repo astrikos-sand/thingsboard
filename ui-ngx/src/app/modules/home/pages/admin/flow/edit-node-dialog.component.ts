@@ -114,12 +114,6 @@ export class EditNodeDialogComponent implements OnInit {
 
   async saveData() {
     this.isLoading = true;
-    console.log("Form value:", this.form.value);
-    console.log("Form invalid:", this.form.invalid);
-    this.defaultValues.controls.forEach((control, index) => {
-      console.log("Default Value", index, "Valid:", control.valid);
-      console.log("Default Value", index, "Value:", control.value);
-    });
     let datastore: any = {};
     if (this.data.node_type === "FunctionNode") {
       datastore = this.defaultValues.value.reduce((acc: any, curr: any) => {
@@ -138,6 +132,7 @@ export class EditNodeDialogComponent implements OnInit {
       if (this.data.node_type === "FunctionNode") {
         payload.datastore = datastore;
       }
+      console.log(payload)
       await axios.patch(`/backend/v2/nodes/${this.data.id}/`, payload);
       this.dialogRef.close(payload);
     } catch (error) {

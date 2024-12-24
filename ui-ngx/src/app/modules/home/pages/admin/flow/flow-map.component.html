@@ -6,26 +6,7 @@
           fxFlex="16"
           class="tree-container scrollable-container primary-backdrop"
         >
-          <mat-form-field appearance="outline">
-            <mat-label>Search Type</mat-label>
-            <mat-select [(value)]="searchFilter">
-              <mat-option value="name">Name</mat-option>
-              <mat-option value="prefix">Prefix</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Search Functions</mat-label>
-            <input
-              matInput
-              [(ngModel)]="searchQuery"
-              (keyup.enter)="filterNodes()"
-              placeholder="Search functions..."
-            />
-          </mat-form-field>
-
-          <button mat-button (click)="clearSearch()">Clear Search</button>
-
+          <div class="tree-header">Tree Structure</div>
           <mat-tree
             [dataSource]="functionTreeDataSource"
             [treeControl]="treeControl"
@@ -46,7 +27,7 @@
                 </button>
                 <span
                   class="mat-tree-node-label"
-                  [innerHTML]="highlightText(node.name, searchQuery)"
+                  [innerHTML]="node.name"
                 ></span>
               </div>
               <div

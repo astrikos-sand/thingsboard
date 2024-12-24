@@ -55,8 +55,6 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   executionTime: number | undefined;
   executionStatus: string | undefined;
   explorer_url: string = "";
-  searchFilter: string = "name";
-  searchQuery: string = "";
   treeControl = new NestedTreeControl<FunctionNode>((node) => node.children);
   functionTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
   selectedNode: FunctionNode | null = null;
@@ -128,13 +126,15 @@ export class FlowMapComponent implements OnInit, OnDestroy {
         data: nodeData,
       });
       dialogRef.afterClosed().subscribe((result) => {
+        console.log(result);
         const updatedNodes = this.nodes.map((node) =>
           node.id === nodeData.id
             ? {
                 ...node,
                 data: {
                   ...node.data,
-                  value: result !== undefined ? result : nodeData.value,
+                  ...(result && result.hasOwnProperty('value') ? { value: result.value } : {}),
+                  ...(result && result.hasOwnProperty('datastore') ? { datastore: result.datastore } : {}),
                 },
               }
             : node
@@ -393,50 +393,6 @@ export class FlowMapComponent implements OnInit, OnDestroy {
         console.error("Error refreshing functions:", error);
       }
     );
-  }
-
-  filterNodes(): void {
-    if (!this.searchQuery) {
-      this.loadInitialFunctions();
-      return;
-    }
-    const query =
-      this.searchFilter === "prefix"
-        ? `prefix:${this.searchQuery}`
-        : this.searchQuery;
-    this.searchService.searchItems(query, "functions").subscribe(
-      (results: any[]) => {
-        const items = results.map((item) => ({
-          ...item,
-          id: item.id,
-          name: item.name,
-          description: item.description,
-        }));
-        const rootNode: FunctionNode = {
-          id: "search-root",
-          name: "Search Results",
-          children: [],
-          functions: items,
-          parent: null,
-          isLoaded: true,
-        };
-        this.functionTreeDataSource.data = [rootNode];
-        this.selectedFunctions = items;
-        this.filteredFunctions = this.selectedFunctions;
-        this.dataSource.data = this.selectedFunctions;
-        this.treeControl.expand(rootNode);
-        this.selectedNode = rootNode;
-      },
-      (error) => {
-        console.error("Error searching flows:", error);
-      }
-    );
-  }
-
-  clearSearch(): void {
-    this.searchQuery = "";
-    this.functionTreeDataSource.data = [];
-    this.loadInitialFunctions();
   }
 
   filterLocalFunctionNodes(): void {
