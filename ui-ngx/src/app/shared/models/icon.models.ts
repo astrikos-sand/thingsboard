@@ -60,7 +60,10 @@ export const svgIconsUrl: { [key: string]: string } = {
   windows: '/assets/windows.svg',
   macos: '/assets/macos.svg',
   linux: '/assets/linux.svg',
-  docker: '/assets/docker.svg'
+  docker: '/assets/docker.svg',
+  airflow: '/assets/mlworkbench/airflow.svg',
+  jupyter: '/assets/mlworkbench/jupyter.svg',
+  function: '/assets/mlworkbench/function.svg',
 };
 
 const svgIconNamespaces: string[] = ['mdi'];

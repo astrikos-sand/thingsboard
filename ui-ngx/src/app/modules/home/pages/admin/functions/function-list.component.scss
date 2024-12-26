@@ -116,4 +116,11 @@
   .highlight {
     background-color: yellow;
   }
+
+  .transparent-button {
+    background-color: inherit !important;
+    border: none;
+    outline: none;
+    cursor: pointer;
+  }
 }

@@ -469,8 +469,6 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
         fitViewOptions={fitViewOptions}
         nodeTypes={nodeTypes}
       >
-        <MiniMap zoomable pannable />
-        <Controls />
         <Background color="#B8CEFF" gap={16} />
       </ReactFlow>
     </div>

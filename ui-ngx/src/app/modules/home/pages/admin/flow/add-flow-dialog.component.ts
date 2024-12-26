@@ -19,6 +19,7 @@ export class AddFlowDialogComponent implements OnInit {
   isEdit: boolean = false;
   prefixes: string[] = [];
   dagConfig: string = ""; // For storing JSON representing DAG config
+  is_valid_json: boolean = true;
 
   constructor(
     public dialogRef: MatDialogRef<AddFlowDialogComponent>,
@@ -36,7 +37,6 @@ export class AddFlowDialogComponent implements OnInit {
         ? JSON.stringify(data.dagMetaData.config, null, 2)
         : "{}";
     }
-    console.log(data);
   }
 
   ngOnInit(): void {
@@ -65,7 +65,7 @@ export class AddFlowDialogComponent implements OnInit {
       return false;
     }
   }
-  
+
   loadPrefixes(): void {
     this.flowService.getPrefixes("flows").subscribe((response: any) => {
       this.prefixes = response.tree.map((prefix: any) => prefix);
@@ -77,6 +77,11 @@ export class AddFlowDialogComponent implements OnInit {
   }
 
   add(): void {
+    if (this.dagConfig !== "" && !this.isValidJson(this.dagConfig)) {
+      this.is_valid_json = false;
+      return;
+    }
+    this.is_valid_json = true;
     this.submitted = true;
     if (this.flowName && this.description && this.selectedEnv) {
       this.isLoading = true;
@@ -102,6 +107,11 @@ export class AddFlowDialogComponent implements OnInit {
   }
 
   edit(): void {
+    if (this.dagConfig !== "" && !this.isValidJson(this.dagConfig)) {
+      this.is_valid_json = false;
+      return;
+    }
+    this.is_valid_json = true;
     this.submitted = true;
     if (this.selectedEnv) {
       this.isLoading = true;

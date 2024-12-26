@@ -42,9 +42,9 @@
         rows="6"
         placeholder='{"schedule": "..."}'
       ></textarea>
-      <mat-error *ngIf="submitted && !isValidJson(dagConfig)">
+      <div *ngIf="!is_valid_json">
         Invalid JSON format.
-      </mat-error>
+      </div>
     </mat-form-field>    
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
@@ -102,9 +102,9 @@
           rows="6"
           placeholder='{"schedule": "..."}'
         ></textarea>
-        <mat-error *ngIf="submitted && !isValidJson(dagConfig)">
+        <div *ngIf="!is_valid_json">
           Invalid JSON format.
-        </mat-error>
+        </div>
       </mat-form-field>      
     </div>
     <div mat-dialog-actions fxLayoutAlign="end center">

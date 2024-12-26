@@ -6,7 +6,6 @@
           fxFlex="16"
           class="tree-container scrollable-container primary-backdrop"
         >
-          <div class="tree-header">Tree Structure</div>
           <mat-tree
             [dataSource]="functionTreeDataSource"
             [treeControl]="treeControl"
@@ -40,8 +39,12 @@
           </mat-tree>
         </div>
 
-        <div fxFlex="84" class="right-panel-container">   
+        <div fxFlex="84" class="right-panel-container">
           <div class="button-container">
+            <div *ngIf="isLoading">
+              <img class="flow-action-loading" src="/assets/mlworkbench/loading.gif" alt="Loading..." />
+            </div>
+
             <button
               mat-icon-button
               (click)="openAddNewNodeDialog()"
@@ -56,7 +59,7 @@
               matTooltip="Add Function"
               aria-label="Add Function"
             >
-              <mat-icon>functions</mat-icon>
+              <mat-icon svgIcon="function"></mat-icon>
             </button>
             <button
               mat-icon-button
@@ -74,51 +77,70 @@
             >
               <mat-icon>visibility</mat-icon>
             </button>
+
             <button
               mat-icon-button
-              [matMenuTriggerFor]="notebookMenu"
-              matTooltip="Notebook Actions"
-              aria-label="Notebook Actions"
+              (click)="more_options_drawer.toggle()"
+              matTooltip="More Options"
+              aria-label="More Options"
             >
-              <mat-icon>book</mat-icon>
+              <mat-icon>more_horiz</mat-icon>
             </button>
-            <mat-menu #notebookMenu="matMenu">
-              <button mat-menu-item (click)="start_notebook()">Start</button>
-              <a mat-menu-item href="/notebooks" target="_blank">Open</a>
-            </mat-menu>
-            <button
-              mat-icon-button
-              [matMenuTriggerFor]="airflowMenu"
-              matTooltip="Airflow Actions"
-              aria-label="Airflow Actions"
-            >
-              <mat-icon>autorenew</mat-icon>
-            </button>
-            <mat-menu #airflowMenu="matMenu">
-              <button
-                mat-menu-item
-                (click)="upload_to_airflow()"
-                matTooltip="Upload to Airflow"
-                aria-label="Upload to Airflow"
-              >
-                <mat-icon>cloud_upload</mat-icon>
-              </button>
-              <a
-                mat-menu-item
-                [href]="'http://192.168.0.218:9333/dags/' + flowId + '/grid'"
-                target="_blank"
-                aria-label="Open Airflow"
-              >
-                Open
-              </a>
-            </mat-menu>
-            <a mat-icon-button [href]="explorer_url" target="_blank">
-              <mat-icon>folder</mat-icon>
-            </a>
-            <div *ngIf="isLoading">
-              <mat-icon>hourglass_empty</mat-icon>
-            </div>
-          </div>
+
+            <mat-sidenav-container class="more-options-horizontal-drawer-container">
+              <mat-sidenav #more_options_drawer mode="side" position="start" class="more-options-horizontal-drawer">
+                <div class="more-options-drawer-icons">
+                  <!-- Jupyter -->
+                  <button
+                    class="transparent-button"
+                    [matMenuTriggerFor]="notebookMenu"
+                    matTooltip="Jupyter Notebook"
+                    aria-label="Jupyter Notebook"
+                  >
+                    <mat-icon svgIcon="jupyter"></mat-icon>
+                  </button>
+                  <mat-menu #notebookMenu="matMenu">
+                    <button mat-menu-item (click)="start_notebook()">Start</button>
+                    <a mat-menu-item href="/notebooks" target="_blank">Open</a>
+                  </mat-menu>
+          
+                  <!-- Airflow -->
+                  <button
+                    class="transparent-button"
+                    [matMenuTriggerFor]="airflowMenu"
+                    matTooltip="Airflow"
+                    aria-label="Airflow"
+                  >
+                    <mat-icon svgIcon="airflow"></mat-icon>
+                  </button>
+                  <mat-menu #airflowMenu="matMenu">
+                    <button mat-menu-item (click)="upload_to_airflow()">
+                      Upload
+                    </button>
+                    <a
+                      mat-menu-item
+                      [href]="'http://192.168.0.218:9333/dags/' + flowId + '/grid'"
+                      target="_blank"
+                      aria-label="Open Airflow"
+                    >
+                      Open
+                    </a>
+                  </mat-menu>
+          
+                  <!-- File Explorer -->
+                  <a
+                    mat-icon-button
+                    [href]="explorer_url"
+                    target="_blank"
+                    matTooltip="File Explorer"
+                    aria-label="File Explorer"
+                  >
+                    <mat-icon>folder</mat-icon>
+                  </a>
+                </div>
+              </mat-sidenav>
+            </mat-sidenav-container>
+          </div>       
 
           <reactflow-wrapper
             [nodes]="nodes"
@@ -135,7 +157,6 @@
           </reactflow-wrapper>
 
           <div class="function-nodes-overlay">
-            <div class="function-nodes-header">Function Nodes</div>
             <mat-form-field appearance="outline" class="mb-8">
               <mat-label>Search List</mat-label>
               <input

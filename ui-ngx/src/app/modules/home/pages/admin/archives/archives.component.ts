@@ -41,7 +41,7 @@ interface ArchiveNode {
 })
 export class ArchivesComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<ArchiveFile>();
-  displayedColumns: string[] = ["name", "actions"];
+  displayedColumns: string[] = ["name", "timestamp", "actions"];
   searchFilter: string = "name";
   searchQuery: string = "";
 
