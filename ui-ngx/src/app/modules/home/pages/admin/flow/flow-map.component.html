@@ -1,49 +1,193 @@
-<div class="mat-padding tb-entity-table tb-absolute-fill">
-  <div class="button-container">
-    <button mat-icon-button (click)="openAddNewNodeDialog()" aria-label="Add New Node">
-      <mat-icon>add_circle</mat-icon>
-    </button>
-    <button mat-icon-button (click)="openAddFunctionDialog()" aria-label="Add Function">
-      <mat-icon>functions</mat-icon>
-    </button>
-    <button mat-icon-button (click)="execute_flow()" aria-label="Execute Flow">
-      <mat-icon>play_arrow</mat-icon>
-    </button>
-    <button mat-icon-button (click)="openViewExecutionsDialog()" aria-label="View Executions">
-      <mat-icon>visibility</mat-icon>
-    </button>
-    <button mat-icon-button [matMenuTriggerFor]="notebookMenu" aria-label="Notebook Actions">
-      <mat-icon>book</mat-icon>
-    </button>
-    <mat-menu #notebookMenu="matMenu">
-      <button mat-menu-item (click)="start_notebook()">
-        Start
-      </button>
-      <a mat-menu-item href="/notebooks" target="_blank">
-        Open
-      </a>
-    </mat-menu>
-    <button mat-icon-button [matMenuTriggerFor]="airflowMenu" aria-label="Airflow Actions">
-      <mat-icon>autorenew</mat-icon>
-    </button>
-    <mat-menu #airflowMenu="matMenu">
-      <button mat-menu-item (click)="upload_to_airflow()" aria-label="Upload to Airflow">
-        <mat-icon>cloud_upload</mat-icon>
-      </button>
-      <a mat-menu-item href="http://192.168.0.218:9333/dags/{{ flowId }}/grid" aria-label="Open Airflow" target="_blank">
-        Open
-      </a>
-    </mat-menu>
-    <a mat-icon-button [(href)]="explorer_url" target="_blank">
-      <mat-icon>folder</mat-icon>
-    </a>
-    <div *ngIf="isLoading">
-      <mat-icon>hourglass_empty</mat-icon>
-    </div>
-  </div>
+<mat-drawer-container hasBackdrop="false" class="tb-absolute-fill">
+  <mat-drawer-content>
+    <div class="tb-entity-table tb-absolute-fill">
+      <div fxLayout="row" class="tb-entity-table-content tb-outlined-border">
+        <div
+          fxFlex="16"
+          class="tree-container scrollable-container primary-backdrop"
+        >
+          <mat-tree
+            [dataSource]="functionTreeDataSource"
+            [treeControl]="treeControl"
+          >
+            <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+              <div
+                class="mat-tree-node-content hover-pointer"
+                (click)="toggleNode(node)"
+              >
+                <button mat-icon-button matTreeNodeToggle>
+                  <mat-icon>
+                    {{
+                      treeControl.isExpanded(node)
+                        ? "expand_more"
+                        : "chevron_right"
+                    }}
+                  </mat-icon>
+                </button>
+                <span
+                  class="mat-tree-node-label"
+                  [innerHTML]="node.name"
+                ></span>
+              </div>
+              <div
+                class="mat-tree-node-children"
+                [class.example-tree-invisible]="!treeControl.isExpanded(node)"
+              >
+                <ng-container matTreeNodeOutlet></ng-container>
+              </div>
+            </mat-nested-tree-node>
+          </mat-tree>
+        </div>
 
-  <reactflow-wrapper [nodes]="nodes" [edges]="edges" [saveFlow]="saveFlow" [openEditingDialogBox]="openEditingDialogBox"
-    (nodesChange)="onNodesChange($event)" (edgesChange)="onEdgesChange($event)" (connectionsChange)="onConnect($event)"
-    (positionChange)="onPositionChange($event)"
-    (onOpenEditingDialogBox)="onOpenEditingDialogBox($event)"></reactflow-wrapper>
-</div>
+        <div fxFlex="84" class="right-panel-container">
+          <div class="button-container">
+            <div *ngIf="isLoading">
+              <img class="flow-action-loading" src="/assets/mlworkbench/loading.gif" alt="Loading..." />
+            </div>
+
+            <button
+              mat-icon-button
+              (click)="openAddNewNodeDialog()"
+              matTooltip="Add Node"
+              aria-label="Add New Node"
+            >
+              <mat-icon>add_circle</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              (click)="openAddFunctionDialog()"
+              matTooltip="Add Function"
+              aria-label="Add Function"
+            >
+              <mat-icon svgIcon="function"></mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              (click)="openExecutionConfirmation()"
+              matTooltip="Execute Flow"
+              aria-label="Execute Flow"
+            >
+              <mat-icon>play_arrow</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              (click)="openViewExecutionsDialog()"
+              matTooltip="View Executions"
+              aria-label="View Executions"
+            >
+              <mat-icon>visibility</mat-icon>
+            </button>
+
+            <button
+              mat-icon-button
+              (click)="more_options_drawer.toggle()"
+              matTooltip="More Options"
+              aria-label="More Options"
+            >
+              <mat-icon>more_horiz</mat-icon>
+            </button>
+
+            <mat-sidenav-container class="more-options-horizontal-drawer-container">
+              <mat-sidenav #more_options_drawer mode="side" position="start" class="more-options-horizontal-drawer">
+                <div class="more-options-drawer-icons">
+                  <!-- Jupyter -->
+                  <button
+                    class="transparent-button"
+                    [matMenuTriggerFor]="notebookMenu"
+                    matTooltip="Jupyter Notebook"
+                    aria-label="Jupyter Notebook"
+                  >
+                    <mat-icon svgIcon="jupyter"></mat-icon>
+                  </button>
+                  <mat-menu #notebookMenu="matMenu">
+                    <button mat-menu-item (click)="start_notebook()">Start</button>
+                    <a mat-menu-item href="/notebooks" target="_blank">Open</a>
+                  </mat-menu>
+          
+                  <!-- Airflow -->
+                  <button
+                    class="transparent-button"
+                    [matMenuTriggerFor]="airflowMenu"
+                    matTooltip="Airflow"
+                    aria-label="Airflow"
+                  >
+                    <mat-icon svgIcon="airflow"></mat-icon>
+                  </button>
+                  <mat-menu #airflowMenu="matMenu">
+                    <button mat-menu-item (click)="upload_to_airflow()">
+                      Upload
+                    </button>
+                    <a
+                      mat-menu-item
+                      [href]="'http://192.168.0.218:9333/dags/' + flowId + '/grid'"
+                      target="_blank"
+                      aria-label="Open Airflow"
+                    >
+                      Open
+                    </a>
+                  </mat-menu>
+          
+                  <!-- File Explorer -->
+                  <a
+                    mat-icon-button
+                    [href]="explorer_url"
+                    target="_blank"
+                    matTooltip="File Explorer"
+                    aria-label="File Explorer"
+                  >
+                    <mat-icon>folder</mat-icon>
+                  </a>
+                </div>
+              </mat-sidenav>
+            </mat-sidenav-container>
+          </div>       
+
+          <reactflow-wrapper
+            [nodes]="nodes"
+            [edges]="edges"
+            [saveFlow]="saveFlow"
+            [openEditingDialogBox]="openEditingDialogBox"
+            [onDropNodeToBackend]="onDropNodeToBackend"
+            (nodesChange)="onNodesChange($event)"
+            (edgesChange)="onEdgesChange($event)"
+            (connectionsChange)="onConnect($event)"
+            (positionChange)="onPositionChange($event)"
+            (onOpenEditingDialogBox)="onOpenEditingDialogBox($event)"
+          >
+          </reactflow-wrapper>
+
+          <div class="function-nodes-overlay">
+            <mat-form-field appearance="outline" class="mb-8">
+              <mat-label>Search List</mat-label>
+              <input
+                matInput
+                [(ngModel)]="functionListSearchQuery"
+                (keyup.enter)="filterLocalFunctionNodes()"
+                placeholder="Filter function nodes..."
+              />
+            </mat-form-field>
+            <button
+              mat-stroked-button
+              color="primary"
+              (click)="clearFunctionListSearch()"
+              class="mb-8"
+            >
+              Clear
+            </button>
+            <div
+              class="function-node"
+              *ngFor="let func of filteredFunctions"
+              draggable="true"
+              (dragstart)="onFunctionDragStart($event, func)"
+            >
+              <div class="function-node-header">{{ func.name }}</div>
+              <div class="function-node-description">
+                {{ func.description }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

@@ -1,28 +1,101 @@
 :host ::ng-deep {
-  .button-container {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 1;
-    display: flex;
-    gap: 10px;
+  .tb-entity-table {
+    .tb-entity-table-content {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      overflow: hidden;
+
+      &.tb-outlined-border {
+        box-shadow: 0 0 0 0 rgb(0 0 0 / 20%), 0 0 0 0 rgb(0 0 0 / 14%),
+          0 0 0 0 rgb(0 0 0 / 12%);
+        border: solid 1px #e0e0e0;
+        border-radius: 4px;
+      }
+
+      .mat-tree {
+        width: fit-content !important;
+        background: none !important;
+      }
+
+      .tree-container {
+        padding: 8px;
+        background-color: rgba(63, 81, 181, 0.05);
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: auto;
+        max-height: 100%;
+        max-width: 100%;
+      
+        .tree-header {
+          font-size: 16px;
+          font-weight: bold;
+          color: #3f51b5;
+          margin-bottom: 12px;
+          padding: 8px 0;
+          text-align: center;
+          border-bottom: 1px solid rgba(63, 81, 181, 0.2);
+        }
+      }      
+
+      .scrollable-container {
+        overflow-y: auto;
+      }
+
+      .hover-pointer {
+        cursor: pointer;
+      }
+
+      .mat-tree-node-content {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 4px 6px;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+
+        .mat-tree-node-toggle {
+          margin-right: 8px;
+        }
+
+        .mat-tree-node-label {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          padding-right: 8px;
+        }
+      }
+
+      .mat-tree-node-content:hover {
+        background-color: rgba(63, 81, 181, 0.12);
+      }
+
+      .mat-tree-node-content:active {
+        background-color: rgba(63, 81, 181, 0.2);
+      }
+
+      .mat-tree-node-children {
+        padding-left: 1rem;
+      }
+
+      .example-tree-invisible {
+        display: none;
+      }
+
+      .highlight {
+        background-color: yellow;
+      }
+    }
   }
 
-  .button-container button {
-    background-color: #009688;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    outline: none;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
+  .primary-backdrop {
+    background-color: rgba(63, 81, 181, 0.05);
   }
 
-  .button-container button:hover {
-    opacity: 90%;
+  .right-panel-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
   }
 
   reactflow-wrapper {
@@ -30,12 +103,128 @@
     height: 100%;
     display: block;
   }
+
+  .function-nodes-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 20%;
+    height: 100%;
+    border-right: 1px solid #ddd;
+    padding: 8px;
+    overflow-y: auto;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
+
+    > * {
+      opacity: 1;
+    }
+
+    .function-nodes-header {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #3f51b5;
+      padding: 4px 0;
+    }
+
+    .mb-8 {
+      margin-bottom: 8px;
+    }
+
+    .function-node {
+      display: flex;
+      flex-direction: column;
+      background-color: #fafafa;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      padding: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      cursor: grab;
+
+      &:hover {
+        background-color: #f0f0f0;
+      }
+
+      &:active {
+        cursor: grabbing;
+      }
+
+      .function-node-header {
+        font-weight: bold;
+        font-size: 13px;
+        color: #333;
+      }
+
+      .function-node-description {
+        font-size: 12px;
+        color: #666;
+      }
+    }
+  }
+
+  .button-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    display: flex;
+    gap: 10px;
+
+    button {
+      background-color: #435b96;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #5f72a6;
+      }
+    }
+
+    .transparent-button {
+      background-color: inherit !important;
+    }
+  }
+
+  .more-options-horizontal-drawer-container {
+    position: relative;
+  }
+  
+  .more-options-horizontal-drawer {
+    background: #f5f5f5; /* Light background color for the drawer */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .more-options-drawer-icons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .flow-action-loading {
+    width: 40px;
+  }
+
+  .react-flow {
+    position: absolute !important;
+  }
+
   .react-flow__node-custom {
     font-size: 10px;
     width: 180px;
     background: #f5f5f6;
     color: #222;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 15%), 0 2px 4px -1px rgb(0 0 0 / 8%);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15),
+      0 2px 4px -1px rgba(0, 0, 0, 0.08);
     border-radius: 2px;
     z-index: 1000 !important;
   }
@@ -57,6 +246,8 @@
     justify-content: center;
     align-items: center;
     font-weight: 700;
+    background-color: #e8ebf2;
+    color: #344a83;
   }
 
   .react-flow__node.annotation {
@@ -66,21 +257,8 @@
     border: none;
     line-height: 1.4;
     width: 225px;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 15%), 0 2px 4px -1px rgb(0 0 0 / 8%);
-  }
-
-  .react-flow__node.annotation .react-flow__handle {
-    display: none;
-  }
-  .custom-node__wrapper {
-    position: relative;
-  }
-
-  .custom-node__wrapper.expanded {
-    width: 800px; /* Adjust the size as needed */
-    height: 600px; /* Adjust the size as needed */
-    background: rgba(0, 0, 0, 0.1);
-    z-index: -1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15),
+      0 2px 4px -1px rgba(0, 0, 0, 0.08);
   }
 
   .scope-container {
@@ -95,13 +273,14 @@
     align-items: center;
     z-index: 1;
   }
+
   .custom-node__description {
     position: absolute;
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.75);
-    color: white;
+    color: #fff;
     padding: 6px;
     border-radius: 4px;
     font-size: 13px;
@@ -111,17 +290,17 @@
     z-index: 1000;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
     pointer-events: none;
-  }
 
-  .custom-node__description::after {
-    content: "";
-    position: absolute;
-    top: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent rgba(0, 0, 0, 0.75) transparent;
+    &::after {
+      content: "";
+      position: absolute;
+      top: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px;
+      border-style: solid;
+      border-color: transparent transparent #1e3267 transparent;
+    }
   }
 
   .custom-node__header {
@@ -137,26 +316,36 @@
     position: relative;
     margin: 10px;
   }
+
   .custom-node__input {
     position: relative;
     padding-bottom: 10px;
   }
+
   .custom-node__output {
     position: relative;
     padding-bottom: 20px;
   }
+
   .custom-node__select select {
     width: 100%;
     margin-top: 5px;
     font-size: 10px;
+    background: #e8ebf2;
+    color: #1e3267;
   }
+
   .react-flow__edge-path {
     stroke: #778899;
   }
+
   .react-flow__node-scopeRegion {
     pointer-events: none !important;
   }
+
   .react-flow__resize-control {
     pointer-events: all;
+    background: #435b96;
+    color: white;
   }
 }

@@ -1,6 +1,6 @@
 <form *ngIf="!isEdit; else editTemplate" (ngSubmit)="add()" style="min-width: 400px; width: 750px;">
   <mat-toolbar color="primary">
-    <h2>Add New Flow File</h2>
+    <h2>Add New Flow</h2>
     <span fxFlex></span>
     <button mat-icon-button (click)="cancel()" type="button">
       <mat-icon>close</mat-icon>
@@ -14,30 +14,42 @@
       <input matInput placeholder="Enter Flow Name" [(ngModel)]="flowName" name="flowName" required />
       <mat-error *ngIf="submitted && !flowName">Flow Name is required.</mat-error>
     </mat-form-field>
+
     <mat-form-field>
       <mat-label>Description</mat-label>
-      <textarea matInput placeholder="Enter Description" [(ngModel)]="description" name="description"
-        required></textarea>
+      <textarea matInput placeholder="Enter Description" [(ngModel)]="description" name="description" required></textarea>
       <mat-error *ngIf="submitted && !description">Description is required.</mat-error>
     </mat-form-field>
+
     <mat-form-field>
       <mat-label>Environment</mat-label>
       <mat-select [(ngModel)]="selectedEnv" name="environment" required>
-        <mat-option *ngFor="let env of environments" [value]="env.id">
-          {{ env.name }}
-        </mat-option>
+        <mat-option *ngFor="let env of environments" [value]="env.id">{{ env.name }}</mat-option>
       </mat-select>
       <mat-error *ngIf="submitted && !selectedEnv">Environment is required.</mat-error>
     </mat-form-field>
+
     <mat-form-field>
       <mat-label>Prefix</mat-label>
       <input matInput [value]="selectedPrefix" name="prefix" disabled />
     </mat-form-field>
+    <mat-form-field>
+      <mat-label>DAG Configuration (JSON)</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="dagConfig"
+        name="dagConfig"
+        rows="6"
+        placeholder='{"schedule": "..."}'
+      ></textarea>
+      <div *ngIf="!is_valid_json">
+        Invalid JSON format.
+      </div>
+    </mat-form-field>    
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
     <button mat-button color="primary" type="button" (click)="cancel()">Cancel</button>
-    <button mat-raised-button color="primary" type="submit"
-      [disabled]="isLoading || !flowName || !description || !selectedEnv">
+    <button mat-raised-button color="primary" type="submit" [disabled]="isLoading || !flowName || !description || !selectedEnv">
       Add
     </button>
   </div>
@@ -60,28 +72,40 @@
         <input matInput placeholder="Enter Flow Name" [(ngModel)]="flowName" name="flowName" required />
         <mat-error *ngIf="submitted && !flowName">Flow Name is required.</mat-error>
       </mat-form-field>
+
       <mat-form-field>
         <mat-label>Description</mat-label>
-        <textarea matInput placeholder="Enter Description" [(ngModel)]="description" name="description"
-          required></textarea>
+        <textarea matInput placeholder="Enter Description" [(ngModel)]="description" name="description" required></textarea>
         <mat-error *ngIf="submitted && !description">Description is required.</mat-error>
       </mat-form-field>
+
       <mat-form-field>
         <mat-label>Environment</mat-label>
         <mat-select [(ngModel)]="selectedEnv" name="environment" required>
-          <mat-option *ngFor="let env of environments" [value]="env.id">
-            {{ env.name }}
-          </mat-option>
+          <mat-option *ngFor="let env of environments" [value]="env.id">{{ env.name }}</mat-option>
         </mat-select>
         <mat-error *ngIf="submitted && !selectedEnv">Environment is required.</mat-error>
       </mat-form-field>
-    
+
       <mat-form-field>
         <mat-label>Prefix</mat-label>
-          <mat-select [(ngModel)]="selectedPrefix" name="prefix" required>
-            <mat-option *ngFor="let prefix of prefixes" [value]="prefix.id">{{ prefix.full_name }}</mat-option>
-          </mat-select>
+        <mat-select [(ngModel)]="selectedPrefix" name="prefix" required>
+          <mat-option *ngFor="let prefix of prefixes" [value]="prefix.id">{{ prefix.full_name }}</mat-option>
+        </mat-select>
       </mat-form-field>
+      <mat-form-field>
+        <mat-label>DAG Configuration (JSON)</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="dagConfig"
+          name="dagConfig"
+          rows="6"
+          placeholder='{"schedule": "..."}'
+        ></textarea>
+        <div *ngIf="!is_valid_json">
+          Invalid JSON format.
+        </div>
+      </mat-form-field>      
     </div>
     <div mat-dialog-actions fxLayoutAlign="end center">
       <button mat-button color="primary" type="button" (click)="cancel()">Cancel</button>

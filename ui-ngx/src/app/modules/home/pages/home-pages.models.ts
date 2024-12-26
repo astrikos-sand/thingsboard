@@ -34,6 +34,5 @@ export const entityDetailsPageBreadcrumbLabelFunction: BreadCrumbLabelFunction<E
 
 export const flowMapPageBreadcrumbLabelFunction: BreadCrumbLabelFunction<FlowMapComponent>
   = ((route, translate, component) => {
-    console.log('component',component, component.full_name);
   return component?.full_name;
 });

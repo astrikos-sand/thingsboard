@@ -55,16 +55,16 @@
 
         <div fxFlex="70" class="table-container">
           <mat-toolbar>
-            <span>Files</span>
+            <span>Archives</span>
             <span fxFlex></span>
             <button
-              mat-raised-button
-              color="primary"
+              class="transparent-button"
               [matMenuTriggerFor]="PrefixMenu"
-              aria-label="Actions"
+              matTooltip="Folder"
+              aria-label="Folder"
               style="margin-left: 10px"
             >
-              Prefix Actions
+              <mat-icon>folder</mat-icon>
             </button>
             <mat-menu #PrefixMenu="matMenu">
               <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
@@ -74,12 +74,13 @@
               <button mat-menu-item (click)="deletePrefix()">Delete</button>
             </mat-menu>
             <button
-              mat-raised-button
-              color="primary"
+              class="transparent-button"
+              matTooltip="Upload File"
+              aria-label="Upload File"
               (click)="openAddFileDialog()"
               style="margin: 10px"
             >
-              Upload File
+              <mat-icon>add_circle</mat-icon>
             </button>
           </mat-toolbar>
           <!-- Table -->
@@ -89,6 +90,12 @@
                 Name
               </mat-header-cell>
               <mat-cell *matCellDef="let file"> {{ file.name }} </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="timestamp">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Timestamp
+              </mat-header-cell>
+              <mat-cell *matCellDef="let file"> {{ file.created_at }} </mat-cell>
             </ng-container>
             <ng-container matColumnDef="actions">
               <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>

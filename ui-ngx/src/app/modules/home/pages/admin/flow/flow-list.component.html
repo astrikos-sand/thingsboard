@@ -54,17 +54,21 @@
           <mat-toolbar>
             <span>Flows</span>
             <span fxFlex></span>
+            <button 
+            class="transparent-button"
+            matTooltip="Folder"
+             [matMenuTriggerFor]="PrefixMenu" aria-label="Folder"
+            style="margin-right: 10px;"
+            >
+            <mat-icon>folder</mat-icon>
+            </button>
             <button
-              mat-raised-button
-              color="primary"
+              class="transparent-button"
+              matTooltip="Add Flow"
+              aria-label="Add Flow"
               (click)="openAddFlowDialog()"
             >
-              Add Flow
-            </button>
-            <button mat-raised-button color="primary" [matMenuTriggerFor]="PrefixMenu" aria-label="Actions"
-            style="margin-left: 10px;"
-            >
-              Prefix Actions
+            <mat-icon>add_circle</mat-icon>
             </button>
             <mat-menu #PrefixMenu="matMenu">
               <button

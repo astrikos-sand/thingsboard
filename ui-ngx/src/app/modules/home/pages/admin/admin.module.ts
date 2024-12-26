@@ -42,6 +42,7 @@ import { WebhookComponent } from './webhook/webhook.component';
 import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
 import { EnvComponent } from './env/env.component';
 import { MarkdownModule } from 'ngx-markdown';
+import { MatSidenavModule } from '@angular/material/sidenav';
 
 @NgModule({
   declarations:
@@ -73,7 +74,8 @@ import { MarkdownModule } from 'ngx-markdown';
     HomeComponentsModule,
     AdminRoutingModule,
     ReactFlowWrapper,
-    MarkdownModule.forRoot()
+    MarkdownModule.forRoot(),
+    MatSidenavModule,
   ]
 })
 export class AdminModule { }
