@@ -43,7 +43,7 @@
     </mat-form-field>
 
     <mat-form-field>
-      <mat-label>Prefix</mat-label>
+      <mat-label>Folder</mat-label>
         <mat-select formControlName="selectedPrefix" name="prefix" required>
           <mat-option *ngFor="let prefix of prefixes" [value]="prefix.id">{{ prefix.full_name }}</mat-option>
         </mat-select>

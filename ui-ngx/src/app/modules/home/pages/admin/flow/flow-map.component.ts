@@ -221,11 +221,23 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       const endTime = new Date();
       this.executionTime = (endTime.getTime() - startTime.getTime()) / 1000;
       this.executionStatus = "Flow executed successfully";
-      alert("Flow executed successfully");
+      this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Execution Status',
+          message: 'Flow execution started successfully',
+          ok: 'Ok',
+        },
+      });
     } catch (error) {
       console.error("Error executing flow:", error);
       this.executionStatus = "Error executing flow";
-      alert("Error executing flow");
+      this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Execution Status',
+          message: `Error executing flow: ${error}`,
+          ok: 'Ok',
+        },
+      });
     } finally {
       this.isLoading = false;
     }
@@ -236,12 +248,25 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     try {
       await uploadToAirflow(this.flowId);
       setTimeout(() => {
-        alert("Flow uploaded to Airflow successfully");
+        this.dialog.open(ConfirmDialogComponent, {
+          data: {
+            title: 'Airflow Status',
+            message: 'Flow uploaded to Airflow successfully',
+            ok: 'Ok',
+          },
+        });
         this.isLoading = false;
       }, 25000);
     } catch (error) {
       console.error("Error uploading to Airflow:", error);
       this.isLoading = false;
+      this.dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Airflow Status',
+          message: 'Error uploading to Airflow',
+          ok: 'Ok',
+        },
+      });
     }
   }
 

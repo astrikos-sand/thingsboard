@@ -220,7 +220,8 @@
 
   .react-flow__node-custom {
     font-size: 10px;
-    width: 180px;
+    max-width: 350px;
+    min-width: 200px;
     background: #f5f5f6;
     color: #222;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15),
@@ -274,6 +275,10 @@
     z-index: 1;
   }
 
+  .custom-node {
+    border-radius: 10px;
+  }
+
   .custom-node__description {
     position: absolute;
     top: 100%;
@@ -283,33 +288,56 @@
     color: #fff;
     padding: 6px;
     border-radius: 4px;
-    font-size: 13px;
-    max-width: 400px;
+    width: 150px;
     max-height: 100px;
     overflow-y: auto;
     z-index: 1000;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    pointer-events: none;
 
-    &::after {
-      content: "";
-      position: absolute;
-      top: -5px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 5px;
-      border-style: solid;
-      border-color: transparent transparent #1e3267 transparent;
+    p {
+      font-size: 9px;
+      margin: 0;
+      width: 100%;
     }
   }
 
   .custom-node__header {
-    padding: 8px 10px;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    img {
+      width: 20px;
+    }
+
+    span {
+      font-size: 16px;
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+  }
+
+  .custom-node__header__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+
+    button {
+      border: none;
+      outline: none;
+      font-size: 12px;
+      padding: 5px 8px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
   }
 
   .custom-node__body {
-    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .custom-node__select {
@@ -319,12 +347,34 @@
 
   .custom-node__input {
     position: relative;
-    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .custom-node__input__name {
+    font-size: 16px;
+    min-width: 40%;
+    padding: 3px 6px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
   }
 
   .custom-node__output {
     position: relative;
-    padding-bottom: 20px;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    width: 100%;
+  }
+
+  .custom-node__output__name {
+    font-size: 16px;
+    min-width: 40%;
+    text-align: right;
+    padding: 3px 6px;
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
   }
 
   .custom-node__select select {
