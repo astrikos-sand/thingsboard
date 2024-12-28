@@ -15,8 +15,8 @@ const handleNodeHeader = (nodeType: string) => {
 
 const handleNodeColor = (node_type: string, color: string) => {
   let bg: string, txtclr: string, ligthclr: string;
-  if (node_type === "FunctionNode") { bg = "#B984FF"; txtclr = "#381C5D", ligthclr = "#cba4ff" }
-  else if (node_type === "DataNode") { bg = "#4DC6FF"; txtclr = "#1A374D", ligthclr = "#a4e3ff" }
+  if (node_type === "FunctionNode") { bg = "rgb(224 201 255)"; txtclr = "#381C5D", ligthclr = "rgb(238 226 255)" }
+  else if (node_type === "DataNode") { bg = "rgb(201 236 253)"; txtclr = "#1A374D", ligthclr = "#a4e3ff" }
   else if (node_type === "FlowNode") { bg = "#437BA7"; txtclr = "white", ligthclr = "#6e9dbf" }
   else if (node_type === "InputNode") { bg = "#A3D977"; txtclr = "#2E4B1D", ligthclr = "#c4e8a4" }
   else if (node_type === "OutputNode") { bg = "#FFA74D"; txtclr = "#4A2F1D", ligthclr = "#ffcc99" }
