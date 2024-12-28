@@ -296,7 +296,7 @@ export class EnvComponent implements OnInit, AfterViewInit {
         this.flowService.deletePrefix(this.selectedNode.id).subscribe(
           () => {
             this.showNotification({
-              message: "Prefix deleted successfully",
+              message: "Folder deleted successfully",
               type: "success",
               duration: 3000,
             });

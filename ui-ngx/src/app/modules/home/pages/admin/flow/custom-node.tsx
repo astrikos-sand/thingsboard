@@ -3,6 +3,27 @@ import { Handle, Position } from "reactflow";
 import { FlowContext, FlowContextType } from "./flow-context";
 import { handleCollapseAllScopes, handleOpenAllScopes } from "./nodeUtils";
 
+const handleNodeHeader = (nodeType: string) => {
+  if (nodeType === "FunctionNode")
+    return <img src="/assets/mlworkbench/code.svg" alt="Function" />
+  else if (nodeType === "DataNode") return <img src="/assets/mlworkbench/data.svg" alt="Data" />
+  else if (nodeType === "FlowNode") return <img src="/assets/mlworkbench/flow.svg" alt="Flow" />
+  else if (nodeType === "InputNode") return <img src="/assets/mlworkbench/input.svg" alt="Input" />
+  else if (nodeType === "OutputNode") return <img src="/assets/mlworkbench/output.svg" alt="Output" />
+  else return <strong>{nodeType}</strong>
+};
+
+const handleNodeColor = (node_type: string, color: string) => {
+  let bg: string, txtclr: string, ligthclr: string;
+  if (node_type === "FunctionNode") { bg = "#B984FF"; txtclr = "#381C5D", ligthclr = "#cba4ff" }
+  else if (node_type === "DataNode") { bg = "#4DC6FF"; txtclr = "#1A374D", ligthclr = "#a4e3ff" }
+  else if (node_type === "FlowNode") { bg = "#437BA7"; txtclr = "white", ligthclr = "#6e9dbf" }
+  else if (node_type === "InputNode") { bg = "#A3D977"; txtclr = "#2E4B1D", ligthclr = "#c4e8a4" }
+  else if (node_type === "OutputNode") { bg = "#FFA74D"; txtclr = "#4A2F1D", ligthclr = "#ffcc99" }
+  else { bg = color; txtclr = "white", ligthclr = "#6e9dbf" }
+  return { bg, txtclr, ligthclr };
+};
+
 function CustomNode({
   data,
   isConnectable,
@@ -27,7 +48,7 @@ function CustomNode({
   } = useContext(FlowContext) as FlowContextType;
 
   data.styles = data.styles || {};
-  const nodeName = data.definition?.name || data.name || "Unnamed Node";
+  const nodeName = data.definition?.name || data.name || "";
 
   const [hoveredNode, setHoveredNode] = useState<boolean>(false);
   const [hoveredDesc, setHoveredDesc] = useState<boolean>(false);
@@ -142,12 +163,25 @@ function CustomNode({
     setOpenEditingDialogBox(data);
   };
 
+  const { bg, txtclr, ligthclr } = handleNodeColor(data.node_type, color);
+  const datastore = Object.keys(data.datastore || {})
+  let description = data.definition?.description || "No description available"
+  description = description.length > 300 ? description.substring(0, 300) + "..." : description;
+
+  const handleSlotColor = (slot: any) => {
+    if (datastore.includes(slot.name)) {
+      return { backgroundColor: "green" }
+    }
+    return {}
+  }
+
   return (
     <div
       id={data.id}
       style={{
-        backgroundColor: color,
+        backgroundColor: bg,
         opacity: data.styles.opacity ? data.styles.opacity : 1,
+        color: txtclr,
       }}
       onMouseEnter={() => {
         if (data.node_type === "FunctionNode") {
@@ -155,11 +189,15 @@ function CustomNode({
         }
       }}
       onMouseLeave={() => setHoveredNode(false)}
+      className="custom-node"
     >
       <div className="custom-node__header">
-        <strong>
-          {data.node_type}: {nodeName}
-        </strong>
+        {
+          handleNodeHeader(data.node_type)
+        }
+        <span>
+          {nodeName}
+        </span>
       </div>
 
       {showDescription && (
@@ -167,9 +205,8 @@ function CustomNode({
           className="custom-node__description"
           onMouseEnter={() => setHoveredDesc(true)}
           onMouseLeave={() => setHoveredDesc(false)}
-          style={{ pointerEvents: "auto" }}
         >
-          <em>{data.definition?.description || "No description available"}</em>
+          <p>{description}</p>
         </div>
       )}
 
@@ -179,12 +216,14 @@ function CustomNode({
             key={`node-${data.id}-input-${input.id}`}
             className="custom-node__input"
           >
-            <div>{input.name}</div>
+            <div className="custom-node__input__name"
+              style={{ backgroundColor: ligthclr }}
+            >{input.name}</div>
             <Handle
               type="target"
               position={Position.Left}
               id={`node-${data.id}-input-${input.id}`}
-              style={{ left: -14, top: 6 }}
+              style={{ top: "50%", transform: "translateY(-50%)", ...handleSlotColor(input) }}
               isConnectable={isConnectable}
             />
           </div>
@@ -194,12 +233,14 @@ function CustomNode({
             key={`node-${data.id}-output-${output.id}`}
             className="custom-node__output"
           >
-            <div style={{ right: 0, position: "absolute" }}>{output.name}</div>
+            <div className="custom-node__output__name"
+              style={{ backgroundColor: ligthclr }}
+            >{output.name}</div>
             <Handle
               type="source"
               position={Position.Right}
               id={`node-${data.id}-output-${output.id}`}
-              style={{ right: -14, top: 6 }}
+              style={{ top: "50%", transform: "translateY(-50%)", right: "-5px" }}
               isConnectable={isConnectable}
             />
           </div>
@@ -208,8 +249,13 @@ function CustomNode({
 
       {renderExtraData()}
 
-      <div>
-        <button onClick={handleEditClick}>Show</button>
+      <div className="custom-node__header__button">
+        <button onClick={handleEditClick} style={{
+          backgroundColor: ligthclr,
+          color: txtclr
+        }}>
+          Show
+        </button>
       </div>
     </div>
   );

@@ -21,7 +21,7 @@
           (selectionChange)="onSearchTypeChange($event)"
         >
           <mat-option value="name">Name</mat-option>
-          <mat-option value="prefix">Prefix</mat-option>
+          <mat-option value="prefix">Folder</mat-option>
         </mat-select>
       </mat-form-field>
       <mat-form-field class="search-input">
@@ -46,7 +46,7 @@
       </mat-form-field>
     </div>
     <mat-form-field>
-      <mat-label>Prefix</mat-label>
+      <mat-label>Folder</mat-label>
       <input matInput [value]="selectedPrefix" name="prefix" disabled />
     </mat-form-field>
   </div>
