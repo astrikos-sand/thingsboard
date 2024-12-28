@@ -183,19 +183,23 @@ function CustomNode({
         opacity: data.styles.opacity ? data.styles.opacity : 1,
         color: txtclr,
       }}
-      onMouseEnter={() => {
-        if (data.node_type === "FunctionNode") {
-          setHoveredNode(true);
-        }
+      onContextMenu={(e) => {
+        e.preventDefault();
+        handleEditClick();
       }}
-      onMouseLeave={() => setHoveredNode(false)}
       className="custom-node"
     >
-      <div className="custom-node__header">
+      <div className="custom-node__header"
+        onMouseLeave={() => setHoveredNode(false)}
+      >
         {
           handleNodeHeader(data.node_type)
         }
-        <span>
+        <span onMouseEnter={() => {
+          if (data.node_type === "FunctionNode") {
+            setHoveredNode(true);
+          }
+        }}>
           {nodeName}
         </span>
       </div>
@@ -218,7 +222,7 @@ function CustomNode({
           >
             <div className="custom-node__input__name"
               style={{ backgroundColor: ligthclr }}
-            >{input.name}</div>
+            ><span>{input.name}</span></div>
             <Handle
               type="target"
               position={Position.Left}
@@ -235,7 +239,7 @@ function CustomNode({
           >
             <div className="custom-node__output__name"
               style={{ backgroundColor: ligthclr }}
-            >{output.name}</div>
+            ><span>{output.name}</span></div>
             <Handle
               type="source"
               position={Position.Right}
@@ -249,14 +253,14 @@ function CustomNode({
 
       {renderExtraData()}
 
-      <div className="custom-node__header__button">
+      {/* <div className="custom-node__header__button">
         <button onClick={handleEditClick} style={{
           backgroundColor: ligthclr,
           color: txtclr
         }}>
           Show
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }
