@@ -1,16 +1,45 @@
 <mat-drawer-container hasBackdrop="false" class="tb-absolute-fill">
   <mat-drawer-content>
     <div class="tb-entity-table tb-absolute-fill">
-      <div fxLayout="row" class="tb-entity-table-content tb-outlined-border">
+      <div
+        fxLayout="row"
+        class="tb-entity-table-content tb-outlined-border"
+        [class.collapsed]="isCollapsed"
+      >
+        <!-- LEFT SIDEBAR - hide when collapsed -->
         <div
+          *ngIf="!isCollapsed"
           fxFlex="16"
           class="tree-container scrollable-container primary-backdrop"
         >
+          <mat-form-field appearance="outline">
+            <mat-label>Search Type</mat-label>
+            <mat-select [(value)]="searchFilter">
+              <mat-option value="name">Name</mat-option>
+              <mat-option value="prefix">Folder</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Search Functions</mat-label>
+            <input
+              matInput
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="filterNodes()"
+              placeholder="Search functions..."
+            />
+          </mat-form-field>
+
+          <button mat-button (click)="clearSearch()">Clear Search</button>
+
           <mat-tree
             [dataSource]="functionTreeDataSource"
             [treeControl]="treeControl"
           >
-            <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+            <mat-nested-tree-node
+              *matTreeNodeDef="let node"
+              matTreeNodePadding
+            >
               <div
                 class="mat-tree-node-content hover-pointer"
                 (click)="toggleNode(node)"
@@ -39,12 +68,19 @@
           </mat-tree>
         </div>
 
-        <div fxFlex="84" class="right-panel-container">
+        <!-- RIGHT PANEL -->
+        <!-- If collapsed, give it 100% width; else 84% -->
+        <div [fxFlex]="isCollapsed ? 100 : 84" class="right-panel-container">
+          
+          <!-- The top-right action buttons -->
           <div class="button-container">
             <div *ngIf="isLoading">
-              <img class="flow-action-loading" src="/assets/mlworkbench/loading.gif" alt="Loading..." />
+              <img
+                class="flow-action-loading"
+                src="/assets/mlworkbench/loading.gif"
+                alt="Loading..."
+              />
             </div>
-
             <button
               mat-icon-button
               (click)="openAddNewNodeDialog()"
@@ -87,8 +123,15 @@
               <mat-icon>more_horiz</mat-icon>
             </button>
 
-            <mat-sidenav-container class="more-options-horizontal-drawer-container">
-              <mat-sidenav #more_options_drawer mode="side" position="start" class="more-options-horizontal-drawer">
+            <mat-sidenav-container
+              class="more-options-horizontal-drawer-container"
+            >
+              <mat-sidenav
+                #more_options_drawer
+                mode="side"
+                position="start"
+                class="more-options-horizontal-drawer"
+              >
                 <div class="more-options-drawer-icons">
                   <!-- Jupyter -->
                   <button
@@ -100,10 +143,14 @@
                     <mat-icon svgIcon="jupyter"></mat-icon>
                   </button>
                   <mat-menu #notebookMenu="matMenu">
-                    <button mat-menu-item (click)="start_notebook()">Start</button>
-                    <a mat-menu-item href="/notebooks" target="_blank">Open</a>
+                    <button mat-menu-item (click)="start_notebook()">
+                      Start
+                    </button>
+                    <a mat-menu-item href="/notebooks" target="_blank"
+                      >Open</a
+                    >
                   </mat-menu>
-          
+
                   <!-- Airflow -->
                   <button
                     class="transparent-button"
@@ -119,14 +166,16 @@
                     </button>
                     <a
                       mat-menu-item
-                      [href]="'http://192.168.0.218:9333/dags/' + flowId + '/grid'"
+                      [href]="
+                        'http://192.168.0.218:9333/dags/' + flowId + '/grid'
+                      "
                       target="_blank"
                       aria-label="Open Airflow"
                     >
                       Open
                     </a>
                   </mat-menu>
-          
+
                   <!-- File Explorer -->
                   <a
                     mat-icon-button
@@ -140,8 +189,9 @@
                 </div>
               </mat-sidenav>
             </mat-sidenav-container>
-          </div>       
+          </div>
 
+          <!-- REACT FLOW AREA -->
           <reactflow-wrapper
             [nodes]="nodes"
             [edges]="edges"
@@ -156,35 +206,45 @@
           >
           </reactflow-wrapper>
 
-          <div class="function-nodes-overlay">
-            <mat-form-field appearance="outline" class="mb-8">
-              <mat-label>Search List</mat-label>
-              <input
-                matInput
-                [(ngModel)]="functionListSearchQuery"
-                (keyup.enter)="filterLocalFunctionNodes()"
-                placeholder="Filter function nodes..."
-              />
-            </mat-form-field>
-            <button
-              mat-stroked-button
-              color="primary"
-              (click)="clearFunctionListSearch()"
-              class="mb-8"
-            >
-              Clear
-            </button>
-            <div
-              class="function-node"
-              *ngFor="let func of filteredFunctions"
-              draggable="true"
-              (dragstart)="onFunctionDragStart($event, func)"
-            >
-              <div class="function-node-header">{{ func.name }}</div>
-              <div class="function-node-description">
-                {{ func.description }}
+          <!-- The "show" button that appears if collapsed -->
+          <button
+            *ngIf="isCollapsed"
+            class="show-overlay-button"
+            (click)="toggleSidebar()"
+            mat-icon-button
+            aria-label="Show Overlay"
+          >
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          
+          <!-- FUNCTION OVERLAY CONTAINER -->
+          <div
+            class="function-nodes-overlay-container"
+            *ngIf="!isCollapsed"
+          >
+            <div class="function-nodes-overlay">
+              <div
+                class="function-node"
+                *ngFor="let func of filteredFunctions"
+                draggable="true"
+                (dragstart)="onFunctionDragStart($event, func)"
+              >
+                <div class="function-node-header">{{ func.name }}</div>
+                <div class="function-node-description">
+                  {{ func.description | slice: 0:200 }}
+                </div>
               </div>
             </div>
+
+            <!-- The half-circle "hide" button on the overlay's right edge -->
+            <button
+              class="hide-overlay-button"
+              (click)="toggleSidebar()"
+              mat-icon-button
+              aria-label="Hide Overlay"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
           </div>
         </div>
       </div>
