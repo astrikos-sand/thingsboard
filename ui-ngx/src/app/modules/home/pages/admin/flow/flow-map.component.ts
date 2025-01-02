@@ -49,6 +49,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   node_fields: any[] = [];
   name!: string;
   full_name!: string;
+  isCollapsed: boolean = true;
   flowPosition: { x: number; y: number } | undefined;
   openEditingDialogBox: any = null;
   saveFlow: any = null;
@@ -56,6 +57,8 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   executionTime: number | undefined;
   executionStatus: string | undefined;
   explorer_url: string = "";
+  searchFilter: string = "name";
+  searchQuery: string = "";
   treeControl = new NestedTreeControl<FunctionNode>((node) => node.children);
   functionTreeDataSource = new MatTreeNestedDataSource<FunctionNode>();
   selectedNode: FunctionNode | null = null;
@@ -134,8 +137,12 @@ export class FlowMapComponent implements OnInit, OnDestroy {
                 ...node,
                 data: {
                   ...node.data,
-                  ...(result && result.hasOwnProperty('value') ? { value: result.value } : {}),
-                  ...(result && result.hasOwnProperty('datastore') ? { datastore: result.datastore } : {}),
+                  ...(result && result.hasOwnProperty("value")
+                    ? { value: result.value }
+                    : {}),
+                  ...(result && result.hasOwnProperty("datastore")
+                    ? { datastore: result.datastore }
+                    : {}),
                 },
               }
             : node
@@ -223,9 +230,9 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       this.executionStatus = "Flow executed successfully";
       this.dialog.open(ConfirmDialogComponent, {
         data: {
-          title: 'Execution Status',
-          message: 'Flow execution started successfully',
-          ok: 'Ok',
+          title: "Execution Status",
+          message: "Flow execution started successfully",
+          ok: "Ok",
         },
       });
     } catch (error) {
@@ -233,9 +240,9 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       this.executionStatus = "Error executing flow";
       this.dialog.open(ConfirmDialogComponent, {
         data: {
-          title: 'Execution Status',
+          title: "Execution Status",
           message: `Error executing flow: ${error}`,
-          ok: 'Ok',
+          ok: "Ok",
         },
       });
     } finally {
@@ -250,9 +257,9 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       setTimeout(() => {
         this.dialog.open(ConfirmDialogComponent, {
           data: {
-            title: 'Airflow Status',
-            message: 'Flow uploaded to Airflow successfully',
-            ok: 'Ok',
+            title: "Airflow Status",
+            message: "Flow uploaded to Airflow successfully",
+            ok: "Ok",
           },
         });
         this.isLoading = false;
@@ -262,9 +269,9 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       this.isLoading = false;
       this.dialog.open(ConfirmDialogComponent, {
         data: {
-          title: 'Airflow Status',
-          message: 'Error uploading to Airflow',
-          ok: 'Ok',
+          title: "Airflow Status",
+          message: "Error uploading to Airflow",
+          ok: "Ok",
         },
       });
     }
@@ -420,6 +427,48 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       }
     );
   }
+  filterNodes(): void {
+    if (!this.searchQuery) {
+      this.loadInitialFunctions();
+      return;
+    }
+    const query =
+      this.searchFilter === "prefix"
+        ? `prefix:${this.searchQuery}`
+        : this.searchQuery;
+    this.searchService.searchItems(query, "functions").subscribe(
+      (results: any[]) => {
+        const items = results.map((item) => ({
+          ...item,
+          id: item.id,
+          name: item.name,
+          description: item.description,
+        }));
+        const rootNode: FunctionNode = {
+          id: "search-root",
+          name: "Search Results",
+          children: [],
+          functions: items,
+          parent: null,
+          isLoaded: true,
+        };
+        this.functionTreeDataSource.data = [rootNode];
+        this.selectedFunctions = items;
+        this.filteredFunctions = this.selectedFunctions;
+        this.dataSource.data = this.selectedFunctions;
+        this.treeControl.expand(rootNode);
+        this.selectedNode = rootNode;
+      },
+      (error) => {
+        console.error("Error searching flows:", error);
+      }
+    );
+  }
+  clearSearch(): void {
+    this.searchQuery = "";
+    this.functionTreeDataSource.data = [];
+    this.loadInitialFunctions();
+  }
 
   filterLocalFunctionNodes(): void {
     if (!this.functionListSearchQuery) {
@@ -461,20 +510,23 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  toggleSidebar(): void {
+    this.isCollapsed = !this.isCollapsed;
+  }
+
   openExecutionConfirmation(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Confirm Execution',
-        message: 'Are you sure you want to execute this flow?',
-        ok: 'Execute',
+        title: "Confirm Execution",
+        message: "Are you sure you want to execute this flow?",
+        ok: "Execute",
       },
     });
-  
+
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.execute_flow();
       }
     });
   }
-  
 }
