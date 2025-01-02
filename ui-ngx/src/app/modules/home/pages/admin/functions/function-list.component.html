@@ -61,7 +61,7 @@
               matTooltip="Folder"
               style="margin-right: 10px;"
             >
-            <mat-icon>folder</mat-icon>
+            <mat-icon style="color:  #435b96;">folder</mat-icon>
             </button>
             <mat-menu #PrefixMenu="matMenu">
               <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
@@ -76,7 +76,7 @@
               aria-label="Add Function"
               (click)="openAddFunctionDialog()"
             >
-            <mat-icon>add_circle</mat-icon>
+            <mat-icon style="color: #435b96;">add_circle</mat-icon>
             </button>
           </mat-toolbar>
           <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">

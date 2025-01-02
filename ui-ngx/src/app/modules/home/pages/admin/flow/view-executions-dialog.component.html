@@ -12,52 +12,112 @@
 
 </mat-toolbar>
 
-<div mat-dialog-content>
-  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+<mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
 
-  <table *ngIf="!isLoading" class="mat-elevation-z8">
-    <thead>
-      <tr>
-        <th>Timestamp</th>
-        <th>Status</th>
-        <th>Container Logs</th>
-        <th>JSON Logs</th>
-        <th>HTML Logs</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let execution of executions">
-        <td>{{ execution.timestamp }}</td>
-        <td>
-          <span [style.color]="getStatusColor(execution.status)">{{ execution.status }}</span>
-        </td>
-        <td>
-          <ng-container *ngIf="execution.container_logs != '/backend#'; else noContainerLogs">
-            <a [href]="execution.container_logs" target="_blank">View</a>
-          </ng-container>
-          <ng-template #noContainerLogs>N/A</ng-template>
-        </td>
-        <td>
-          <ng-container *ngIf="execution.json_logs != '/backend#'; else noJsonLogs">
-            <a [href]="execution.json_logs" target="_blank">View</a>
-          </ng-container>
-          <ng-template #noJsonLogs>N/A</ng-template>
-        </td>
-        <td>
-          <ng-container *ngIf="execution.html_logs != '/backend#'; else noHtmlLogs">
-            <a [href]="execution.html_logs" target="_blank">View</a>
-          </ng-container>
-          <ng-template #noHtmlLogs>N/A</ng-template>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<ng-container *ngIf="!activeExecution; else statusTable">
+  <div mat-dialog-content>
+    <table *ngIf="!isLoading" class="mat-elevation-z8">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Status</th>
+          <th>Container Logs</th>
+          <th>HTML Logs</th>
+          <th>Node Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let execution of executions">
+          <td>
+            {{ execution.timestamp }}
+          </td>
+          <td>
+            <span [style.color]="getStatusColor(execution.status)">{{ execution.status }}</span>
+          </td>
+          <td>
+            <ng-container *ngIf="execution.container_logs != '/backend#'; else noContainerLogs">
+              <a [href]="execution.container_logs" target="_blank">View</a>
+            </ng-container>
+            <ng-template #noContainerLogs>N/A</ng-template>
+          </td>
+          <td>
+            <ng-container *ngIf="execution.html_logs != '/backend#'; else noHtmlLogs">
+              <a [href]="execution.html_logs" target="_blank">View</a>
+            </ng-container>
+            <ng-template #noHtmlLogs>N/A</ng-template>
+          </td>
+          <td>
+            <button class="view-node-status" (click)="handleActiveExecutionChange(execution)">
+              View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-  <div *ngIf="executions.length === 0 && !isLoading">
-    <p>No executions found for this flow.</p>
+    <div *ngIf="executions.length === 0 && !isLoading">
+      <p>No executions found for this flow.</p>
+    </div>
   </div>
-</div>
+</ng-container>
 
-<mat-dialog-actions>
-  <button mat-button (click)="closeDialog()">Close</button>
-</mat-dialog-actions>
+<ng-template #statusTable>
+  <div class="node-status-table">
+    <div class="node-status-table-header">
+      <div><strong>Timestamp: </strong> {{ activeExecution.timestamp }}</div>
+      <div><strong>Status: </strong> {{ activeExecution.status }}</div>
+
+      <div>
+        <ng-container *ngIf="activeExecution.container_logs != '/backend#'; else noContainerLogs">
+          <strong>Container Logs: </strong>
+          <a [href]="activeExecution.container_logs" target="_blank">
+            View
+          </a>
+        </ng-container>
+        <ng-template #noContainerLogs><strong>Container Logs: </strong> N/A</ng-template>
+      </div>
+
+      <div>
+        <ng-container *ngIf="activeExecution.html_logs != '/backend#'; else noHtmlLogs">
+          <strong>HTML Logs: </strong>
+          <a [href]="activeExecution.html_logs" target="_blank">
+            View
+          </a>
+        </ng-container>
+        <ng-template #noHtmlLogs><strong>HTML Logs: </strong> N/A</ng-template>
+      </div>
+    </div>
+
+    <div class="node-status-table-container">
+      <table class="node-status-table-content">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Label</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let node of activeExecution.data?.nodes">
+            <td>
+              <img [src]="getNodeIcon(node.type)" alt="node-icon" width="20" height="20" />
+            </td>
+            <td>
+              <span>{{ node.details.name }}</span>
+            </td>
+            <td>
+              <span class="node-status" [style.backgroundColor]="getNodeStatusColor(node.status)">{{ node.status
+                }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="node-status-table-footer">
+      <mat-dialog-actions *ngIf="activeExecution">
+        <button mat-button (click)="backToExecutions()">Back</button>
+      </mat-dialog-actions>
+    </div>
+  </div>
+</ng-template>

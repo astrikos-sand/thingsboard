@@ -31,4 +31,53 @@ mat-toolbar {
   a:hover {
     text-decoration: underline;
   }
-  
+
+  .view-node-status {
+    border: none;
+    outline: none;
+    background: none;
+    cursor: pointer;
+    color: #3f51b5;
+    text-decoration: underline;
+  }
+
+  .node-status-table {
+    padding: 25px;
+  }
+
+  .node-status-table-header {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+
+    strong {
+      margin-right: 7px;
+    }
+
+    margin-bottom: 30px;
+  }
+
+  .node-status-table-container {
+    height: 250px;
+    overflow-y: auto;
+    margin-bottom: 30px;
+  }
+
+  .node-status-table-content {
+    border-spacing: 20px 0;
+    border-collapse: separate;
+  }
+
+  .node-status-table-footer {
+    button {
+      border: 1px solid #3f51b5;
+      border-radius: 20px;
+      padding: 5px 20px;
+    }
+  }
+
+  .node-status {
+    font-size: 16px;
+    padding: 5px 10px;
+    border-radius: 10px;
+  }

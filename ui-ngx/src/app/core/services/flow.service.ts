@@ -129,4 +129,8 @@ export class FlowService {
   getExecutions(flowId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/flows/${flowId}/executions/`, {});
   }
+
+  getExecutionDetails(executionId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/executions/${executionId}/`);
+  }
 }
