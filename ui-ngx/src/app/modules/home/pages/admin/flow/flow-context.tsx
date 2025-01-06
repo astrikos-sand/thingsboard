@@ -46,15 +46,15 @@ export const FlowProvider = ({ children, flowId }: { children: ReactNode, flowId
   const [status_data, setStatusData] = useState<any>(null);
 
   useEffect(() => {
-    const eventSource = new EventSource(`/backend/v2/flows/${flowId}/stream/`);
+    const eventSource = new EventSource(`/events/${flowId}/`);
 
     eventSource.onmessage = (event) => {
       const newMessage = event.data;
-      if (newMessage === "ping") {
+      if (newMessage.includes("ping")) {
         setStatusData({});
         return;
       }
-      else if (newMessage === "reset") {
+      else if (newMessage.includes("reset")) {
         setStatusData({});
         return;
       }

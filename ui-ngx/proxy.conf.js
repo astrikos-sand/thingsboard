@@ -16,6 +16,7 @@
 const forwardUrl = "http://localhost:8080";
 const wsForwardUrl = "ws://localhost:8080";
 const backendUrl = "http://localhost:8000";
+const eventUrl = "http://localhost:9143"
 const ruleNodeUiforwardUrl = forwardUrl;
 
 const PROXY_CONFIG = {
@@ -51,6 +52,10 @@ const PROXY_CONFIG = {
       "^/backend": ""
     },
     "changeOrigin": true,
+  },
+  "/events": {
+    "target": eventUrl,
+    "secure": false,
   }
 };
 

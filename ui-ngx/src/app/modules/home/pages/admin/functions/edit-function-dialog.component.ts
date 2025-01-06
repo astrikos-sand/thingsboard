@@ -63,7 +63,7 @@ export class EditFunctionDialogComponent implements OnInit {
 
     if (codeUrl) {
       this.isLoading = true;
-      this.http.get(codeUrl, { responseType: 'text' }).subscribe(
+      this.http.get(`${codeUrl}?nocache=${new Date().getTime()}`, { responseType: 'text' }).subscribe(
         (code) => {
           this.splitCodeIntoParts(code);
           this.isLoading = false;
