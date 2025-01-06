@@ -99,6 +99,25 @@ export class FlowMapComponent implements OnInit, OnDestroy {
         this.name = flowDetails.flow.name;
         this.full_name = flowDetails.flow.full_name;
       }
+
+      // this.subscriptions = this.flowService
+      // .getServerSentEvents(flowDetails.flow.id)
+      // .subscribe(
+      //   (event_data) => {
+      //     event_data = JSON.parse(event_data);
+
+      //     if (event_data.nodes)
+      //    { 
+      //     const idStatusMap = {};
+      //     event_data.nodes.forEach(node => {
+      //         idStatusMap[node.id] = node.status;
+      //     });
+
+      //     this.status_data = idStatusMap;
+      //   }
+      //   },
+      //   (error) => console.error('SSE Error:', error)
+      // );
     });
     this.loadInitialFunctions();
   }

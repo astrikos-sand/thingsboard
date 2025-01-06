@@ -222,7 +222,10 @@ export class FlowListComponent implements OnInit, AfterViewInit {
   }
 
   openFlow(flowId: string): void {
-    this.router.navigate([`flows/library/${flowId}`]);
+    const url = this.router.serializeUrl(
+      this.router.createUrlTree([`flows/library/${flowId}`])
+    );
+    window.open(url, '_blank');
   }
 
   duplicate_flow(flowId: string): void {

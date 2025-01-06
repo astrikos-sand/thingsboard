@@ -133,4 +133,28 @@ export class FlowService {
   getExecutionDetails(executionId: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/executions/${executionId}/`);
   }
+
+  // getServerSentEvents(flow_id: string): Observable<any> {
+  //   const url = `${this.baseUrl}/flows/${flow_id}/stream/`;
+
+  //   return new Observable((observer) => {
+  //     const eventSource = new EventSource(url);
+
+  //     eventSource.onmessage = (event) => {
+  //       this.zone.run(() => {
+  //         observer.next(event.data);
+  //       });
+  //     };
+
+  //     eventSource.onerror = (error) => {
+  //       this.zone.run(() => {
+  //         observer.error(error);
+  //       });
+  //     };
+
+  //     return () => {
+  //       eventSource.close();
+  //     };
+  //   });
+  // }
 }

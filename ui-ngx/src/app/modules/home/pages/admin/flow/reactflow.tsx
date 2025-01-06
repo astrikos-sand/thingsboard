@@ -57,6 +57,8 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
     setRemovedSlots,
     setNodes,
     setEdges,
+    status_data,
+    flowId,
   } = useContext(FlowContext) as FlowContextType;
   const reactFlowWrapper = React.useRef<HTMLDivElement | null>(null);
   const { screenToFlowPosition } = useReactFlow();
@@ -452,6 +454,10 @@ const Flow: FunctionComponent<any> = ({ props }: { props: any }) => {
     },
     [reactFlowWrapper, screenToFlowPosition, props]
   );
+
+  nodes.forEach((node) => {
+    node.data.status = status_data ? (status_data[node.data.id] ?? 'unknown') : 'unknown';
+  });
   
   return (
     <div ref={reactFlowWrapper} style={{ height: 800 }}>
@@ -480,7 +486,7 @@ export const ReactFlowWrappableComponent: FunctionComponent<any> = ({
 }) => {
   return (
     <ReactFlowProvider>
-      <FlowProvider>
+      <FlowProvider flowId={props.flowId}>
         <Flow props={props} />
       </FlowProvider>
     </ReactFlowProvider>

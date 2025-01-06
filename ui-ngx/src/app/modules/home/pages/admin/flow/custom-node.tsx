@@ -24,6 +24,13 @@ const handleNodeColor = (node_type: string, color: string) => {
   return { bg, txtclr, ligthclr };
 };
 
+const getStatusColor = (status: string) => {
+  if (status === "success") return "#00ff00";
+  else if (status === "error") return "rgb(255, 99, 99)";
+  else if (status === "running") return "#0089ff";
+  else return "#ababab";
+};
+
 function CustomNode({
   data,
   isConnectable,
@@ -35,6 +42,8 @@ function CustomNode({
 
   const color = data.node_fields["color"];
   const attrs = data.node_fields["attrs"];
+  const status = data.status;
+  const statusColor = getStatusColor(status);
 
   const {
     nodes,
@@ -182,6 +191,7 @@ function CustomNode({
         backgroundColor: bg,
         opacity: data.styles.opacity ? data.styles.opacity : 1,
         color: txtclr,
+        border: `4px solid ${statusColor}`,
       }}
       onContextMenu={(e) => {
         e.preventDefault();
