@@ -1,0 +1,84 @@
+<form
+  [formGroup]="uploadRepositoryFormGroup"
+  (ngSubmit)="upload()"
+  style="min-width: 30rem; width: 30rem"
+>
+  <mat-toolbar color="primary">
+    <h2>{{ isEditMode ? "Edit Repository" : "Upload Repository" }}</h2>
+    <span fxFlex></span>
+    <button mat-icon-button (click)="cancel()" type="button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <mat-progress-bar
+    mode="indeterminate"
+    *ngIf="submitted && uploadRepositoryFormGroup.invalid"
+  ></mat-progress-bar>
+
+  <div mat-dialog-content>
+    <fieldset [disabled]="submitted">
+      <mat-form-field appearance="outline" class="mat-block">
+        <mat-label>Repository Name</mat-label>
+        <input
+          matInput
+          formControlName="name"
+          placeholder="Enter repository name"
+          required
+        />
+        <mat-error
+          *ngIf="uploadRepositoryFormGroup.get('name').hasError('required')"
+        >
+          Repository name is <strong>required</strong>.
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Description -->
+      <mat-form-field appearance="outline" class="mat-block">
+        <mat-label>Description</mat-label>
+        <textarea
+          matInput
+          formControlName="description"
+          placeholder="Enter a brief description"
+          maxlength="500"
+          rows="4"
+        ></textarea>
+        <mat-hint align="end">
+          {{ uploadRepositoryFormGroup.get('description').value?.length || 0 }}
+          / 500
+        </mat-hint>
+      </mat-form-field>
+
+      <div style="margin-bottom: 16px">
+        <input
+          type="file"
+          (change)="onFileSelected($event)"
+          style="display: none"
+          #fileInput
+        />
+        <button mat-raised-button color="primary" (click)="fileInput.click()">
+          Choose File
+        </button>
+        <span *ngIf="selectedFileName" style="margin-left: 8px">{{
+          selectedFileName
+        }}</span>
+      </div>
+
+      <mat-form-field appearance="outline" class="mat-block">
+        <mat-label>Folder</mat-label>
+        <input matInput [value]="data.selectedPrefix" readonly />
+      </mat-form-field>
+    </fieldset>
+  </div>
+
+  <div mat-dialog-actions style="margin-top: 16px">
+    <button
+      mat-raised-button
+      color="primary"
+      [disabled]="submitted && uploadRepositoryFormGroup.invalid"
+      type="submit"
+    >
+      {{ isEditMode ? "Update" : "Upload" }}
+    </button>
+  </div>
+</form>

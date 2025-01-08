@@ -175,6 +175,7 @@ import { AddFlowDialogComponent } from '@home/pages/admin/flow/add-flow-dialog.c
 import { AddNewNodeDialog } from '@app/modules/home/pages/admin/flow/add-node-dialog.component';
 import { AddFunctionDialog } from '@home/pages/admin/functions/function-dialog.component';
 import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-dialog.component';
+import { UploadRepositoryDialogComponent } from '../pages/admin/repository/upload-repository-dialog.component';
 import { EditNodeDialogComponent } from '../pages/admin/flow/edit-node-dialog.component';
 import { WebhookDialogComponent } from '../pages/admin/webhook/dialog.component';
 import { PeriodicTriggerDialogComponent } from '../pages/admin/periodic-trigger/dialog.component';
@@ -195,6 +196,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
       EditFunctionDialogComponent,
       EditNodeDialogComponent,
       UploadFileDialogComponent,
+      UploadRepositoryDialogComponent,
       CreateEnvDialogComponent,
       WebhookDialogComponent,
       PeriodicTriggerDialogComponent,
@@ -356,6 +358,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
     PeriodicTriggerDialogComponent,
     EditNodeDialogComponent,
     UploadFileDialogComponent,
+    UploadRepositoryDialogComponent,
     CreateEnvDialogComponent,
     AddPrefixDialogComponent,
     ViewExecutionsDialogComponent,

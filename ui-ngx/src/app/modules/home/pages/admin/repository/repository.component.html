@@ -1,0 +1,108 @@
+<mat-drawer-container hasBackdrop="false" class="tb-absolute-fill">
+  <mat-drawer-content>
+    <div class="mat-padding tb-entity-table tb-absolute-fill">
+      <div fxLayout="row" class="tb-entity-table-content tb-outlined-border">
+        <div fxFlex="30" class="tree-container scrollable-container">
+          <mat-tree
+            [dataSource]="tagTreeDataSource"
+            [treeControl]="treeControl"
+          >
+            <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+              <div
+                class="mat-tree-node-content hover-pointer"
+                (click)="toggleNode(node)"
+              >
+                <button mat-icon-button matTreeNodeToggle>
+                  <mat-icon>
+                    {{
+                      treeControl.isExpanded(node)
+                        ? "expand_more"
+                        : "chevron_right"
+                    }}
+                  </mat-icon>
+                </button>
+                <span class="mat-tree-node-label">{{ node.name }}</span>
+              </div>
+              <div
+                class="mat-tree-node-children"
+                *ngIf="treeControl.isExpanded(node)"
+              >
+                <ng-container matTreeNodeOutlet></ng-container>
+              </div>
+            </mat-nested-tree-node>
+          </mat-tree>
+        </div>
+        <div fxFlex="70" class="table-container">
+          <mat-toolbar>
+            <span>Repository</span>
+            <span fxFlex></span>
+            <button
+              class="transparent-button"
+              [matMenuTriggerFor]="PrefixMenu"
+              matTooltip="Folder"
+              aria-label="Folder"
+              style="margin-left: 10px"
+            >
+              <mat-icon style="color: #435b96">folder</mat-icon>
+            </button>
+            <mat-menu #PrefixMenu="matMenu">
+              <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
+              <button mat-menu-item (click)="openEditPrefixDialog()">
+                Edit
+              </button>
+              <button mat-menu-item (click)="deletePrefix()">Delete</button>
+            </mat-menu>
+            <button
+              class="transparent-button"
+              matTooltip="Upload File"
+              aria-label="Upload File"
+              (click)="openUploadDialog()"
+              style="margin: 10px"
+            >
+              <mat-icon style="color: #435b96">add_circle</mat-icon>
+            </button>
+          </mat-toolbar>
+          <mat-table [dataSource]="dataSource" matSort>
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Name
+              </mat-header-cell>
+              <mat-cell *matCellDef="let file"> {{ file.name }} </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="description">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Description
+              </mat-header-cell>
+              <mat-cell *matCellDef="let file">
+                {{ file.description }}
+              </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>
+                Status
+              </mat-header-cell>
+              <mat-cell *matCellDef="let file"> {{ file.status }} </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
+              <mat-cell *matCellDef="let file">
+                <button mat-button (click)="openFile(file.file)">
+                  Open File
+                </button>
+                <button mat-button (click)="deleteFile(file.id)">Delete</button>
+                <button mat-button (click)="copy_url(file.file)">
+                  Copy URL
+                </button>
+              </mat-cell>
+            </ng-container>
+            <mat-header-row
+              *matHeaderRowDef="displayedColumns"
+            ></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+          </mat-table>
+          <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>
+        </div>
+      </div>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

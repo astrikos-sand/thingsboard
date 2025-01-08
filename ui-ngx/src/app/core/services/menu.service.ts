@@ -533,6 +533,13 @@ export class MenuService {
             icon: 'mdi:archive'
           },
           {
+            id: 'repository',
+            name: 'Repository',
+            type: 'link',
+            path: '/flows/repository',
+            icon: 'mdi:source-repository'
+          },
+          {
             id: 'functions',
             name: 'Functions',
             type: 'link',
