@@ -57,6 +57,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   executionTime: number | undefined;
   executionStatus: string | undefined;
   explorer_url: string = "";
+  eda_report_url: string = "";
   searchFilter: string = "name";
   searchQuery: string = "";
   treeControl = new NestedTreeControl<FunctionNode>((node) => node.children);
@@ -89,6 +90,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
           0,
           8
         )}/`;
+        this.eda_report_url = this.explorer_url + "eda_report.html";
         const { nodes, edges } = convertData(
           flowDetails.nodes,
           this.flowId,
