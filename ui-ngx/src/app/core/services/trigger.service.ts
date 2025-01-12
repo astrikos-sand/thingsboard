@@ -39,16 +39,17 @@ export interface PeriodicTrigger {
   target: string;
   tags: Tag[];
   name: string;
-  task: Task;
-  interval?: {
-    every: number;
-  };
-  crontab?: {
-    timezone: string;
-    month_of_year: number;
-    day_of_month: number;
-    minute: number;
-    hour: number;
+  task: {
+    name: string;
+    interval: string | null;
+    crontab: {
+      minute: string;
+      hour: string;
+      day_of_week: string;
+      day_of_month: string;
+      month_of_year: string;
+      timezone: string;
+    } | null;
   };
 }
 

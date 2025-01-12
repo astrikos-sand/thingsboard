@@ -105,6 +105,17 @@
                 {{ trigger.task.name }}
               </mat-cell>
             </ng-container>
+            <ng-container matColumnDef="schedule">
+              <mat-header-cell *matHeaderCellDef> Schedule </mat-header-cell>
+              <mat-cell *matCellDef="let trigger">
+                <ng-container *ngIf="trigger.task.interval">
+                  every {{ trigger.task.interval.every }} seconds
+                </ng-container>
+                <ng-container *ngIf="trigger.task.crontab">
+                  {{ formatCrontab(trigger.task.crontab) }}
+                </ng-container>
+              </mat-cell>
+            </ng-container>
             <ng-container matColumnDef="tags">
               <mat-header-cell *matHeaderCellDef> Tags </mat-header-cell>
               <mat-cell *matCellDef="let trigger">
