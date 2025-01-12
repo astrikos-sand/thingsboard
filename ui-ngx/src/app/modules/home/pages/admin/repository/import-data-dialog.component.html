@@ -18,34 +18,19 @@
 
   <div mat-dialog-content>
     <fieldset [disabled]="submitted">
-      <mat-form-field appearance="outline" class="mat-block">
-        <mat-label>Name</mat-label>
-        <input
-          matInput
-          formControlName="name"
-          placeholder="Enter name"
-          required
-        />
-        <mat-error
-          *ngIf="uploadRepositoryFormGroup.get('name').hasError('required')"
-        >
-          Name is <strong>required</strong>.
-        </mat-error>
-      </mat-form-field>
-
       <!-- Description Field -->
       <mat-form-field appearance="outline" class="mat-block">
-        <mat-label>Description</mat-label>
+        <mat-label>License Key</mat-label>
         <textarea
           matInput
-          formControlName="description"
-          placeholder="Enter a brief description"
+          formControlName="license_key"
+          placeholder="Enter a license key"
           maxlength="500"
           rows="4"
         ></textarea>
         <mat-hint align="end">
-          {{ uploadRepositoryFormGroup.get('description').value?.length || 0 }}
-          / 500
+          {{ uploadRepositoryFormGroup.get('license_key').value?.length || 0 }}
+          / 256
         </mat-hint>
       </mat-form-field>
 

@@ -32,7 +32,7 @@ export class ExportDataDialogComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.searchService.searchItems(`prefix:${this.searchQuery}`, "flows").subscribe(
+    this.searchService.searchItems(`${this.searchQuery}`, "flows").subscribe(
       (results: any[]) => {
         results.forEach((flow) => {
           if (!this.exportDataForm.flows.some((f) => f.id === flow.id)) {

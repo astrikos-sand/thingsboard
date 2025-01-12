@@ -255,9 +255,7 @@ export class RepositoryComponent implements OnInit, AfterViewInit {
   }
 
   copy_url(url: string) {
-    const endpoint = url.split("media")[1];
-    const new_url = "http://host.docker.internal:8000/media" + endpoint;
-    this.clipboard.copy(new_url);
+    this.clipboard.copy(url);
   }
   // openAddPrefixDialog(): void {
   //   const dialogRef = this.dialog.open(AddPrefixDialogComponent, {

@@ -13,9 +13,8 @@ import { RepositoryService } from "@app/core/services/repository.service";
 
 export interface UploadRepositoryDialogData {
   selectedPrefix: string;
-  name?: string;
-  description?: string;
   file?: string;
+  license_key?: string;
 }
 
 @Component({
@@ -42,8 +41,7 @@ export class ImportDataDialogComponent
   ngOnInit(): void {
     this.isEditMode = !!this.data?.file;
     this.uploadRepositoryFormGroup = this.fb.group({
-      name: [this.data?.name || "", [Validators.required]],
-      description: [this.data?.description || "", [Validators.maxLength(500)]],
+      license_key: [null, [Validators.required]],
       file: [null, this.isEditMode ? [] : [Validators.required]],
       prefix: [{ value: this.data.selectedPrefix, disabled: true }],
     });
@@ -73,11 +71,7 @@ export class ImportDataDialogComponent
     this.submitted = true;
     if (this.uploadRepositoryFormGroup.valid) {
       const formData = new FormData();
-      formData.append("name", this.uploadRepositoryFormGroup.get("name").value);
-      formData.append(
-        "description",
-        this.uploadRepositoryFormGroup.get("description").value
-      );
+      formData.append("license_key", this.uploadRepositoryFormGroup.get("license_key").value);
       formData.append("prefix", this.data.selectedPrefix == "root" ? null : this.data.selectedPrefix);
 
       const file: File = this.uploadRepositoryFormGroup.get("file").value;
