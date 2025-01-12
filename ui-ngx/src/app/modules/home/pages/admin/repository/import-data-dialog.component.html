@@ -1,0 +1,66 @@
+<form
+  [formGroup]="uploadRepositoryFormGroup"
+  (ngSubmit)="upload()"
+  style="min-width: 30rem;"
+>
+  <mat-toolbar color="primary">
+    <h2>{{ isEditMode ? "Edit Import Data" : "Import Data" }}</h2>
+    <span fxFlex></span>
+    <button mat-icon-button (click)="cancel()" type="button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <mat-progress-bar
+    mode="indeterminate"
+    *ngIf="submitted && uploadRepositoryFormGroup.invalid"
+  ></mat-progress-bar>
+
+  <div mat-dialog-content>
+    <fieldset [disabled]="submitted">
+      <!-- Description Field -->
+      <mat-form-field appearance="outline" class="mat-block">
+        <mat-label>License Key</mat-label>
+        <textarea
+          matInput
+          formControlName="license_key"
+          placeholder="Enter a license key"
+          maxlength="500"
+          rows="4"
+        ></textarea>
+        <mat-hint align="end">
+          {{ uploadRepositoryFormGroup.get('license_key').value?.length || 0 }}
+          / 256
+        </mat-hint>
+      </mat-form-field>
+
+      <!-- File Upload -->
+      <div style="margin-bottom: 16px">
+        <input
+          type="file"
+          (change)="onFileSelected($event)"
+          style="display: none"
+          #fileInput
+        />
+        <button mat-raised-button color="primary" (click)="fileInput.click()">
+          Choose File
+        </button>
+        <span *ngIf="selectedFileName" style="margin-left: 8px">{{
+          selectedFileName
+        }}</span>
+      </div>
+
+      <!-- Prefix Field -->
+      <mat-form-field appearance="outline" class="mat-block">
+        <mat-label>Folder</mat-label>
+        <input matInput [value]="data.selectedPrefix" readonly />
+      </mat-form-field>
+    </fieldset>
+  </div>
+
+  <div mat-dialog-actions style="margin-top: 16px">
+    <button mat-raised-button color="primary" type="submit">
+      {{ isEditMode ? "Update" : "Import" }}
+    </button>
+  </div>
+</form>

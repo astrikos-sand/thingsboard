@@ -29,23 +29,24 @@
                 class="mat-tree-node-content hover-pointer"
                 (click)="toggleNode(node)"
               >
-              <button mat-icon-button matTreeNodeToggle>
-                <mat-icon>{{
-                  treeControl.isExpanded(node)
-                    ? "expand_more"
-                    : "chevron_right"
-                }}</mat-icon>
-              </button>                <span
+                <button mat-icon-button matTreeNodeToggle>
+                  <mat-icon>{{
+                    treeControl.isExpanded(node)
+                      ? "expand_more"
+                      : "chevron_right"
+                  }}</mat-icon>
+                </button>
+                <span
                   class="mat-tree-node-label"
                   [innerHTML]="highlightText(node.name, searchQuery)"
                 ></span>
               </div>
               <div
-              class="mat-tree-node-children"
-              [class.example-tree-invisible]="!treeControl.isExpanded(node)"
-            >
-              <ng-container matTreeNodeOutlet></ng-container>
-            </div>
+                class="mat-tree-node-children"
+                [class.example-tree-invisible]="!treeControl.isExpanded(node)"
+              >
+                <ng-container matTreeNodeOutlet></ng-container>
+              </div>
             </mat-nested-tree-node>
           </mat-tree>
         </div>
@@ -54,13 +55,12 @@
             <span>Webhooks</span>
             <span fxFlex></span>
             <button
-              mat-raised-button
-              color="primary"
+              mat-icon-button
               [matMenuTriggerFor]="PrefixMenu"
-              aria-label="Actions"
-              style="margin-left: 10px"
+              matTooltip="Manage Folders"
+              aria-label="Folder Actions"
             >
-              Folder
+              <mat-icon>folder</mat-icon>
             </button>
             <mat-menu #PrefixMenu="matMenu">
               <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
@@ -70,12 +70,11 @@
               <button mat-menu-item (click)="deletePrefix()">Delete</button>
             </mat-menu>
             <button
-              mat-raised-button
-              color="primary"
+              mat-icon-button
+              matTooltip="Add Webhook"
               (click)="openAddWebhookDialog()"
-              style="margin: 10px"
             >
-              Add Webhook
+              <mat-icon>add_circle</mat-icon>
             </button>
           </mat-toolbar>
           <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
@@ -100,9 +99,7 @@
             <ng-container matColumnDef="tags">
               <mat-header-cell *matHeaderCellDef> Tags </mat-header-cell>
               <mat-cell *matCellDef="let webhook">
-                <ng-container
-                  *ngIf="webhook.tags && webhook.tags.length > 0"
-                >
+                <ng-container *ngIf="webhook.tags && webhook.tags.length > 0">
                   <span *ngFor="let tag of webhook.tags">{{
                     tag.full_name
                   }}</span>
@@ -118,28 +115,23 @@
             <ng-container matColumnDef="actions">
               <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
               <mat-cell *matCellDef="let webhook">
-                <button
-                  mat-icon-button
-                  (click)="copyWebhookEndpoint(webhook)"
-                >
+                <button mat-icon-button (click)="copyWebhookEndpoint(webhook)">
                   <mat-icon>content_copy</mat-icon>
                 </button>
                 <button
-                mat-icon-button
-                (click)="deleteWebhook(webhook.id)"
-                matTooltip="Delete Webhook"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
+                  mat-icon-button
+                  (click)="deleteWebhook(webhook.id)"
+                  matTooltip="Delete Webhook"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
               </mat-cell>
             </ng-container>
 
             <mat-header-row
               *matHeaderRowDef="displayedColumns"
             ></mat-header-row>
-            <mat-row
-              *matRowDef="let row; columns: displayedColumns"
-            ></mat-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
           </mat-table>
         </div>
       </div>

@@ -28,6 +28,7 @@ import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
 import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
 import { FlowDetailsResolver, NodeFieldsResolver } from '@home/pages/admin/flow/flow-map-resolver.resolve';
 import { ArchivesComponent } from './archives/archives.component';
+import { RepositoryComponent } from './repository/repository.component';
 import { FunctionListComponent } from './functions/function-list.component';
 import { WebhookComponent } from './webhook/webhook.component';
 import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
@@ -111,6 +112,25 @@ const routes: Routes = [
             data: {
               auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
               title: 'Archives'
+            }
+          }
+        ]
+      },
+      {
+        path: 'repository',
+        data: {
+          breadcrumb: {
+            label: 'Repository',
+            icon: 'mdi:source-repository'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: RepositoryComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Repository'
             }
           }
         ]

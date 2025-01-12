@@ -37,6 +37,7 @@ import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
 import { ReactFlowWrapper } from '@home/pages/admin/flow/reactflow-wrapper';
 import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
 import { ArchivesComponent } from './archives/archives.component';
+import { RepositoryComponent } from './repository/repository.component';
 import { FunctionListComponent } from './functions/function-list.component';
 import { WebhookComponent } from './webhook/webhook.component';
 import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
@@ -63,6 +64,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
       FlowMapComponent,
       FlowListComponent,
       ArchivesComponent,
+      RepositoryComponent,
       EnvComponent,
       FunctionListComponent,
       WebhookComponent,

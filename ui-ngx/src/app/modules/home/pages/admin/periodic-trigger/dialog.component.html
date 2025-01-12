@@ -17,13 +17,41 @@
       <mat-label>Trigger Name</mat-label>
       <input matInput [(ngModel)]="triggerName" name="triggerName" required />
     </mat-form-field>
+    <div class="search-container" appearance="outline">
+      <mat-form-field class="dropdown-small">
+        <mat-label>Search By</mat-label>
+        <mat-select
+          [(value)]="searchType"
+          (selectionChange)="onSearchTypeChange($event)"
+        >
+          <mat-option value="name">Name</mat-option>
+          <mat-option value="prefix">Folder</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="search-input">
+        <mat-label>Target Flows</mat-label>
+        <input
+          matInput
+          placeholder="Search..."
+          [matAutocomplete]="auto"
+          (input)="onDropdownSearch($event.target.value)"
+        />
+        <mat-autocomplete
+          #auto="matAutocomplete"
+          (optionSelected)="onOptionSelected($event)"
+        >
+          <mat-option
+            *ngFor="let target of filteredOptions"
+            [value]="target.id"
+          >
+            {{ target.full_name }}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
     <mat-form-field appearance="fill">
-      <mat-label>Target Flows</mat-label>
-      <mat-select [(ngModel)]="selectedTarget" name="target" required>
-        <mat-option *ngFor="let target of targets" [value]="target.id">
-          {{ target.full_name }}
-        </mat-option>
-      </mat-select>
+      <mat-label>Folder</mat-label>
+      <input matInput [value]="selectedPrefix" name="prefix" disabled />
     </mat-form-field>
     <mat-radio-group [(ngModel)]="triggerType" name="triggerType" required>
       <mat-radio-button value="interval">Interval</mat-radio-button>
@@ -47,6 +75,7 @@
         <input
           matInput
           [(ngModel)]="crontab.minute"
+          [ngModelOptions]="{standalone: true}"
           name="minute"
           type="text"
           required
@@ -57,6 +86,7 @@
         <input
           matInput
           [(ngModel)]="crontab.hour"
+          [ngModelOptions]="{standalone: true}"
           name="hour"
           type="text"
           required
@@ -67,6 +97,7 @@
         <input
           matInput
           [(ngModel)]="crontab.day_of_month"
+          [ngModelOptions]="{standalone: true}"
           name="day_of_month"
           type="text"
           required
@@ -77,6 +108,7 @@
         <input
           matInput
           [(ngModel)]="crontab.month_of_year"
+          [ngModelOptions]="{standalone: true}"
           name="month_of_year"
           type="text"
           required
@@ -87,6 +119,7 @@
         <input
           matInput
           [(ngModel)]="crontab.timezone"
+          [ngModelOptions]="{standalone: true}"
           name="timezone"
           required
         />

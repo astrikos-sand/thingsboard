@@ -1,7 +1,9 @@
-import { Component, OnInit } from "@angular/core";
-import { MatDialogRef } from "@angular/material/dialog";
+import { Component, OnInit, ChangeDetectorRef, Inject } from "@angular/core";
+import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { FlowService } from "@app/core/services/flow.service";
+import { SearchService } from "@app/core/services/search.service";
 import { TriggerService } from "@app/core/services/trigger.service";
+import { MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
 
 @Component({
   selector: "app-periodic-trigger-dialog",
@@ -13,6 +15,9 @@ export class PeriodicTriggerDialogComponent implements OnInit {
   isLoading = false;
   targets: any[] = [];
   selectedTarget = "";
+  searchType: string = "name";
+  filteredOptions: any[] = [];
+  selectedPrefix: string = "";
   triggerName = "";
   triggerType: string = "";
   interval: any = { every: null };
@@ -26,9 +31,14 @@ export class PeriodicTriggerDialogComponent implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<PeriodicTriggerDialogComponent>,
+    private flowService: FlowService,
+    private searchService: SearchService,
     private triggerService: TriggerService,
-    private flowService: FlowService
-  ) {}
+    private cdr: ChangeDetectorRef,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    this.selectedPrefix = data.selectedPrefix;
+  }
 
   ngOnInit(): void {
     this.loadTargets();
@@ -36,13 +46,44 @@ export class PeriodicTriggerDialogComponent implements OnInit {
 
   loadTargets(): void {
     this.flowService.fetchAllFlows().subscribe(
-      (data: any) => {
+      (data: any[]) => {
         this.targets = data;
       },
       (error) => {
         console.error("Error loading targets:", error);
       }
     );
+  }
+
+  onSearchTypeChange(event: any): void {
+    this.searchType = event.value;
+  }
+
+  onDropdownSearch(searchTerm: string): void {
+    if (searchTerm.length === 0) {
+      this.filteredOptions = [];
+      return;
+    }
+
+    const formattedSearchTerm =
+      this.searchType === "prefix" ? `prefix:${searchTerm}` : searchTerm;
+
+    this.searchService.searchItems(formattedSearchTerm, "flows").subscribe(
+      (results: any[]) => {
+        this.filteredOptions = results.map((item) => ({
+          id: item.id,
+          full_name: item.full_name,
+        }));
+        this.cdr.detectChanges();
+      },
+      (error) => {
+        console.error("Error searching targets:", error);
+      }
+    );
+  }
+
+  onOptionSelected(event: MatAutocompleteSelectedEvent): void {
+    this.selectedTarget = event.option.value;
   }
 
   cancel(): void {
@@ -56,10 +97,11 @@ export class PeriodicTriggerDialogComponent implements OnInit {
       const payload: any = {
         target: this.selectedTarget,
         name: this.triggerName,
+        prefix: this.data.selectedPrefix == "root" ? null : this.data.selectedPrefix,
       };
-      if (this.triggerType === 'interval') {
+      if (this.triggerType === "interval") {
         payload.interval = this.interval;
-      } else if (this.triggerType === 'crontab') {
+      } else if (this.triggerType === "crontab") {
         payload.crontab = this.crontab;
       }
       this.triggerService.addPeriodicTrigger(payload).subscribe(

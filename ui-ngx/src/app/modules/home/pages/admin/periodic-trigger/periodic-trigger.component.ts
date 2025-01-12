@@ -41,7 +41,7 @@ interface PeriodicTriggerNode {
 })
 export class PeriodicTriggerComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<PeriodicTrigger>();
-  displayedColumns: string[] = ["id", "target", "task", "tags", "actions"];
+  displayedColumns: string[] = ["id", "target", "task", "schedule", "tags", "actions"];
   searchFilter: string = "name";
   searchQuery: string = "";
 
@@ -411,4 +411,9 @@ export class PeriodicTriggerComponent implements OnInit, AfterViewInit {
   private showNotification(notification: NotificationMessage): void {
     this.toastNotificationService.dispatchNotification(notification);
   }
-}
+
+  formatCrontab(crontab: any): string {
+    const { minute, hour, day_of_month, month_of_year, day_of_week, timezone } = crontab;
+    return `${minute} ${hour} ${day_of_month} ${month_of_year} ${day_of_week} (m/h/dM/MY/d) ${timezone}`;
+  }
+  }

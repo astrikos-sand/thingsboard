@@ -29,13 +29,14 @@
                 class="mat-tree-node-content hover-pointer"
                 (click)="toggleNode(node)"
               >
-              <button mat-icon-button matTreeNodeToggle>
-                <mat-icon>{{
-                  treeControl.isExpanded(node)
-                    ? "expand_more"
-                    : "chevron_right"
-                }}</mat-icon>
-              </button>                <span
+                <button mat-icon-button matTreeNodeToggle>
+                  <mat-icon>{{
+                    treeControl.isExpanded(node)
+                      ? "expand_more"
+                      : "chevron_right"
+                  }}</mat-icon>
+                </button>
+                <span
                   class="mat-tree-node-label"
                   [innerHTML]="highlightText(node.name, searchQuery)"
                 ></span>
@@ -54,28 +55,26 @@
             <span>Periodic Triggers</span>
             <span fxFlex></span>
             <button
-            mat-raised-button
-            color="primary"
-            [matMenuTriggerFor]="PrefixMenu"
-            aria-label="Actions"
-            style="margin-left: 10px"
-          >
-            Folder
-          </button>
-          <mat-menu #PrefixMenu="matMenu">
-            <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
-            <button mat-menu-item (click)="openEditPrefixDialog()">
-              Edit
-            </button>
-            <button mat-menu-item (click)="deletePrefix()">Delete</button>
-          </mat-menu>
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="openAddPeriodicTriggerDialog()"
-              style="margin: 10px"
+              mat-icon-button
+              [matMenuTriggerFor]="PrefixMenu"
+              matTooltip="Manage Folders"
+              aria-label="Folder Actions"
             >
-              Add Periodic Trigger
+              <mat-icon>folder</mat-icon>
+            </button>
+            <mat-menu #PrefixMenu="matMenu">
+              <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
+              <button mat-menu-item (click)="openEditPrefixDialog()">
+                Edit
+              </button>
+              <button mat-menu-item (click)="deletePrefix()">Delete</button>
+            </mat-menu>
+            <button
+              mat-icon-button
+              matTooltip="Add Periodic Trigger"
+              (click)="openAddPeriodicTriggerDialog()"
+            >
+              <mat-icon>add_circle</mat-icon>
             </button>
           </mat-toolbar>
           <mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
@@ -106,6 +105,17 @@
                 {{ trigger.task.name }}
               </mat-cell>
             </ng-container>
+            <ng-container matColumnDef="schedule">
+              <mat-header-cell *matHeaderCellDef> Schedule </mat-header-cell>
+              <mat-cell *matCellDef="let trigger">
+                <ng-container *ngIf="trigger.task.interval">
+                  every {{ trigger.task.interval.every }} seconds
+                </ng-container>
+                <ng-container *ngIf="trigger.task.crontab">
+                  {{ formatCrontab(trigger.task.crontab) }}
+                </ng-container>
+              </mat-cell>
+            </ng-container>
             <ng-container matColumnDef="tags">
               <mat-header-cell *matHeaderCellDef> Tags </mat-header-cell>
               <mat-cell *matCellDef="let trigger">
@@ -125,12 +135,12 @@
               <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
               <mat-cell *matCellDef="let trigger">
                 <button
-                mat-icon-button
-                (click)="deleteTrigger(trigger.id)"
-                matTooltip="Delete Trigger"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
+                  mat-icon-button
+                  (click)="deleteTrigger(trigger.id)"
+                  matTooltip="Delete Trigger"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
               </mat-cell>
             </ng-container>
             <mat-header-row
