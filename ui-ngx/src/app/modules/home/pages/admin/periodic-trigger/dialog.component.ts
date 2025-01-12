@@ -97,6 +97,7 @@ export class PeriodicTriggerDialogComponent implements OnInit {
       const payload: any = {
         target: this.selectedTarget,
         name: this.triggerName,
+        prefix: this.data.selectedPrefix == "root" ? null : this.data.selectedPrefix,
       };
       if (this.triggerType === "interval") {
         payload.interval = this.interval;

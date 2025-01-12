@@ -1,10 +1,10 @@
 <form
   [formGroup]="uploadRepositoryFormGroup"
   (ngSubmit)="upload()"
-  style="min-width: 30rem; width: 30rem"
+  style="min-width: 30rem;"
 >
   <mat-toolbar color="primary">
-    <h2>{{ isEditMode ? "Edit Repository" : "Upload Repository" }}</h2>
+    <h2>{{ isEditMode ? "Edit Import Data" : "Import Data" }}</h2>
     <span fxFlex></span>
     <button mat-icon-button (click)="cancel()" type="button">
       <mat-icon>close</mat-icon>
@@ -19,21 +19,21 @@
   <div mat-dialog-content>
     <fieldset [disabled]="submitted">
       <mat-form-field appearance="outline" class="mat-block">
-        <mat-label>Repository Name</mat-label>
+        <mat-label>Name</mat-label>
         <input
           matInput
           formControlName="name"
-          placeholder="Enter repository name"
+          placeholder="Enter name"
           required
         />
         <mat-error
           *ngIf="uploadRepositoryFormGroup.get('name').hasError('required')"
         >
-          Repository name is <strong>required</strong>.
+          Name is <strong>required</strong>.
         </mat-error>
       </mat-form-field>
 
-      <!-- Description -->
+      <!-- Description Field -->
       <mat-form-field appearance="outline" class="mat-block">
         <mat-label>Description</mat-label>
         <textarea
@@ -49,6 +49,7 @@
         </mat-hint>
       </mat-form-field>
 
+      <!-- File Upload -->
       <div style="margin-bottom: 16px">
         <input
           type="file"
@@ -64,6 +65,7 @@
         }}</span>
       </div>
 
+      <!-- Prefix Field -->
       <mat-form-field appearance="outline" class="mat-block">
         <mat-label>Folder</mat-label>
         <input matInput [value]="data.selectedPrefix" readonly />
@@ -72,13 +74,8 @@
   </div>
 
   <div mat-dialog-actions style="margin-top: 16px">
-    <button
-      mat-raised-button
-      color="primary"
-      [disabled]="submitted && uploadRepositoryFormGroup.invalid"
-      type="submit"
-    >
-      {{ isEditMode ? "Update" : "Upload" }}
+    <button mat-raised-button color="primary" type="submit">
+      {{ isEditMode ? "Update" : "Import" }}
     </button>
   </div>
 </form>

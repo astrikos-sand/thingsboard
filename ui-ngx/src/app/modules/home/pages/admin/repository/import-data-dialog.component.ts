@@ -19,10 +19,10 @@ export interface UploadRepositoryDialogData {
 }
 
 @Component({
-  selector: "app-upload-repository-dialog",
-  templateUrl: "./upload-repository-dialog.component.html",
+  selector: "app-import-data-dialog",
+  templateUrl: "./import-data-dialog.component.html",
 })
-export class UploadRepositoryDialogComponent
+export class ImportDataDialogComponent
   implements OnInit, ErrorStateMatcher
 {
   uploadRepositoryFormGroup: UntypedFormGroup;
@@ -35,7 +35,7 @@ export class UploadRepositoryDialogComponent
   constructor(
     private fb: UntypedFormBuilder,
     private repositoryService: RepositoryService,
-    public dialogRef: MatDialogRef<UploadRepositoryDialogComponent>,
+    public dialogRef: MatDialogRef<ImportDataDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: UploadRepositoryDialogData
   ) {}
 
@@ -78,14 +78,14 @@ export class UploadRepositoryDialogComponent
         "description",
         this.uploadRepositoryFormGroup.get("description").value
       );
-      formData.append("prefix", this.data.selectedPrefix);
+      formData.append("prefix", this.data.selectedPrefix == "root" ? null : this.data.selectedPrefix);
 
       const file: File = this.uploadRepositoryFormGroup.get("file").value;
       if (file) {
         formData.append("file", file);
       }
 
-      this.repositoryService.uploadFile(formData).subscribe(
+      this.repositoryService.importData(formData).subscribe(
         () => {
           console.log("Repository uploaded successfully");
           this.dialogRef.close(true);

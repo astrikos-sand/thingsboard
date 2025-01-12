@@ -19,10 +19,11 @@ import {
 } from "@app/core/services/repository.service";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
-import { UploadRepositoryDialogComponent } from "./upload-repository-dialog.component";
+import { ImportDataDialogComponent } from "./import-data-dialog.component";
 import { FlowService } from "@app/core/services/flow.service";
 import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
 import { NotificationMessage } from "@app/core/notification/notification.models";
+import { ExportDataDialogComponent } from "./export-data-dialog.component";
 
 interface RepositoryNode {
   name: string;
@@ -177,17 +178,17 @@ export class RepositoryComponent implements OnInit, AfterViewInit {
     }));
   }
 
-  openUploadDialog(): void {
-    const dialogRef = this.dialog.open(UploadRepositoryDialogComponent, {
-      data: {
-        selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
-      },
-    });
+  // openUploadDialog(): void {
+  //   const dialogRef = this.dialog.open(UploadRepositoryDialogComponent, {
+  //     data: {
+  //       selectedPrefix: this.selectedNode ? this.selectedNode.id : "root",
+  //     },
+  //   });
 
-    dialogRef.afterClosed().subscribe(() => {
-      this.refreshFiles(this.selectedNode);
-    });
-  }
+  //   dialogRef.afterClosed().subscribe(() => {
+  //     this.refreshFiles(this.selectedNode);
+  //   });
+  // }
 
   deleteFile(fileId: string): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -258,27 +259,58 @@ export class RepositoryComponent implements OnInit, AfterViewInit {
     const new_url = "http://host.docker.internal:8000/media" + endpoint;
     this.clipboard.copy(new_url);
   }
-  openAddPrefixDialog(): void {
-    const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+  // openAddPrefixDialog(): void {
+  //   const dialogRef = this.dialog.open(AddPrefixDialogComponent, {
+  //     data: {
+  //       prefix: {
+  //         parent: this.selectedNode ? this.selectedNode.id : "root",
+  //       },
+  //       type: "datatransfer",
+  //       isEdit: false,
+  //     },
+  //   });
+
+  //   dialogRef.afterClosed().subscribe((result) => {
+  //     if (result) {
+  //       const parentNode = this.findNodeById(
+  //         this.tagTreeDataSource.data[0],
+  //         result.parent
+  //       );
+  //       this.refreshFiles(parentNode);
+  //     }
+  //   });
+  // }
+
+  openExportDialog(): void {
+    const dialogRef = this.dialog.open(ExportDataDialogComponent, {
+      width: '600px',
       data: {
-        prefix: {
-          parent: this.selectedNode ? this.selectedNode.id : "root",
-        },
-        type: "datatransfer",
-        isEdit: false,
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : 'root',
       },
     });
-
+  
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        const parentNode = this.findNodeById(
-          this.tagTreeDataSource.data[0],
-          result.parent
-        );
-        this.refreshFiles(parentNode);
+        this.refreshFiles(this.selectedNode);
       }
     });
   }
+  
+  openImportDialog(): void {
+    const dialogRef = this.dialog.open(ImportDataDialogComponent, {
+      width: '600px',
+      data: {
+        selectedPrefix: this.selectedNode ? this.selectedNode.id : 'root',
+      },
+    });
+  
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.refreshFiles(this.selectedNode);
+      }
+    });
+  }
+  
 
   openEditPrefixDialog(): void {
     if (!this.selectedNode) {

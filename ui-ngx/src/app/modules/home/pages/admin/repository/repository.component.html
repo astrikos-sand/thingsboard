@@ -38,30 +38,23 @@
             <span fxFlex></span>
             <button
               class="transparent-button"
-              [matMenuTriggerFor]="PrefixMenu"
-              matTooltip="Folder"
-              aria-label="Folder"
-              style="margin-left: 10px"
+              matTooltip="Export"
+              aria-label="Export"
+              (click)="openExportDialog()"
+              style="margin-right: 10px"
             >
-              <mat-icon style="color: #435b96">folder</mat-icon>
+              <mat-icon>upload</mat-icon>
             </button>
-            <mat-menu #PrefixMenu="matMenu">
-              <button mat-menu-item (click)="openAddPrefixDialog()">Add</button>
-              <button mat-menu-item (click)="openEditPrefixDialog()">
-                Edit
-              </button>
-              <button mat-menu-item (click)="deletePrefix()">Delete</button>
-            </mat-menu>
             <button
               class="transparent-button"
-              matTooltip="Upload File"
-              aria-label="Upload File"
-              (click)="openUploadDialog()"
-              style="margin: 10px"
+              matTooltip="Import"
+              aria-label="Import"
+              (click)="openImportDialog()"
             >
-              <mat-icon style="color: #435b96">add_circle</mat-icon>
+              <mat-icon>download</mat-icon>
             </button>
           </mat-toolbar>
+          
           <mat-table [dataSource]="dataSource" matSort>
             <ng-container matColumnDef="name">
               <mat-header-cell *matHeaderCellDef mat-sort-header>

@@ -39,4 +39,16 @@ export class RepositoryService {
   deleteFile(fileId: string): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${fileId}/`);
   }
+
+  importData(importData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/import/`, importData);
+  }
+
+  exportData(exportData: {
+    name: string;
+    description: string;
+    flows: string[];
+  }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/export/`, exportData);
+  }
 }
