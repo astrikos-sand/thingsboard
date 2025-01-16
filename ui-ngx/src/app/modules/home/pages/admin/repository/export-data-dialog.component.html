@@ -1,4 +1,4 @@
-<form style="min-width: 30rem;">
+<form style="min-width: 30rem">
   <mat-toolbar color="primary">
     <h2>Export Data</h2>
     <span fxFlex></span>
@@ -6,23 +6,25 @@
       <mat-icon>close</mat-icon>
     </button>
   </mat-toolbar>
+
   <div mat-dialog-content>
     <mat-form-field appearance="outline" class="mat-block">
       <mat-label>Name</mat-label>
       <input
         matInput
         [(ngModel)]="exportDataForm.name"
-        [ngModelOptions]="{standalone: true}"
+        [ngModelOptions]="{ standalone: true }"
         placeholder="Enter export name"
         required
       />
     </mat-form-field>
+
     <mat-form-field appearance="outline" class="mat-block">
       <mat-label>Description</mat-label>
       <textarea
         matInput
         [(ngModel)]="exportDataForm.description"
-        [ngModelOptions]="{standalone: true}"
+        [ngModelOptions]="{ standalone: true }"
         placeholder="Enter a brief description"
         maxlength="500"
         rows="4"
@@ -31,44 +33,59 @@
         {{ exportDataForm.description?.length || 0 }} / 500
       </mat-hint>
     </mat-form-field>
-    <mat-form-field appearance="outline" class="mat-block">
-      <mat-label>Search Flows</mat-label>
-      <div matSuffix>
-        <button
-          mat-icon-button
-          (click)="searchFlows()"
-          [disabled]="isLoading"
-          matTooltip="Search"
+
+    <h4>Select Flows</h4>
+
+    <!-- Scrollable wrapper -->
+    <div class="tree-scroll-container">
+      <mat-tree
+        [dataSource]="flowTreeDataSource"
+        [treeControl]="treeControl"
+        class="example-tree"
+      >
+        <mat-nested-tree-node
+          *matTreeNodeDef="let node; when: hasChild"
+          [matTreeNodePadding]="{ indent: 24 }"
         >
-          <mat-icon>search</mat-icon>
-        </button>
-      </div>
-      <input
-        matInput
-        placeholder="Enter search query"
-        [(ngModel)]="searchQuery"
-        name="searchQuery"
-      />
-    </mat-form-field>    
-    <div *ngIf="exportDataForm.flows.length > 0" class="selected-flows">
-      <h4>Selected Flows:</h4>
-      <div *ngFor="let flow of exportDataForm.flows" class="flow-item">
-        <span>{{ flow.full_name }}</span>
-        <button
-          mat-icon-button
-          (click)="removeFlowFromExport(flow.id)"
-          matTooltip="Remove Flow"
+          <div class="mat-tree-node-content">
+            <button mat-icon-button matTreeNodeToggle (click)="maybeFetchChildren(node)">
+              <mat-icon>{{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}</mat-icon>
+            </button>
+            <mat-checkbox
+              (change)="toggleSelection(node)"
+              [checked]="isSelected(node)"
+              [indeterminate]="isIndeterminate(node)"
+            >
+              {{ node.name }}
+            </mat-checkbox>
+          </div>
+          <div
+            [class.example-tree-invisible]="!treeControl.isExpanded(node)"
+            class="mat-tree-node-children"
+          >
+            <ng-container matTreeNodeOutlet></ng-container>
+          </div>
+        </mat-nested-tree-node>
+
+        <mat-tree-node
+          *matTreeNodeDef="let node; when: !hasChild"
+          [matTreeNodePadding]="{ indent: 24 }"
         >
-          <mat-icon>remove_circle</mat-icon>
-        </button>
-      </div>
+          <div class="mat-tree-node-content">
+            <mat-checkbox
+              (change)="toggleSelection(node)"
+              [checked]="isSelected(node)"
+            >
+              {{ node.name }}
+            </mat-checkbox>
+          </div>
+        </mat-tree-node>
+      </mat-tree>
     </div>
   </div>
 
-  <div mat-dialog-actions style="margin-top: 16px">
-    <button mat-raised-button color="primary" (click)="export()">
-      Export
-    </button>
+  <div mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="export()">Export</button>
     <button mat-raised-button (click)="cancel()">Cancel</button>
   </div>
 </form>

@@ -16,7 +16,9 @@
 
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { MatChipsModule } from '@angular/material/chips';
+
 import { SharedModule } from '@app/shared/shared.module';
 import { AddEntityDialogComponent } from '@home/components/entity/add-entity-dialog.component';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';

@@ -136,7 +136,7 @@ export class AddFlowDialogComponent implements OnInit {
         description: this.description,
         lib: this.selectedEnv,
         prefix: this.selectedPrefix === "root" ? null : this.selectedPrefix,
-        soft_link: this.selectedSoftLinks.map((link) => link.uuid), // Send only UUIDs
+        soft_link: this.selectedSoftLinks.map((link) => link.uuid),
         dag_meta_data: {
           config: JSON.parse(this.dagConfig || "{}"),
         },
