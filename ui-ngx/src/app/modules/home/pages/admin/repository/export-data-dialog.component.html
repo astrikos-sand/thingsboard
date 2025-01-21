@@ -36,7 +36,6 @@
 
     <h4>Select Flows</h4>
 
-    <!-- Scrollable wrapper -->
     <div class="tree-scroll-container">
       <mat-tree
         [dataSource]="flowTreeDataSource"
@@ -48,7 +47,7 @@
           [matTreeNodePadding]="{ indent: 24 }"
         >
           <div class="mat-tree-node-content">
-            <button mat-icon-button matTreeNodeToggle (click)="maybeFetchChildren(node)">
+            <button mat-icon-button matTreeNodeToggle>
               <mat-icon>{{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}</mat-icon>
             </button>
             <mat-checkbox

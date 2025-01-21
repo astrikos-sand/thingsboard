@@ -78,7 +78,7 @@ export class AddFlowDialogComponent implements OnInit {
     this.flowService.getPrefixes("flows").subscribe((response: any) => {
       this.prefixes = response.tree.map((prefix: any) => ({
         name: prefix.full_name,
-        uuid: prefix.id, // Assuming `id` is the UUID
+        uuid: prefix.id,
       }));
       this.softLinks = [...this.prefixes];
       if (callback) callback();
@@ -98,7 +98,7 @@ export class AddFlowDialogComponent implements OnInit {
     const value = (event.value || '').trim();
     const foundLink = this.prefixes.find((prefix) => prefix.name === value);
     if (foundLink && !this.selectedSoftLinks.some((link) => link.uuid === foundLink.uuid)) {
-      this.selectedSoftLinks.push(foundLink); // Push the object (name and UUID)
+      this.selectedSoftLinks.push(foundLink);
     }
     event.chipInput!.clear();
     this.softLinkControl.setValue(null);
@@ -115,7 +115,7 @@ export class AddFlowDialogComponent implements OnInit {
     const filterValue = value.toLowerCase();
     return this.softLinks
       .filter((link) => link.name.toLowerCase().includes(filterValue))
-      .map((link) => link.name); // Only show names in the dropdown
+      .map((link) => link.name);
   }
 
   cancel(): void {
@@ -167,7 +167,7 @@ export class AddFlowDialogComponent implements OnInit {
         name: this.flowName,
         description: this.description,
         prefix: this.selectedPrefix === "root" ? null : this.selectedPrefix,
-        soft_link: this.selectedSoftLinks.map((link) => link.uuid), // Send only UUIDs
+        soft_link: this.selectedSoftLinks.map((link) => link.uuid),
         dag_meta_data: {
           config: JSON.parse(this.dagConfig || "{}"),
         },

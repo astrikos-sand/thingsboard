@@ -178,7 +178,11 @@
 
       <mat-form-field>
         <mat-label>Folder</mat-label>
-        <input matInput [value]="selectedPrefix" name="prefix" disabled />
+        <mat-select [(ngModel)]="selectedPrefix" name="prefix" required>
+          <mat-option *ngFor="let prefix of prefixes" [value]="prefix.uuid">
+            {{ prefix.name }}
+          </mat-option>
+        </mat-select>
       </mat-form-field>
 
       <mat-form-field>
