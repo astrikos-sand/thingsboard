@@ -176,6 +176,31 @@
                     </a>
                   </mat-menu>
 
+                  <!-- Mlflow -->
+                  <button
+                  class="transparent-button"
+                  [matMenuTriggerFor]="mlflowMenu"
+                  matTooltip="Mlflow"
+                  aria-label="Mlflow"
+                >
+                  <mat-icon svgIcon="mlflow"></mat-icon>
+                </button>
+                <mat-menu #mlflowMenu="matMenu">
+                  <button mat-menu-item (click)="toggle_mlflow()">
+                    {{ mlflow_enabled ? 'Disable' : 'Enable' }}
+                  </button>
+                  <a
+                    mat-menu-item
+                    [href]="
+                      'http://192.168.0.218:9293/name-redirect/?name=' + name
+                    "
+                    target="_blank"
+                    aria-label="Open MLflow"
+                  >
+                    Open
+                  </a>
+                </mat-menu>
+
                   <!-- File Explorer -->
                   <a
                     mat-icon-button

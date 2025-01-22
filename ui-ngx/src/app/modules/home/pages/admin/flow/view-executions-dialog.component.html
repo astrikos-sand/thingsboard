@@ -88,6 +88,10 @@
       </div>
     </div>
 
+    <div *ngIf="activeExecution.status === 'PENDING'">
+      <button mat-raised-button color="primary" (click)="cancelExecution()">Stop</button>
+      </div>
+
     <div class="node-status-table-container">
       <table class="node-status-table-content">
         <thead>

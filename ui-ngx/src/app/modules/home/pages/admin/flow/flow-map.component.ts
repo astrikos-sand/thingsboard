@@ -67,6 +67,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
   dataSource = new MatTableDataSource<any>(this.selectedFunctions);
   functionListSearchQuery: string = "";
   filteredFunctions: any[] = [];
+  mlflow_enabled: boolean = false;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   private subscriptions: Subscription = new Subscription();
 
@@ -122,10 +123,20 @@ export class FlowMapComponent implements OnInit, OnDestroy {
       // );
     });
     this.loadInitialFunctions();
+
+    const storedData = localStorage.getItem('mlflow_enabled');
+    if (storedData) {
+      this.mlflow_enabled = JSON.parse(storedData);
+    }
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+  }
+
+  toggle_mlflow(): void {
+    localStorage.setItem('mlflow_enabled', JSON.stringify(!this.mlflow_enabled));
+    this.mlflow_enabled = !this.mlflow_enabled;
   }
 
   onNodesChange(updatedNodes: Node[]): void {
@@ -245,7 +256,7 @@ export class FlowMapComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const startTime = new Date();
     try {
-      await executeFlow(this.flowId, this.flowService);
+      await executeFlow(this.flowId, this.flowService, this.mlflow_enabled);
       const endTime = new Date();
       this.executionTime = (endTime.getTime() - startTime.getTime()) / 1000;
       this.executionStatus = "Flow executed successfully";

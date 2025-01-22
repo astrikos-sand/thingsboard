@@ -134,6 +134,10 @@ export class FlowService {
     return this.http.get<any>(`${this.baseUrl}/executions/${executionId}/`);
   }
 
+  stopExecution(executionId: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/executions/${executionId}/stop/`, {});
+  }
+
   // getServerSentEvents(flow_id: string): Observable<any> {
   //   const url = `${this.baseUrl}/flows/${flow_id}/stream/`;
 
