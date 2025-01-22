@@ -1,0 +1,58 @@
+.tree-scroll-container {
+  max-height: 300px; /* Adjust to fit your dialog */
+  overflow-y: auto;
+  padding-right: 8px; /* Some spacing near the scrollbar */
+}
+
+.example-tree {
+  width: fit-content; /* Only as wide as needed */
+
+  mat-tree-node,
+  mat-nested-tree-node {
+    display: block;
+
+    .mat-tree-node-content {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+      &:active {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+
+      button[mat-icon-button] {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .mat-tree-node-children {
+    position: relative;
+    margin-left: 0.5rem; /* A bit of extra spacing if you like */
+
+    &:before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0; /* The vertical line on the left side */
+      width: 2px;
+      background: #ccc;
+      border-radius: 1px;
+      opacity: 0.5;
+      /* If you want a dashed line instead:
+         border-left: 1px dashed #aaa;
+         background: none;
+      */
+    }
+  }
+
+  .example-tree-invisible {
+    display: none;
+  }
+}

@@ -61,6 +61,20 @@ export class ViewExecutionsDialogComponent implements OnInit {
     );
   }
 
+  cancelExecution(): void {
+    this.isLoading = true;
+    this.flowService.stopExecution(this.activeExecution.id).subscribe(
+      () => {
+        this.fetchNodeStatus(this.activeExecution);
+        this.isLoading = false;
+      },
+      (error) => {
+        console.error("Error stopping execution:", error);
+        this.isLoading = false;
+      }
+    );
+  }
+
   getExecutionLog(execution: any): void {
     if (execution.json_logs != '/backend#')
       this.http.get(execution.json_logs).subscribe(response => {

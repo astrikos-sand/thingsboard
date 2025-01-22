@@ -1,4 +1,8 @@
-<form *ngIf="!isEdit; else editTemplate" (ngSubmit)="add()" style="min-width: 400px; width: 750px;">
+<form
+  *ngIf="!isEdit; else editTemplate"
+  (ngSubmit)="add()"
+  style="min-width: 400px; width: 750px"
+>
   <mat-toolbar color="primary">
     <h2>Add New Flow</h2>
     <span fxFlex></span>
@@ -6,33 +10,89 @@
       <mat-icon>close</mat-icon>
     </button>
   </mat-toolbar>
-  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading"></mat-progress-bar>
-  <div style="height: 4px;" *ngIf="!isLoading"></div>
+  <mat-progress-bar
+    color="warn"
+    mode="indeterminate"
+    *ngIf="isLoading"
+  ></mat-progress-bar>
+  <div style="height: 4px" *ngIf="!isLoading"></div>
   <div mat-dialog-content>
     <mat-form-field>
       <mat-label>Flow Name</mat-label>
-      <input matInput placeholder="Enter Flow Name" [(ngModel)]="flowName" name="flowName" required />
-      <mat-error *ngIf="submitted && !flowName">Flow Name is required.</mat-error>
+      <input
+        matInput
+        placeholder="Enter Flow Name"
+        [(ngModel)]="flowName"
+        name="flowName"
+        required
+      />
+      <mat-error *ngIf="submitted && !flowName">
+        Flow Name is required.
+      </mat-error>
     </mat-form-field>
 
     <mat-form-field>
       <mat-label>Description</mat-label>
-      <textarea matInput placeholder="Enter Description" [(ngModel)]="description" name="description" required></textarea>
-      <mat-error *ngIf="submitted && !description">Description is required.</mat-error>
+      <textarea
+        matInput
+        placeholder="Enter Description"
+        [(ngModel)]="description"
+        name="description"
+        required
+      ></textarea>
+      <mat-error *ngIf="submitted && !description">
+        Description is required.
+      </mat-error>
     </mat-form-field>
 
     <mat-form-field>
       <mat-label>Environment</mat-label>
       <mat-select [(ngModel)]="selectedEnv" name="environment" required>
-        <mat-option *ngFor="let env of environments" [value]="env.id">{{ env.name }}</mat-option>
+        <mat-option *ngFor="let env of environments" [value]="env.id">
+          {{ env.name }}
+        </mat-option>
       </mat-select>
-      <mat-error *ngIf="submitted && !selectedEnv">Environment is required.</mat-error>
+      <mat-error *ngIf="submitted && !selectedEnv">
+        Environment is required.
+      </mat-error>
     </mat-form-field>
 
     <mat-form-field>
       <mat-label>Folder</mat-label>
       <input matInput [value]="selectedPrefix" name="prefix" disabled />
     </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Soft Links</mat-label>
+      <mat-autocomplete #auto="matAutocomplete">
+        <mat-option
+          *ngFor="let link of filteredSoftLinks | async"
+          [value]="link"
+        >
+          {{ link }}
+        </mat-option>
+      </mat-autocomplete>
+      <input
+        matInput
+        placeholder="Select soft links"
+        [matAutocomplete]="auto"
+        [matChipInputFor]="chipList"
+        [matChipInputAddOnBlur]="true"
+        (matChipInputTokenEnd)="addSoftLink($event)"
+        [formControl]="softLinkControl"
+      />
+      <mat-chip-list #chipList>
+        <mat-chip
+          *ngFor="let link of selectedSoftLinks"
+          [removable]="true"
+          (removed)="removeSoftLink(link)"
+        >
+          {{ link.name }}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip>
+      </mat-chip-list>
+    </mat-form-field>
+
     <mat-form-field>
       <mat-label>DAG Configuration (JSON)</mat-label>
       <textarea
@@ -42,21 +102,26 @@
         rows="6"
         placeholder='{"schedule": "..."}'
       ></textarea>
-      <div *ngIf="!is_valid_json">
-        Invalid JSON format.
-      </div>
-    </mat-form-field>    
+      <div *ngIf="!is_valid_json">Invalid JSON format.</div>
+    </mat-form-field>
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
-    <button mat-button color="primary" type="button" (click)="cancel()">Cancel</button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="isLoading || !flowName || !description || !selectedEnv">
+    <button mat-button color="primary" type="button" (click)="cancel()">
+      Cancel
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="isLoading || !flowName || !description || !selectedEnv"
+    >
       Add
     </button>
   </div>
 </form>
 
 <ng-template #editTemplate>
-  <form (ngSubmit)="edit()" style="min-width: 400px; width: 750px;">
+  <form (ngSubmit)="edit()" style="min-width: 400px; width: 750px">
     <mat-toolbar color="primary">
       <h2>Edit Flow</h2>
       <span fxFlex></span>
@@ -64,35 +129,93 @@
         <mat-icon>close</mat-icon>
       </button>
     </mat-toolbar>
-    <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading"></mat-progress-bar>
-    <div style="height: 4px;" *ngIf="!isLoading"></div>
+    <mat-progress-bar
+      color="warn"
+      mode="indeterminate"
+      *ngIf="isLoading"
+    ></mat-progress-bar>
+    <div style="height: 4px" *ngIf="!isLoading"></div>
     <div mat-dialog-content>
       <mat-form-field>
         <mat-label>Flow Name</mat-label>
-        <input matInput placeholder="Enter Flow Name" [(ngModel)]="flowName" name="flowName" required />
-        <mat-error *ngIf="submitted && !flowName">Flow Name is required.</mat-error>
+        <input
+          matInput
+          placeholder="Enter Flow Name"
+          [(ngModel)]="flowName"
+          name="flowName"
+          required
+        />
+        <mat-error *ngIf="submitted && !flowName">
+          Flow Name is required.
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>Description</mat-label>
-        <textarea matInput placeholder="Enter Description" [(ngModel)]="description" name="description" required></textarea>
-        <mat-error *ngIf="submitted && !description">Description is required.</mat-error>
+        <textarea
+          matInput
+          placeholder="Enter Description"
+          [(ngModel)]="description"
+          name="description"
+          required
+        ></textarea>
+        <mat-error *ngIf="submitted && !description">
+          Description is required.
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>Environment</mat-label>
         <mat-select [(ngModel)]="selectedEnv" name="environment" required>
-          <mat-option *ngFor="let env of environments" [value]="env.id">{{ env.name }}</mat-option>
+          <mat-option *ngFor="let env of environments" [value]="env.id">
+            {{ env.name }}
+          </mat-option>
         </mat-select>
-        <mat-error *ngIf="submitted && !selectedEnv">Environment is required.</mat-error>
+        <mat-error *ngIf="submitted && !selectedEnv">
+          Environment is required.
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field>
         <mat-label>Folder</mat-label>
         <mat-select [(ngModel)]="selectedPrefix" name="prefix" required>
-          <mat-option *ngFor="let prefix of prefixes" [value]="prefix.id">{{ prefix.full_name }}</mat-option>
+          <mat-option *ngFor="let prefix of prefixes" [value]="prefix.uuid">
+            {{ prefix.name }}
+          </mat-option>
         </mat-select>
       </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Soft Links</mat-label>
+        <mat-autocomplete #auto="matAutocomplete">
+          <mat-option
+            *ngFor="let link of filteredSoftLinks | async"
+            [value]="link"
+          >
+            {{ link }}
+          </mat-option>
+        </mat-autocomplete>
+        <input
+          matInput
+          placeholder="Select soft links"
+          [matAutocomplete]="auto"
+          [matChipInputFor]="chipList"
+          [matChipInputAddOnBlur]="true"
+          (matChipInputTokenEnd)="addSoftLink($event)"
+          [formControl]="softLinkControl"
+        />
+        <mat-chip-list #chipList>
+          <mat-chip
+            *ngFor="let link of selectedSoftLinks"
+            [removable]="true"
+            (removed)="removeSoftLink(link)"
+          >
+            {{ link.name }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        </mat-chip-list>
+      </mat-form-field>
+
       <mat-form-field>
         <mat-label>DAG Configuration (JSON)</mat-label>
         <textarea
@@ -102,14 +225,19 @@
           rows="6"
           placeholder='{"schedule": "..."}'
         ></textarea>
-        <div *ngIf="!is_valid_json">
-          Invalid JSON format.
-        </div>
-      </mat-form-field>      
+        <div *ngIf="!is_valid_json">Invalid JSON format.</div>
+      </mat-form-field>
     </div>
     <div mat-dialog-actions fxLayoutAlign="end center">
-      <button mat-button color="primary" type="button" (click)="cancel()">Cancel</button>
-      <button mat-raised-button color="primary" type="submit" [disabled]="isLoading">
+      <button mat-button color="primary" type="button" (click)="cancel()">
+        Cancel
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        [disabled]="isLoading || !flowName || !description || !selectedEnv"
+      >
         Save
       </button>
     </div>

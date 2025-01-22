@@ -64,6 +64,7 @@ export const svgIconsUrl: { [key: string]: string } = {
   airflow: '/assets/mlworkbench/airflow.svg',
   jupyter: '/assets/mlworkbench/jupyter.svg',
   function: '/assets/mlworkbench/function.svg',
+  mlflow: '/assets/mlworkbench/mlflow.svg',
 };
 
 const svgIconNamespaces: string[] = ['mdi'];

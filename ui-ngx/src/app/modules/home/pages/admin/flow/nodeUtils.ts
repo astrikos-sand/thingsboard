@@ -493,8 +493,10 @@ export const handleCollapseAllScopes = async (
   setOffset({ x: 100, y: data.position.y });
 };
 
-export const executeFlow = async (flowId: string, flowService: any) => {
-  await axios.post(`/backend/v2/flows/${flowId}/execute/`, {});
+export const executeFlow = async (flowId: string, flowService: any, mlflow_enabled: boolean) => {
+  await axios.post(`/backend/v2/flows/${flowId}/execute/`, {
+    "is_mlflow_enabled": `${mlflow_enabled}`
+  });
 };
 
 export const notebook_start = async (flowId: string) => {

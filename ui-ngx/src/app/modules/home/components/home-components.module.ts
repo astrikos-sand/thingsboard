@@ -14,8 +14,11 @@
 /// limitations under the License.
 ///
 
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
+import { MatChipsModule } from '@angular/material/chips';
+
 import { SharedModule } from '@app/shared/shared.module';
 import { AddEntityDialogComponent } from '@home/components/entity/add-entity-dialog.component';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
@@ -339,6 +342,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
   imports: [
     CommonModule,
     SharedModule,
+    MatChipsModule,
     SharedHomeComponentsModule,
     WidgetConfigComponentsModule,
     BasicWidgetConfigModule,
@@ -353,6 +357,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
     EntitiesTableComponent,
     AddEntityDialogComponent,
     AddFlowDialogComponent,
+    MatChipsModule,
     AddNewNodeDialog,
     AddFunctionDialog,
     EditFunctionDialogComponent,
@@ -488,6 +493,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
     {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent},
     {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule },
     {provide: MODULES_MAP, useValue: modulesMap}
-  ]
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class HomeComponentsModule { }

@@ -261,7 +261,8 @@ export class FlowListComponent implements OnInit, AfterViewInit {
         selectedEnv: flow.lib,
         description: flow.description,
         selectedPrefix: flow.prefix,
-        dagMetaData: flow.dag_meta_data
+        dagMetaData: flow.dag_meta_data,
+        softLinks: flow.soft_link
       },
     });
     dialogRef.afterClosed().subscribe((result) => {
