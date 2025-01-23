@@ -175,6 +175,7 @@ import { WidgetConfigComponentsModule } from '@home/components/widget/config/wid
 import { BasicWidgetConfigModule } from '@home/components/widget/config/basic/basic-widget-config.module';
 import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delete-timeseries-panel.component';
 import { AddFlowDialogComponent } from '@home/pages/admin/flow/add-flow-dialog.component';
+import { AddKpiDialogComponent } from '@home/pages/admin/kpi/add-kpi-dialog.component';
 import { AddNewNodeDialog } from '@app/modules/home/pages/admin/flow/add-node-dialog.component';
 import { AddFunctionDialog } from '@home/pages/admin/functions/function-dialog.component';
 import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-dialog.component';
@@ -195,6 +196,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
       EntitiesTableComponent,
       AddEntityDialogComponent,
       AddFlowDialogComponent,
+      AddKpiDialogComponent,
       AddNewNodeDialog,
       AddFunctionDialog,
       EditFunctionDialogComponent,
@@ -357,6 +359,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
     EntitiesTableComponent,
     AddEntityDialogComponent,
     AddFlowDialogComponent,
+    AddKpiDialogComponent,
     MatChipsModule,
     AddNewNodeDialog,
     AddFunctionDialog,

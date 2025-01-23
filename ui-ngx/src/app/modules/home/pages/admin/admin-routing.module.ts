@@ -33,6 +33,7 @@ import { FunctionListComponent } from './functions/function-list.component';
 import { WebhookComponent } from './webhook/webhook.component';
 import { PeriodicTriggerComponent } from './periodic-trigger/periodic-trigger.component';
 import { EnvComponent } from './env/env.component';
+import { KpiListComponent } from './kpi/kpi-list.component';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -97,6 +98,25 @@ const routes: Routes = [
           }
         ]
       },
+      {
+        path: 'kpi',
+        data: {
+          breadcrumb: {
+            label: 'KPI',
+            icon: 'mdi:chart-box-outline'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: KpiListComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'Key Performance Indicators (KPI)'
+            }
+          }
+        ]
+      },      
       {
         path: 'archives',
         data: {

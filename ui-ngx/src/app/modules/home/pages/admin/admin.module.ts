@@ -36,6 +36,7 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
 import { FlowMapComponent } from '@home/pages/admin/flow/flow-map.component';
 import { ReactFlowWrapper } from '@home/pages/admin/flow/reactflow-wrapper';
 import { FlowListComponent } from '@home/pages/admin/flow/flow-list.component';
+import { KpiListComponent } from '@home/pages/admin/kpi/kpi-list.component';
 import { ArchivesComponent } from './archives/archives.component';
 import { RepositoryComponent } from './repository/repository.component';
 import { FunctionListComponent } from './functions/function-list.component';
@@ -63,6 +64,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
       TwoFactorAuthSettingsComponent,
       FlowMapComponent,
       FlowListComponent,
+      KpiListComponent,
       ArchivesComponent,
       RepositoryComponent,
       EnvComponent,
