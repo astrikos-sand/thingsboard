@@ -188,6 +188,7 @@ import { EditFunctionDialogComponent } from '../pages/admin/functions/edit-funct
 import { AddPrefixDialogComponent } from '../pages/admin/prefix/add-prefix-dialog.component';
 import { ViewExecutionsDialogComponent } from '../pages/admin/flow/view-executions-dialog.component';
 import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.component';
+import { ViewTelemetryDialogComponent } from '../pages/admin/kpi/view-telemetry-dialog.component';
 
 @NgModule({
   declarations:
@@ -209,6 +210,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
       PeriodicTriggerDialogComponent,
       AddPrefixDialogComponent,
       ViewExecutionsDialogComponent,
+      ViewTelemetryDialogComponent,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
       EntityDetailsPageComponent,
@@ -373,6 +375,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
     CreateEnvDialogComponent,
     AddPrefixDialogComponent,
     ViewExecutionsDialogComponent,
+    ViewTelemetryDialogComponent,
     DetailsPanelComponent,
     EntityDetailsPanelComponent,
     EntityDetailsPageComponent,

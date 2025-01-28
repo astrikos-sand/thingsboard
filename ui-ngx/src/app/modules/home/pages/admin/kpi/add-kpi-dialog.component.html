@@ -46,6 +46,19 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
+      <mat-label>Input Telemetry</mat-label>
+      <input
+        matInput
+        placeholder="Enter Input Telemetry"
+        formControlName="inputTelemetry"
+        required
+      />
+      <mat-error *ngIf="submitted && form.get('inputTelemetry')?.invalid">
+        Input Telemetry is required.
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
       <mat-label>Output Telemetry</mat-label>
       <input
         matInput
@@ -55,19 +68,6 @@
       />
       <mat-error *ngIf="submitted && form.get('outputTelemetry')?.invalid">
         Output Telemetry is required.
-      </mat-error>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Period</mat-label>
-      <mat-select formControlName="period" required>
-        <mat-option value="hourly">Hourly</mat-option>
-        <mat-option value="daily">Daily</mat-option>
-        <mat-option value="weekly">Weekly</mat-option>
-        <mat-option value="monthly">Monthly</mat-option>
-      </mat-select>
-      <mat-error *ngIf="submitted && form.get('period')?.invalid">
-        Period is required.
       </mat-error>
     </mat-form-field>
 

@@ -20,6 +20,7 @@ import { AddKpiDialogComponent } from "./add-kpi-dialog.component";
 import { ConfirmDialogComponent } from "@app/shared/components/dialog/confirm-dialog.component";
 import { AddPrefixDialogComponent } from "../prefix/add-prefix-dialog.component";
 import { ToastNotificationService } from "@core/services/toast-notification.service";
+import { ViewTelemetryDialogComponent } from "./view-telemetry-dialog.component";
 
 interface KpiNode {
   name: string;
@@ -36,7 +37,7 @@ interface KpiNode {
   styleUrls: ["./kpi-list.component.scss"],
 })
 export class KpiListComponent implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ["name", "description", "period", "actions"];
+  displayedColumns: string[] = ["name", "description", "telemetry", "actions"];
   dataSource = new MatTableDataSource<any>([]);
   treeControl = new NestedTreeControl<KpiNode>((node) => node.children);
   kpiTreeDataSource = new MatTreeNestedDataSource<KpiNode>();
@@ -55,7 +56,7 @@ export class KpiListComponent implements OnInit, AfterViewInit {
     public dialog: MatDialog,
     private clipboard: Clipboard,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadInitialKpis();
@@ -222,6 +223,16 @@ export class KpiListComponent implements OnInit, AfterViewInit {
         this.refreshKpis(this.selectedNode);
       }
     });
+  }
+
+  openViewTelemetryDialog(kpi: any): void {
+    const dialogRef = this.dialog.open(ViewTelemetryDialogComponent, {
+      data: {
+        kpiId: kpi.id,
+        telemetryName: kpi.output_telemetry,
+      },
+    });
+    dialogRef.afterClosed().subscribe(() => { });
   }
 
   openEditKpiDialog(kpi: any): void {

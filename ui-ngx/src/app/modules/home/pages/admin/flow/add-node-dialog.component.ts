@@ -169,6 +169,8 @@ export class AddNewNodeDialog implements OnInit {
         return "flows";
       case "definition":
         return "functions";
+      case "kpi":
+        return "kpi";
       default:
         return "general";
     }

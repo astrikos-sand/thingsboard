@@ -100,12 +100,12 @@
               </mat-cell>
             </ng-container>
 
-            <ng-container matColumnDef="period">
+            <ng-container matColumnDef="telemetry">
               <mat-header-cell *matHeaderCellDef mat-sort-header>
-                Period
+                Telemetry (OUT)
               </mat-header-cell>
               <mat-cell *matCellDef="let kpi">
-                {{ kpi?.period | titlecase }}
+                {{ kpi?.output_telemetry }}
               </mat-cell>
             </ng-container>
 
@@ -125,6 +125,13 @@
                   matTooltip="Copy ID"
                 >
                   <mat-icon>content_copy</mat-icon>
+                </button>
+                <button
+                mat-icon-button
+                (click)="openViewTelemetryDialog(kpi)"
+                matTooltip="View Telemetry"
+                >
+                  <mat-icon>visibility</mat-icon>
                 </button>
                 <button
                   mat-icon-button

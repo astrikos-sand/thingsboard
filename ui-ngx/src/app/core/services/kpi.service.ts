@@ -8,7 +8,7 @@ import { Observable } from "rxjs";
 export class KpiService {
   private baseUrl = "/backend/v2/kpi/";
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   fetchKpis(parentId: string | null = null): Observable<any> {
     let params = new HttpParams();
@@ -38,6 +38,14 @@ export class KpiService {
     return this.http.get(`${this.baseUrl}prefix/by-type/`, {
       params: { type },
     });
+  }
+
+  getCalculations(kpiId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}${kpiId}/calculations/`);
+  }
+
+  getTelemetry(calculationId: string): Observable<any> {
+    return this.http.get(`${this.baseUrl}${calculationId}/telemetry/`);
   }
 
   // Add more methods as needed
