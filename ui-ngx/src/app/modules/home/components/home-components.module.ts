@@ -175,6 +175,7 @@ import { WidgetConfigComponentsModule } from '@home/components/widget/config/wid
 import { BasicWidgetConfigModule } from '@home/components/widget/config/basic/basic-widget-config.module';
 import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delete-timeseries-panel.component';
 import { AddFlowDialogComponent } from '@home/pages/admin/flow/add-flow-dialog.component';
+import { AddKpiDialogComponent } from '@home/pages/admin/kpi/add-kpi-dialog.component';
 import { AddNewNodeDialog } from '@app/modules/home/pages/admin/flow/add-node-dialog.component';
 import { AddFunctionDialog } from '@home/pages/admin/functions/function-dialog.component';
 import { UploadFileDialogComponent } from '../pages/admin/archives/upload-file-dialog.component';
@@ -187,6 +188,7 @@ import { EditFunctionDialogComponent } from '../pages/admin/functions/edit-funct
 import { AddPrefixDialogComponent } from '../pages/admin/prefix/add-prefix-dialog.component';
 import { ViewExecutionsDialogComponent } from '../pages/admin/flow/view-executions-dialog.component';
 import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.component';
+import { ViewTelemetryDialogComponent } from '../pages/admin/kpi/view-telemetry-dialog.component';
 
 @NgModule({
   declarations:
@@ -195,6 +197,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
       EntitiesTableComponent,
       AddEntityDialogComponent,
       AddFlowDialogComponent,
+      AddKpiDialogComponent,
       AddNewNodeDialog,
       AddFunctionDialog,
       EditFunctionDialogComponent,
@@ -207,6 +210,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
       PeriodicTriggerDialogComponent,
       AddPrefixDialogComponent,
       ViewExecutionsDialogComponent,
+      ViewTelemetryDialogComponent,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
       EntityDetailsPageComponent,
@@ -357,6 +361,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
     EntitiesTableComponent,
     AddEntityDialogComponent,
     AddFlowDialogComponent,
+    AddKpiDialogComponent,
     MatChipsModule,
     AddNewNodeDialog,
     AddFunctionDialog,
@@ -370,6 +375,7 @@ import { CreateEnvDialogComponent } from '../pages/admin/env/create-env-dialog.c
     CreateEnvDialogComponent,
     AddPrefixDialogComponent,
     ViewExecutionsDialogComponent,
+    ViewTelemetryDialogComponent,
     DetailsPanelComponent,
     EntityDetailsPanelComponent,
     EntityDetailsPageComponent,

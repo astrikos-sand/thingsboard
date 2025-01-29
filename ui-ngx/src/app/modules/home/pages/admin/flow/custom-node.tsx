@@ -10,6 +10,8 @@ const handleNodeHeader = (nodeType: string) => {
   else if (nodeType === "FlowNode") return <img src="/assets/mlworkbench/flow.svg" alt="Flow" />
   else if (nodeType === "InputNode") return <img src="/assets/mlworkbench/input.svg" alt="Input" />
   else if (nodeType === "OutputNode") return <img src="/assets/mlworkbench/output.svg" alt="Output" />
+  else if (nodeType === "KPINode") return <img src="/assets/mlworkbench/kpi.svg" alt="KPI" />
+  else if (nodeType === "DeviceNode") return <img src="/assets/mlworkbench/device.svg" alt="Device" />
   else return <strong>{nodeType}</strong>
 };
 
@@ -20,6 +22,17 @@ const handleNodeColor = (node_type: string, color: string) => {
   else if (node_type === "FlowNode") { bg = "#437BA7"; txtclr = "white", ligthclr = "#6e9dbf" }
   else if (node_type === "InputNode") { bg = "#A3D977"; txtclr = "#2E4B1D", ligthclr = "#c4e8a4" }
   else if (node_type === "OutputNode") { bg = "#FFA74D"; txtclr = "#4A2F1D", ligthclr = "#ffcc99" }
+  else if (node_type === "KPINode") {
+    bg = "#FFD700";
+    txtclr = "#4B3B00";
+    ligthclr = "#FFE680"
+  }
+  else if (node_type === "DeviceNode") {
+    bg = "#8A8AFF"
+    txtclr = "#2E2E5E"
+    ligthclr = "#B3B3FF"
+  }
+
   else { bg = color; txtclr = "white", ligthclr = "#6e9dbf" }
   return { bg, txtclr, ligthclr };
 };

@@ -519,6 +519,13 @@ export class MenuService {
             icon: 'folder'
           },
           {
+            id: 'kpi',
+            name: 'KPI',
+            type: 'link',
+            path: '/flows/kpi',
+            icon: 'mdi:chart-box-outline'
+          },
+          {
             id: 'env',
             name: 'Environments',
             type: 'link',

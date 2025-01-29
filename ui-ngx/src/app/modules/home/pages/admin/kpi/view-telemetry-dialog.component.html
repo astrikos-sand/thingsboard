@@ -1,0 +1,74 @@
+<mat-toolbar color="primary">
+  <h2>{{ telemetry ? 'Telemetry' : 'Calculations' }}</h2>
+  <span fxFlex></span>
+
+  <button mat-icon-button (click)="refreshTelemtry()" type="button">
+    <mat-icon>refresh</mat-icon>
+  </button>
+
+  <button mat-icon-button (click)="closeDialog()" type="button">
+    <mat-icon>close</mat-icon>
+  </button>
+
+</mat-toolbar>
+
+<mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+
+<ng-template #telemetryTable>
+  <div mat-dialog-content>
+    <p>Telemetry: {{ telemetryName }}</p>
+    <table *ngIf="!isLoading" class="mat-elevation-z8">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tele of telemetry">
+          <td>
+            {{ tele.ts }}
+          </td>
+          <td>
+            {{ tele.value }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="telemetry.length === 0 && !isLoading">
+      <p>No telemetry found for this flow.</p>
+    </div>
+  </div>
+  
+  <button mat-button (click)="backToCalculations()">Back</button>
+</ng-template>
+
+<ng-container *ngIf="!telemetry; else telemetryTable">
+  <div mat-dialog-content>
+    <table *ngIf="!isLoading" class="mat-elevation-z8">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let calc of calculations">
+          <td>
+            {{ calc.name }}
+          </td>
+          <td>
+            <button class="view-node-status" (click)="handleActiveCalculationChange(calc)">
+              View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="calculations.length === 0 && !isLoading">
+      <p>No calculations found for this flow.</p>
+    </div>
+  </div>
+</ng-container>

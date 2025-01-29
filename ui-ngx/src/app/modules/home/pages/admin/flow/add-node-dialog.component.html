@@ -112,6 +112,22 @@
                 </mat-form-field>
               </ng-template>
             </ng-container>
+            <ng-container *ngSwitchCase="'dropdown'">
+              <mat-form-field appearance="outline">
+                <mat-label>{{ field.get("label")?.value }}</mat-label>
+                <mat-select
+                  formControlName="value"
+                  [required]="field.get('required')?.value"
+                >
+                  <mat-option
+                    *ngFor="let option of field.get('choices')?.value"
+                    [value]="option.value"
+                  >
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              </ng-container>
           </div>
         </div>
         <div
